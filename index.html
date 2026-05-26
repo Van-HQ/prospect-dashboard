@@ -96,8 +96,9 @@
   .lCPX { background: rgba(176,110,255,0.08); color: var(--purple); border: 1px solid rgba(176,110,255,0.2); }
   .sh { color: var(--accent3) !important; }
   .sm { color: var(--accent) !important; }
+  .sy { color: var(--gold) !important; }
   .sl { color: var(--accent2) !important; }
-  .sv { color: var(--text-dim) !important; }
+  .sr { color: var(--red) !important; }
   .bw { display: flex; align-items: center; gap: 5px; }
   .bar { height: 4px; background: var(--border); border-radius: 2px; width: 44px; overflow: hidden; flex-shrink: 0; }
   .bf { height: 100%; border-radius: 2px; }
@@ -114,8 +115,9 @@
   .sc { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Bebas Neue', cursive; font-size: 19px; border: 2px solid; flex-shrink: 0; }
   .sc.sh { border-color: var(--accent3) !important; color: var(--accent3) !important; background: rgba(57,255,136,0.07); }
   .sc.sm { border-color: var(--accent) !important; color: var(--accent) !important; background: rgba(0,212,255,0.07); }
+  .sc.sy { border-color: var(--gold) !important; color: var(--gold) !important; background: rgba(255,215,0,0.07); }
   .sc.sl { border-color: var(--accent2) !important; color: var(--accent2) !important; background: rgba(255,107,53,0.07); }
-  .sc.sv { border-color: var(--text-dim) !important; color: var(--text-dim) !important; }
+  .sc.sr { border-color: var(--red) !important; color: var(--red) !important; background: rgba(255,68,68,0.07); }
   .csg { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; }
   .cs { text-align: center; }
   .sv2 { font-family: 'Bebas Neue', cursive; font-size: 17px; }
@@ -242,7 +244,6 @@
 const RAW = [
   {name:'Devin Fitz-Gerald',team:'WSN',level:'A+',age:20,ab:140,avg:0.307,obp:0.423,slg:0.65,ops:1.073,iso:0.343,bb:14.2,k:16.57,hr:11,sb:11,woba:0.46,wrc:170,ld:21,gbfb:0.89,hrfb:23.4,hit:0.84,dis:0.8,pwr:0.97,spd:0.75,age_r:0.7,wrc_r:1,ltw:4030,ltw_rank:11,prospect_score:87,rank:6,mlb_rank:null,org_rank:10},
   {name:'John Gil',team:'ATL',level:'A+',age:20,ab:139,avg:0.273,obp:0.373,slg:0.446,ops:0.819,iso:0.173,bb:13.53,k:19.41,hr:6,sb:23,woba:0.369,wrc:120,ld:28,gbfb:1.05,hrfb:15.79,hit:0.75,dis:0.77,pwr:0.7,spd:0.7,age_r:0.7,wrc_r:0.8,ltw:3259,ltw_rank:74,prospect_score:74,rank:127,mlb_rank:null,org_rank:10},
-  {name:'Charles Mcadoo',team:'TOR',level:'AAA',age:24,ab:146,avg:0.26,obp:0.37,slg:0.432,ops:0.801,iso:0.171,bb:14.45,k:21.39,hr:6,sb:6,woba:0.365,wrc:115,ld:19.09,gbfb:1.23,hrfb:15.0,hit:0.7,dis:0.77,pwr:0.7,spd:0.55,age_r:0.4,wrc_r:0.7,ltw:2397,ltw_rank:347,prospect_score:26,rank:327,mlb_rank:null,org_rank:null},
   {name:'Slade Caldwell',team:'ARI',level:'A+',age:20,ab:112,avg:0.188,obp:0.403,slg:0.232,ops:0.635,iso:0.045,bb:21.43,k:28.57,hr:0,sb:11,woba:0.342,wrc:101,ld:13,gbfb:1.36,hrfb:0,hit:0.52,dis:0.85,pwr:0.3,spd:0.6,age_r:0.7,wrc_r:0.6,ltw:2753,ltw_rank:197,prospect_score:58,rank:534,mlb_rank:null,org_rank:3},
   {name:'Cooper Flemming',team:'TBR',level:'A',age:19,ab:130,avg:0.308,obp:0.405,slg:0.469,ops:0.874,iso:0.162,bb:11.76,k:16.34,hr:3,sb:5,woba:0.411,wrc:143,ld:23,gbfb:1.79,hrfb:10.34,hit:0.83,dis:0.73,pwr:0.6,spd:0.6,age_r:0.7,wrc_r:0.9,ltw:3116,ltw_rank:97,prospect_score:74,rank:133,mlb_rank:null,org_rank:27},
   {name:'Jansel Luis',team:'ARI',level:'AA',age:21,ab:140,avg:0.25,obp:0.289,slg:0.4,ops:0.689,iso:0.15,bb:5.81,k:25.16,hr:4,sb:11,woba:0.307,wrc:61,ld:22,gbfb:2.33,hrfb:16.67,hit:0.57,dis:0.46,pwr:0.67,spd:0.65,age_r:0.7,wrc_r:0.3,ltw:2399,ltw_rank:342,prospect_score:53,rank:670,mlb_rank:null,org_rank:13},
@@ -1175,7 +1176,10 @@ let view = 'table';
 let page = 1;
 const PS = 30;
 
-function sc(p) { return p.prospect_score >= 83 ? 'sh' : p.prospect_score >= 73 ? 'sm' : p.prospect_score >= 60 ? 'sl' : 'sv'; }
+function sc(p) {
+  const s = p.prospect_score;
+  return s >= 90 ? 'sm' : s >= 80 ? 'sh' : s >= 70 ? 'sy' : s >= 60 ? 'sl' : 'sr';
+}
 function lc(l) {
   const lvl = l.split(',')[0].trim();
   return lvl === 'AAA' ? 'lAAA' : lvl === 'AA' ? 'lAA' : lvl === 'A+' ? 'lAp' : lvl === 'A' ? 'lA' : 'lCPX';
@@ -1185,8 +1189,15 @@ function bar(val, color) {
   const p = Math.round(val * 100);
   return `<div class="bw"><div class="bar"><div class="bf" style="width:${p}%;background:${color}"></div></div><span class="bv" style="color:${color}">${p}</span></div>`;
 }
-function opsColor(v) { return v >= 1.0 ? 'var(--accent3)' : v >= 0.85 ? 'var(--accent)' : v >= 0.75 ? 'var(--text-mid)' : 'var(--text-dim)'; }
-function wrcColor(v) { return v >= 150 ? 'var(--accent3)' : v >= 120 ? 'var(--accent)' : v >= 100 ? 'var(--text-mid)' : 'var(--text-dim)'; }
+function avgColor(v) { return v >= 0.325 ? 'var(--accent3)' : v <= 0.230 ? 'var(--red)' : ''; }
+function obpColor(v) { return v >= 0.400 ? 'var(--accent3)' : v <= 0.300 ? 'var(--red)' : ''; }
+function slgColor(v) { return v >= 0.550 ? 'var(--accent3)' : v <= 0.350 ? 'var(--red)' : ''; }
+function opsColor(v)  { return v >= 0.950 ? 'var(--accent3)' : v <= 0.650 ? 'var(--red)' : ''; }
+function isoColor(v)  { return v >= 0.220 ? 'var(--accent3)' : v <= 0.120 ? 'var(--red)' : ''; }
+function wobaColor(v) { return v >= 0.425 ? 'var(--accent3)' : v <= 0.290 ? 'var(--red)' : ''; }
+function wrcColor(v)  { return v >= 160   ? 'var(--accent3)' : v <= 80    ? 'var(--red)' : ''; }
+function bbColor(v)   { return v >= 15    ? 'var(--accent3)' : ''; }
+function kColor(v)    { return v <= 15    ? 'var(--accent3)' : v >= 28    ? 'var(--red)' : ''; }
 
 function applyF() {
   const q = document.getElementById('search').value.toLowerCase();
@@ -1216,7 +1227,11 @@ function sortData() {
     ltw: p => p.ltw, prospect_score: p => p.prospect_score,
     ops: p => p.ops, avg: p => p.avg, wrc: p => p.wrc,
     hr: p => p.hr, sb2: p => p.sb, woba: p => p.woba,
-    name: p => p.name
+    name: p => p.name,
+    hit: p => p.hit, pwr: p => p.pwr, spd: p => p.spd,
+    dis: p => p.dis, wrc_r: p => p.wrc_r,
+    age: p => p.age, ab: p => p.ab, iso: p => p.iso,
+    obp: p => p.obp, slg: p => p.slg, bb: p => p.bb, k: p => p.k
   }[sortF] || (p => p.ltw);
   filtered.sort((a,b) => {
     const va = fn(a), vb = fn(b);
@@ -1264,14 +1279,14 @@ function renderTable() {
     {k:'ab',l:'AB'},{k:'avg',l:'AVG'},{k:'obp',l:'OBP'},{k:'slg',l:'SLG'},
     {k:'ops',l:'OPS'},{k:'iso',l:'ISO'},{k:'woba',l:'wOBA'},{k:'wrc',l:'wRC+'},
     {k:'hr',l:'HR'},{k:'sb2',l:'SB'},{k:'bb',l:'BB%'},{k:'k',l:'K%'},
-    {k:'hit',l:'HIT'},{k:'pwr',l:'PWR'},{k:'spd',l:'SPD'},{k:'dis',l:'DIS'}
+    {k:'hit',l:'HIT'},{k:'pwr',l:'PWR'},{k:'spd',l:'SPD'},{k:'dis',l:'DIS'},{k:'wrc_r',l:'WRC+'}
   ];
   document.getElementById('th').innerHTML = `<tr>${cols.map(c =>
     `<th class="${sortF===c.k?'sorted':''}" onclick="sortBy('${c.k}')">${c.l}<span class="arr">${sortF===c.k?(sortD<0?'▼':'▲'):''}</span></th>`
   ).join('')}</tr>`;
 
   const pg = getPage();
-  if (!pg.length) { document.getElementById('tb').innerHTML = '<tr><td colspan="23" class="empty">No results</td></tr>'; return; }
+  if (!pg.length) { document.getElementById('tb').innerHTML = '<tr><td colspan="24" class="empty">No results</td></tr>'; return; }
 
   document.getElementById('tb').innerHTML = pg.map((p, i) => {
     const gi = (page-1)*PS + i + 1;
@@ -1285,21 +1300,22 @@ function renderTable() {
       <td class="${cls}" style="font-weight:600">${p.prospect_score}</td>
       <td style="color:var(--text-dim)">${p.ltw.toLocaleString()}</td>
       <td>${p.ab}</td>
-      <td>${p.avg.toFixed(3)}</td>
-      <td>${p.obp.toFixed(3)}</td>
-      <td>${p.slg.toFixed(3)}</td>
-      <td style="color:${opsColor(p.ops)};font-weight:600">${p.ops.toFixed(3)}</td>
-      <td>${p.iso.toFixed(3)}</td>
-      <td>${p.woba.toFixed(3)}</td>
+      <td style="${avgColor(p.avg)?`color:${avgColor(p.avg)};font-weight:600`:''}">${p.avg.toFixed(3)}</td>
+      <td style="${obpColor(p.obp)?`color:${obpColor(p.obp)};font-weight:600`:''}">${p.obp.toFixed(3)}</td>
+      <td style="${slgColor(p.slg)?`color:${slgColor(p.slg)};font-weight:600`:''}">${p.slg.toFixed(3)}</td>
+      <td style="${opsColor(p.ops)?`color:${opsColor(p.ops)};font-weight:600`:''}">${p.ops.toFixed(3)}</td>
+      <td style="${isoColor(p.iso)?`color:${isoColor(p.iso)};font-weight:600`:''}">${p.iso.toFixed(3)}</td>
+      <td style="${wobaColor(p.woba)?`color:${wobaColor(p.woba)};font-weight:600`:''}">${p.woba.toFixed(3)}</td>
       <td style="color:${wrcColor(p.wrc)};font-weight:600">${p.wrc}</td>
       <td>${p.hr}</td>
       <td>${p.sb}</td>
-      <td>${p.bb.toFixed(1)}%</td>
-      <td>${p.k.toFixed(1)}%</td>
+      <td style="${bbColor(p.bb)?`color:${bbColor(p.bb)};font-weight:600`:''}">${p.bb.toFixed(1)}%</td>
+      <td style="${kColor(p.k)?`color:${kColor(p.k)};font-weight:600`:''}">${p.k.toFixed(1)}%</td>
       <td>${bar(p.hit,'#00d4ff')}</td>
       <td>${bar(p.pwr,'#ffd700')}</td>
       <td>${bar(p.spd,'#39ff88')}</td>
       <td>${bar(p.dis,'#ff6b35')}</td>
+      <td>${bar(p.wrc_r,'#b06eff')}</td>
     </tr>`;
   }).join('');
 }
@@ -1387,9 +1403,9 @@ function showD(idx) {
           <div class="dmeta">
             <span class="tbadge">${p.team}</span>
             <span class="lvl ${lc(p.level)}">${p.level}</span>
-            <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-dim)">Age ${p.age}</span>
-            ${p.mlb_rank?`<span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--gold)">MLB #${p.mlb_rank}</span>`:''}
-            ${p.org_rank?`<span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-mid)">Org #${p.org_rank}</span>`:''}
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-mid)">Age ${p.age}</span>
+            ${p.mlb_rank?`<span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--gold)">MLB Rank #${p.mlb_rank}</span>`:''}
+            ${p.org_rank?`<span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-mid)">Org Rank #${p.org_rank}</span>`:''}
           </div>
         </div>
         <div class="sc ${cls}" style="width:52px;height:52px;font-size:24px">${p.prospect_score}</div>
@@ -1408,18 +1424,18 @@ function showD(idx) {
       <div class="ds">
         <h3>Slash Line</h3>
         <div class="dg4">
-          <div class="dstat"><div class="dl">AVG</div><div class="dv">${p.avg.toFixed(3)}</div></div>
-          <div class="dstat"><div class="dl">OBP</div><div class="dv">${p.obp.toFixed(3)}</div></div>
-          <div class="dstat"><div class="dl">SLG</div><div class="dv">${p.slg.toFixed(3)}</div></div>
+          <div class="dstat"><div class="dl">AVG</div><div class="dv" style="color:${avgColor(p.avg)}">${p.avg.toFixed(3)}</div></div>
+          <div class="dstat"><div class="dl">OBP</div><div class="dv" style="color:${obpColor(p.obp)}">${p.obp.toFixed(3)}</div></div>
+          <div class="dstat"><div class="dl">SLG</div><div class="dv" style="color:${slgColor(p.slg)}">${p.slg.toFixed(3)}</div></div>
           <div class="dstat"><div class="dl">OPS</div><div class="dv" style="color:${opsColor(p.ops)}">${p.ops.toFixed(3)}</div></div>
         </div>
       </div>
       <div class="ds">
         <h3>Advanced</h3>
         <div class="dg4">
-          <div class="dstat"><div class="dl">wOBA</div><div class="dv">${p.woba.toFixed(3)}</div></div>
+          <div class="dstat"><div class="dl">wOBA</div><div class="dv" style="color:${wobaColor(p.woba)}">${p.woba.toFixed(3)}</div></div>
           <div class="dstat"><div class="dl">wRC+</div><div class="dv" style="color:${wrcColor(p.wrc)}">${p.wrc}</div></div>
-          <div class="dstat"><div class="dl">ISO</div><div class="dv">${p.iso.toFixed(3)}</div></div>
+          <div class="dstat"><div class="dl">ISO</div><div class="dv" style="color:${isoColor(p.iso)}">${p.iso.toFixed(3)}</div></div>
           <div class="dstat"><div class="dl">AB</div><div class="dv">${p.ab}</div></div>
         </div>
       </div>
@@ -1428,8 +1444,8 @@ function showD(idx) {
         <div class="dg4">
           <div class="dstat"><div class="dl">HR</div><div class="dv">${p.hr}</div></div>
           <div class="dstat"><div class="dl">SB</div><div class="dv">${p.sb}</div></div>
-          <div class="dstat"><div class="dl">BB%</div><div class="dv">${p.bb.toFixed(1)}%</div></div>
-          <div class="dstat"><div class="dl">K%</div><div class="dv">${p.k.toFixed(1)}%</div></div>
+          <div class="dstat"><div class="dl">BB%</div><div class="dv" style="color:${bbColor(p.bb)}">${p.bb.toFixed(1)}%</div></div>
+          <div class="dstat"><div class="dl">K%</div><div class="dv" style="color:${kColor(p.k)}">${p.k.toFixed(1)}%</div></div>
         </div>
       </div>
       <div class="ds">
