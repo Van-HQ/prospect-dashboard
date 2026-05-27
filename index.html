@@ -138,6 +138,7 @@
   .dclose:hover { border-color: var(--red); color: var(--red); }
   .dflip { position: absolute; top: 12px; right: 46px; background: none; border: 1px solid var(--border); color: var(--text-dim); width: 26px; height: 26px; border-radius: 50%; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; z-index: 10; }
   .dflip:hover { border-color: var(--accent); color: var(--accent); }
+  #dscore { position: absolute; top: 46px; right: 16px; width: 52px; height: 52px; font-size: 24px; display: none; }
   .flip-wrap { perspective: 1200px; width: 100%; }
   .flip-inner { transform-style: preserve-3d; transition: transform 0.65s cubic-bezier(0.4,0.2,0.2,1); position: relative; }
   .flip-inner.flipped { transform: rotateY(180deg); }
@@ -283,6 +284,7 @@
   <div class="dpanel" id="dp">
     <button class="dclose" onclick="closeD()">✕</button>
     <button class="dflip" onclick="flipCard()" title="Radar view">⇌</button>
+    <div id="dscore" class="sc"></div>
     <div id="dc"></div>
   </div>
 </div>
@@ -614,6 +616,11 @@ function sortBy(f) {
 function showD(idx) {
   const p = RAW[idx];
   const cls = sc(p);
+  // Update the static score circle (positioned below the flip/close buttons)
+  const scoreEl = document.getElementById('dscore');
+  scoreEl.className = `sc ${cls}`;
+  scoreEl.textContent = p.prospect_score;
+  scoreEl.style.display = 'flex';
   const tools = [
     {l:'HIT',v:p.hit,c:'#00d4ff'},{l:'POWER',v:p.pwr,c:'#ffd700'},
     {l:'SPEED',v:p.spd,c:'#39ff88'},{l:'DISC',v:p.dis,c:'#ff6b35'},
@@ -628,8 +635,7 @@ function showD(idx) {
 
       <div class="flip-front">
         <div class="dh">
-          <div style="display:flex;align-items:flex-start;gap:12px;padding-right:84px">
-            <div style="flex:1">
+          <div style="padding-right:76px">
               <div class="dname">${p.name}</div>
               <div class="dmeta" style="gap:8px">
                 <span class="tbadge">${p.team}</span>
@@ -647,8 +653,6 @@ function showD(idx) {
                 ${p.mlb_rank&&p.org_rank?`<span style="color:var(--border);font-size:10px">|</span>`:''}
                 ${p.org_rank?`<span class="dmeta-sub">Org Rank #${p.org_rank}</span>`:''}
               </div>`:''}
-            </div>
-            <div class="sc ${cls}" style="width:52px;height:52px;font-size:24px;flex-shrink:0;margin-top:4px">${p.prospect_score}</div>
           </div>
         </div>
         <div class="db">
@@ -727,7 +731,7 @@ function showD(idx) {
 }
 
 function closeDov(e) { if(e.target===document.getElementById('dov')) closeD(); }
-function closeD() { document.getElementById('dov').classList.remove('open'); }
+function closeD() { document.getElementById('dov').classList.remove('open'); document.getElementById('dscore').style.display='none'; }
 
 function setView(v) {
   view=v;
