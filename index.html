@@ -723,7 +723,7 @@ function showD(idx) {
                 ${p.pos?`<span class="dmeta-dot">${p.pos}</span>`:''}
               </div>
               ${p.eta||p.size?`<div class="dmeta" style="gap:10px;margin-top:3px">
-                ${p.eta?`<span class="dmeta-sub">ETA ${p.eta}</span>`:''}
+                ${p.eta?`<span class="dmeta-sub">ETA ${p.eta.replace(/\.0$/,'')}</span>`:''}
                 ${p.eta&&p.size?`<span style="color:var(--border);font-size:10px">|</span>`:''}
                 ${p.size?`<span class="dmeta-sub">${p.size}</span>`:''}
               </div>`:''}
