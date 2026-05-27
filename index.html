@@ -411,6 +411,13 @@ function wrcColor(v)  { return v >= 160   ? 'var(--accent3)' : v <= 80    ? 'var
 function bbColor(v)   { return v >= 15    ? 'var(--accent3)' : ''; }
 function kColor(v)    { return v <= 15    ? 'var(--accent3)' : v >= 28    ? 'var(--red)' : ''; }
 
+// Null-safe formatters — return '—' when the value is missing
+function d3(v)  { return v != null ? v.toFixed(3) : '—'; }
+function d2(v)  { return v != null ? v.toFixed(2) : '—'; }
+function d1p(v) { return v != null ? v.toFixed(1) + '%' : '—'; }
+function d0p(v) { return v != null ? parseFloat(v).toFixed(0) + '%' : '—'; }
+function dltw(v){ return v != null ? v.toLocaleString() : '—'; }
+
 function applyF() {
   const q = document.getElementById('search').value.toLowerCase();
   const team = document.getElementById('ft').value;
@@ -458,17 +465,19 @@ function sortData() {
 function updateSummary() {
   const n = filtered.length;
   document.getElementById('total-count').textContent = n.toLocaleString();
-  document.getElementById('avg-score').textContent = n ? (filtered.reduce((s,p)=>s+p.prospect_score,0)/n).toFixed(1) : '—';
-  document.getElementById('avg-ops').textContent = n ? (filtered.reduce((s,p)=>s+p.ops,0)/n).toFixed(3) : '—';
-  document.getElementById('avg-wrc').textContent = n ? Math.round(filtered.reduce((s,p)=>s+p.wrc,0)/n) : '—';
+  document.getElementById('avg-score').textContent = n ? (filtered.reduce((s,p)=>s+(p.prospect_score??0),0)/n).toFixed(1) : '—';
+  const opsPlayers = filtered.filter(p=>p.ops!=null);
+  document.getElementById('avg-ops').textContent = opsPlayers.length ? (opsPlayers.reduce((s,p)=>s+p.ops,0)/opsPlayers.length).toFixed(3) : '—';
+  const wrcPlayers = filtered.filter(p=>p.wrc!=null);
+  document.getElementById('avg-wrc').textContent = wrcPlayers.length ? Math.round(wrcPlayers.reduce((s,p)=>s+p.wrc,0)/wrcPlayers.length) : '—';
 
   const lc2 = {};
   filtered.forEach(p => { const l = lvlShort(p.level); lc2[l] = (lc2[l]||0)+1; });
   const cards = [
     {label:'Prospects',value:n,sub:'in current view'},
-    {label:'Avg Prospect Score',value:n?(filtered.reduce((s,p)=>s+p.prospect_score,0)/n).toFixed(1):'—',sub:'out of 100'},
-    {label:'Avg OPS',value:n?(filtered.reduce((s,p)=>s+p.ops,0)/n).toFixed(3):'—',sub:'all levels'},
-    {label:'Avg wRC+',value:n?Math.round(filtered.reduce((s,p)=>s+p.wrc,0)/n):'—',sub:'lg avg = 100'},
+    {label:'Avg Prospect Score',value:n?(filtered.reduce((s,p)=>s+(p.prospect_score??0),0)/n).toFixed(1):'—',sub:'out of 100'},
+    {label:'Avg OPS',value:opsPlayers.length?(opsPlayers.reduce((s,p)=>s+p.ops,0)/opsPlayers.length).toFixed(3):'—',sub:'all levels'},
+    {label:'Avg wRC+',value:wrcPlayers.length?Math.round(wrcPlayers.reduce((s,p)=>s+p.wrc,0)/wrcPlayers.length):'—',sub:'lg avg = 100'},
     {label:'AAA',value:lc2['AAA']||0,sub:'triple-A'},
     {label:'AA',value:lc2['AA']||0,sub:'double-A'},
     {label:'A+ / High-A',value:lc2['A+']||0,sub:'high-A'},
@@ -513,19 +522,19 @@ function renderTable() {
       <td><span class="lvl ${lc(p.level)}">${lvlShort(p.level)}</span></td>
       <td>${p.age}</td>
       <td class="${cls}" style="font-weight:600">${p.prospect_score}</td>
-      <td style="color:var(--text-dim)">${p.ltw.toLocaleString()}</td>
+      <td style="color:var(--text-dim)">${dltw(p.ltw)}</td>
       <td>${p.ab}</td>
-      <td style="${avgColor(p.avg)?`color:${avgColor(p.avg)};font-weight:600`:''}">${p.avg.toFixed(3)}</td>
-      <td style="${obpColor(p.obp)?`color:${obpColor(p.obp)};font-weight:600`:''}">${p.obp.toFixed(3)}</td>
-      <td style="${slgColor(p.slg)?`color:${slgColor(p.slg)};font-weight:600`:''}">${p.slg.toFixed(3)}</td>
-      <td style="${opsColor(p.ops)?`color:${opsColor(p.ops)};font-weight:600`:''}">${p.ops.toFixed(3)}</td>
-      <td style="${isoColor(p.iso)?`color:${isoColor(p.iso)};font-weight:600`:''}">${p.iso.toFixed(3)}</td>
-      <td style="${wobaColor(p.woba)?`color:${wobaColor(p.woba)};font-weight:600`:''}">${p.woba.toFixed(3)}</td>
-      <td style="color:${wrcColor(p.wrc)};font-weight:600">${p.wrc}</td>
-      <td>${p.hr}</td>
-      <td>${p.sb}</td>
-      <td style="${bbColor(p.bb)?`color:${bbColor(p.bb)};font-weight:600`:''}">${p.bb.toFixed(1)}%</td>
-      <td style="${kColor(p.k)?`color:${kColor(p.k)};font-weight:600`:''}">${p.k.toFixed(1)}%</td>
+      <td style="${avgColor(p.avg)?`color:${avgColor(p.avg)};font-weight:600`:''}">${d3(p.avg)}</td>
+      <td style="${obpColor(p.obp)?`color:${obpColor(p.obp)};font-weight:600`:''}">${d3(p.obp)}</td>
+      <td style="${slgColor(p.slg)?`color:${slgColor(p.slg)};font-weight:600`:''}">${d3(p.slg)}</td>
+      <td style="${opsColor(p.ops)?`color:${opsColor(p.ops)};font-weight:600`:''}">${d3(p.ops)}</td>
+      <td style="${isoColor(p.iso)?`color:${isoColor(p.iso)};font-weight:600`:''}">${d3(p.iso)}</td>
+      <td style="${wobaColor(p.woba)?`color:${wobaColor(p.woba)};font-weight:600`:''}">${d3(p.woba)}</td>
+      <td style="color:${wrcColor(p.wrc)};font-weight:600">${p.wrc ?? '—'}</td>
+      <td>${p.hr ?? '—'}</td>
+      <td>${p.sb ?? '—'}</td>
+      <td style="${bbColor(p.bb)?`color:${bbColor(p.bb)};font-weight:600`:''}">${d1p(p.bb)}</td>
+      <td style="${kColor(p.k)?`color:${kColor(p.k)};font-weight:600`:''}">${d1p(p.k)}</td>
       <td>${bar(p.hit,'#00d4ff')}</td>
       <td>${bar(p.pwr,'#ffd700')}</td>
       <td>${bar(p.spd,'#39ff88')}</td>
@@ -554,14 +563,14 @@ function renderCards() {
         <div class="sc ${cls}">${p.prospect_score}</div>
       </div>
       <div class="csg" style="margin-bottom:6px">
-        <div class="cs"><div class="sv2">${p.avg.toFixed(3)}</div><div class="sl2">AVG</div></div>
-        <div class="cs"><div class="sv2" style="color:${opsColor(p.ops)}">${p.ops.toFixed(3)}</div><div class="sl2">OPS</div></div>
-        <div class="cs"><div class="sv2" style="color:${wrcColor(p.wrc)}">${p.wrc}</div><div class="sl2">wRC+</div></div>
+        <div class="cs"><div class="sv2">${d3(p.avg)}</div><div class="sl2">AVG</div></div>
+        <div class="cs"><div class="sv2" style="color:${opsColor(p.ops)}">${d3(p.ops)}</div><div class="sl2">OPS</div></div>
+        <div class="cs"><div class="sv2" style="color:${wrcColor(p.wrc)}">${p.wrc ?? '—'}</div><div class="sl2">wRC+</div></div>
       </div>
       <div class="csg">
-        <div class="cs"><div class="sv2">${p.hr}</div><div class="sl2">HR</div></div>
-        <div class="cs"><div class="sv2">${p.sb}</div><div class="sl2">SB</div></div>
-        <div class="cs"><div class="sv2">${p.ltw.toLocaleString()}</div><div class="sl2">LTW</div></div>
+        <div class="cs"><div class="sv2">${p.hr ?? '—'}</div><div class="sl2">HR</div></div>
+        <div class="cs"><div class="sv2">${p.sb ?? '—'}</div><div class="sl2">SB</div></div>
+        <div class="cs"><div class="sv2">${dltw(p.ltw)}</div><div class="sl2">LTW</div></div>
       </div>
       <div class="cdiv"></div>
       <div class="ctg">${tools.map(t => `<div class="ti">
@@ -648,25 +657,25 @@ function showD(idx) {
             <div class="dg4">
               <div class="dstat"><div class="dl">Prospect Score</div><div class="dv" style="color:${p.prospect_score>=90?'var(--accent)':p.prospect_score>=80?'var(--accent3)':p.prospect_score>=70?'var(--gold)':p.prospect_score>=60?'var(--accent2)':'var(--red)'}">${p.prospect_score}</div></div>
               <div class="dstat"><div class="dl">Prospect Rank</div><div class="dv">#${p.rank}</div></div>
-              <div class="dstat"><div class="dl">LTW Score</div><div class="dv">${p.ltw.toLocaleString()}</div></div>
+              <div class="dstat"><div class="dl">LTW Score</div><div class="dv">${dltw(p.ltw)}</div></div>
               <div class="dstat"><div class="dl">LTW Rank</div><div class="dv">#${p.ltw_rank}</div></div>
             </div>
           </div>
           <div class="ds">
             <h3>Slash Line</h3>
             <div class="dg4">
-              <div class="dstat"><div class="dl">AVG</div><div class="dv" style="color:${avgColor(p.avg)}">${p.avg.toFixed(3)}</div></div>
-              <div class="dstat"><div class="dl">OBP</div><div class="dv" style="color:${obpColor(p.obp)}">${p.obp.toFixed(3)}</div></div>
-              <div class="dstat"><div class="dl">SLG</div><div class="dv" style="color:${slgColor(p.slg)}">${p.slg.toFixed(3)}</div></div>
-              <div class="dstat"><div class="dl">OPS</div><div class="dv" style="color:${opsColor(p.ops)}">${p.ops.toFixed(3)}</div></div>
+              <div class="dstat"><div class="dl">AVG</div><div class="dv" style="color:${avgColor(p.avg)}">${d3(p.avg)}</div></div>
+              <div class="dstat"><div class="dl">OBP</div><div class="dv" style="color:${obpColor(p.obp)}">${d3(p.obp)}</div></div>
+              <div class="dstat"><div class="dl">SLG</div><div class="dv" style="color:${slgColor(p.slg)}">${d3(p.slg)}</div></div>
+              <div class="dstat"><div class="dl">OPS</div><div class="dv" style="color:${opsColor(p.ops)}">${d3(p.ops)}</div></div>
             </div>
           </div>
           <div class="ds">
             <h3>Advanced</h3>
             <div class="dg4">
-              <div class="dstat"><div class="dl">wOBA</div><div class="dv" style="color:${wobaColor(p.woba)}">${p.woba.toFixed(3)}</div></div>
-              <div class="dstat"><div class="dl">ISO</div><div class="dv" style="color:${isoColor(p.iso)}">${p.iso.toFixed(3)}</div></div>
-              <div class="dstat"><div class="dl">wRC+</div><div class="dv" style="color:${wrcColor(p.wrc)}">${p.wrc}</div></div>
+              <div class="dstat"><div class="dl">wOBA</div><div class="dv" style="color:${wobaColor(p.woba)}">${d3(p.woba)}</div></div>
+              <div class="dstat"><div class="dl">ISO</div><div class="dv" style="color:${isoColor(p.iso)}">${d3(p.iso)}</div></div>
+              <div class="dstat"><div class="dl">wRC+</div><div class="dv" style="color:${wrcColor(p.wrc)}">${p.wrc ?? '—'}</div></div>
               <div class="dstat"><div class="dl">SwStr%</div><div class="dv">${p.swstr!=null?p.swstr.toFixed(1)+'%':'—'}</div></div>
             </div>
           </div>
@@ -676,16 +685,16 @@ function showD(idx) {
               <div class="dstat"><div class="dl">AB</div><div class="dv">${p.ab}</div></div>
               <div class="dstat"><div class="dl">HR</div><div class="dv">${p.hr}</div></div>
               <div class="dstat"><div class="dl">SB</div><div class="dv">${p.sb}</div></div>
-              <div class="dstat"><div class="dl">BB%</div><div class="dv" style="color:${bbColor(p.bb)}">${p.bb.toFixed(1)}%</div></div>
+              <div class="dstat"><div class="dl">BB%</div><div class="dv" style="color:${bbColor(p.bb)}">${d1p(p.bb)}</div></div>
             </div>
           </div>
           <div class="ds">
             <h3>Batted Ball</h3>
             <div class="dg4">
-              <div class="dstat"><div class="dl">LD%</div><div class="dv">${p.ld.toFixed(0)}%</div></div>
-              <div class="dstat"><div class="dl">GB/FB</div><div class="dv">${p.gbfb.toFixed(2)}</div></div>
-              <div class="dstat"><div class="dl">HR/FB%</div><div class="dv">${p.hrfb.toFixed(1)}%</div></div>
-              <div class="dstat"><div class="dl">K%</div><div class="dv" style="color:${kColor(p.k)}">${p.k.toFixed(1)}%</div></div>
+              <div class="dstat"><div class="dl">LD%</div><div class="dv">${d0p(p.ld)}</div></div>
+              <div class="dstat"><div class="dl">GB/FB</div><div class="dv">${d2(p.gbfb)}</div></div>
+              <div class="dstat"><div class="dl">HR/FB%</div><div class="dv">${d1p(p.hrfb)}</div></div>
+              <div class="dstat"><div class="dl">K%</div><div class="dv" style="color:${kColor(p.k)}">${d1p(p.k)}</div></div>
             </div>
           </div>
           <div class="ds">
