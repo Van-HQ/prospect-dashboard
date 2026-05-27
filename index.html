@@ -747,7 +747,7 @@ document.getElementById('sb').addEventListener('change', e => { sortF=e.target.v
 
 async function init() {
   try {
-    const res = await fetch('prospects.json');
+    const res = await fetch('prospects.json?v=' + Date.now());
     if (!res.ok) throw new Error(res.status);
     RAW = await res.json();
   } catch(e) {
