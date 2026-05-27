@@ -138,7 +138,13 @@
   .dclose:hover { border-color: var(--red); color: var(--red); }
   .dflip { position: absolute; top: 12px; right: 46px; background: none; border: 1px solid var(--border); color: var(--text-dim); width: 26px; height: 26px; border-radius: 50%; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; z-index: 10; }
   .dflip:hover { border-color: var(--accent); color: var(--accent); }
+  #dstar { position: absolute; top: 12px; right: 80px; background: none; border: 1px solid var(--border); color: var(--text-dim); width: 26px; height: 26px; border-radius: 50%; cursor: pointer; font-size: 15px; display: none; align-items: center; justify-content: center; transition: all 0.2s; z-index: 10; line-height:1; }
+  #dstar:hover, #dstar.on { border-color: var(--gold); color: var(--gold); }
   #dscore { position: absolute; top: 46px; right: 16px; width: 52px; height: 52px; font-size: 24px; display: none; }
+  .star-btn { background: none; border: none; cursor: pointer; color: var(--border); font-size: 15px; padding: 0; line-height: 1; transition: color 0.15s; }
+  .star-btn:hover, .star-btn.on { color: var(--gold); }
+  .star-td { width: 28px; text-align: center; }
+  .watch-empty { text-align:center; padding:60px 20px; color:var(--text-dim); font-family:'IBM Plex Mono',monospace; font-size:13px; }
   .flip-wrap { perspective: 1200px; width: 100%; }
   .flip-inner { transform-style: preserve-3d; transition: transform 0.65s cubic-bezier(0.4,0.2,0.2,1); position: relative; }
   .flip-inner.flipped { transform: rotateY(180deg); }
@@ -270,6 +276,7 @@
   <div class="view-toggle">
     <button class="view-btn active" id="btn-table" onclick="setView('table')">≡ Table</button>
     <button class="view-btn" id="btn-cards" onclick="setView('cards')">⊞ Cards</button>
+    <button class="view-btn" id="btn-watch" onclick="setView('watch')">★ Watchlist</button>
   </div>
 </div>
 
@@ -277,6 +284,7 @@
   <div class="summary-bar" id="sumbar"></div>
   <div id="tv"><div class="table-container"><table><thead id="th"></thead><tbody id="tb"></tbody></table></div></div>
   <div id="cv" style="display:none"><div class="cards-grid" id="cg"></div></div>
+  <div id="wv" style="display:none"><div class="table-container"><table><thead id="wh"></thead><tbody id="wt"></tbody></table></div></div>
   <div class="pagination" id="pg"></div>
 </div>
 
@@ -284,6 +292,7 @@
   <div class="dpanel" id="dp">
     <button class="dclose" onclick="closeD()">✕</button>
     <button class="dflip" onclick="flipCard()" title="Radar view">⇌</button>
+    <button id="dstar" onclick="toggleWatch(RAW[currentIdx],event)" title="Add to watchlist">★</button>
     <div id="dscore" class="sc"></div>
     <div id="dc"></div>
   </div>
@@ -389,6 +398,22 @@ function radarSVG(p) {
 let view = 'table';
 let page = 1;
 const PS = 30;
+let currentIdx = -1;
+
+// ── Watchlist (persisted in localStorage) ────────────────────────────────────
+let watchlist = new Set(JSON.parse(localStorage.getItem('wl') || '[]'));
+function pkey(p) { return p.name + '||' + p.team; }
+function inWatch(p) { return watchlist.has(pkey(p)); }
+function toggleWatch(p, e) {
+  e.stopPropagation();
+  if (inWatch(p)) watchlist.delete(pkey(p)); else watchlist.add(pkey(p));
+  localStorage.setItem('wl', JSON.stringify([...watchlist]));
+  // refresh whatever view is showing
+  renderAll();
+  // sync detail-panel star if open
+  const ds = document.getElementById('dstar');
+  if (ds.style.display !== 'none') { ds.className = inWatch(p) ? 'on' : ''; ds.textContent = inWatch(p) ? '★' : '☆'; }
+}
 
 function sc(p) {
   const s = p.prospect_score;
@@ -494,8 +519,11 @@ function updateSummary() {
 function getPage() { return filtered.slice((page-1)*PS, page*PS); }
 
 function renderAll() {
-  if (view === 'table') renderTable(); else renderCards();
-  renderPg();
+  if (view === 'table') renderTable();
+  else if (view === 'cards') renderCards();
+  else renderWatch();
+  if (view === 'watch') document.getElementById('pg').innerHTML = '';
+  else renderPg();
 }
 
 function renderTable() {
@@ -507,17 +535,18 @@ function renderTable() {
     {k:'hr',l:'HR'},{k:'sb2',l:'SB'},{k:'bb',l:'BB%'},{k:'k',l:'K%'},
     {k:'hit',l:'HIT'},{k:'pwr',l:'PWR'},{k:'spd',l:'SPD'},{k:'dis',l:'DIS'},{k:'wrc_r',l:'WRC+'}
   ];
-  document.getElementById('th').innerHTML = `<tr>${cols.map(c =>
+  document.getElementById('th').innerHTML = `<tr><th class="star-td"></th>${cols.map(c =>
     `<th class="${sortF===c.k?'sorted':''}" onclick="sortBy('${c.k}')">${c.l}<span class="arr">${sortF===c.k?(sortD<0?'▼':'▲'):''}</span></th>`
   ).join('')}</tr>`;
 
   const pg = getPage();
-  if (!pg.length) { document.getElementById('tb').innerHTML = '<tr><td colspan="24" class="empty">No results</td></tr>'; return; }
+  if (!pg.length) { document.getElementById('tb').innerHTML = '<tr><td colspan="25" class="empty">No results</td></tr>'; return; }
 
   document.getElementById('tb').innerHTML = pg.map((p, i) => {
     const gi = (page-1)*PS + i + 1;
-    const cls = sc(p);
-    return `<tr onclick="showD(${RAW.indexOf(p)})">
+    const cls = sc(p); const idx = RAW.indexOf(p);
+    return `<tr onclick="showD(${idx})">
+      <td class="star-td"><button class="star-btn ${inWatch(p)?'on':''}" onclick="toggleWatch(RAW[${idx}],event)">★</button></td>
       <td style="color:var(--text-dim)">${gi}</td>
       <td class="pname">${p.name}</td>
       <td><span class="tbadge">${p.team}</span></td>
@@ -556,9 +585,11 @@ function renderCards() {
   ];
   document.getElementById('cg').innerHTML = pg.map(p => {
     const cls = sc(p);
-    return `<div class="pcard" onclick="showD(${RAW.indexOf(p)})">
+    const idx = RAW.indexOf(p);
+    return `<div class="pcard" onclick="showD(${idx})">
+      <button class="star-btn ${inWatch(p)?'on':''}" onclick="toggleWatch(RAW[${idx}],event)" style="position:absolute;top:10px;left:10px;font-size:17px">★</button>
       <div class="ch">
-        <div>
+        <div style="padding-left:18px">
           <div class="cn">${p.name}</div>
           <div class="cm">${p.team} · ${lvlShort(p.level)} · Age ${p.age}</div>
         </div>
@@ -581,6 +612,46 @@ function renderCards() {
         <div class="tv" style="color:${t.c}">${Math.round(p[t.k]*100)}</div>
       </div>`).join('')}</div>
     </div>`;
+  }).join('');
+}
+
+function renderWatch() {
+  const starred = RAW.filter(inWatch).sort((a,b) => (b.prospect_score??0)-(a.prospect_score??0));
+  const wh = document.getElementById('wh');
+  const wt = document.getElementById('wt');
+  if (!starred.length) {
+    wh.innerHTML = '';
+    wt.innerHTML = `<tr><td colspan="23" class="watch-empty">★ Your watchlist is empty — click the star on any player to add them</td></tr>`;
+    return;
+  }
+  wh.innerHTML = `<tr>
+    <th class="star-td"></th><th>Player</th><th>Team</th><th>Lvl</th><th>Age</th><th>Score</th>
+    <th>AB</th><th>AVG</th><th>OBP</th><th>SLG</th><th>OPS</th><th>ISO</th><th>wOBA</th><th>wRC+</th>
+    <th>HR</th><th>SB</th><th>BB%</th><th>K%</th><th>HIT</th><th>PWR</th><th>SPD</th><th>DIS</th><th>WRC+</th>
+  </tr>`;
+  wt.innerHTML = starred.map(p => {
+    const cls = sc(p); const idx = RAW.indexOf(p);
+    return `<tr onclick="showD(${idx})">
+      <td class="star-td"><button class="star-btn on" onclick="toggleWatch(RAW[${idx}],event)">★</button></td>
+      <td class="pname">${p.name}</td>
+      <td><span class="tbadge">${p.team}</span></td>
+      <td><span class="lvl ${lc(p.level)}">${lvlShort(p.level)}</span></td>
+      <td>${p.age}</td>
+      <td class="${cls}" style="font-weight:600">${p.prospect_score}</td>
+      <td>${p.ab}</td>
+      <td style="${avgColor(p.avg)?`color:${avgColor(p.avg)};font-weight:600`:''}">${d3(p.avg)}</td>
+      <td style="${obpColor(p.obp)?`color:${obpColor(p.obp)};font-weight:600`:''}">${d3(p.obp)}</td>
+      <td style="${slgColor(p.slg)?`color:${slgColor(p.slg)};font-weight:600`:''}">${d3(p.slg)}</td>
+      <td style="${opsColor(p.ops)?`color:${opsColor(p.ops)};font-weight:600`:''}">${d3(p.ops)}</td>
+      <td style="${isoColor(p.iso)?`color:${isoColor(p.iso)};font-weight:600`:''}">${d3(p.iso)}</td>
+      <td style="${wobaColor(p.woba)?`color:${wobaColor(p.woba)};font-weight:600`:''}">${d3(p.woba)}</td>
+      <td style="color:${wrcColor(p.wrc)};font-weight:600">${p.wrc??'—'}</td>
+      <td>${p.hr??'—'}</td><td>${p.sb??'—'}</td>
+      <td style="${bbColor(p.bb)?`color:${bbColor(p.bb)};font-weight:600`:''}">${d1p(p.bb)}</td>
+      <td style="${kColor(p.k)?`color:${kColor(p.k)};font-weight:600`:''}">${d1p(p.k)}</td>
+      <td>${bar(p.hit,'#00d4ff')}</td><td>${bar(p.pwr,'#ffd700')}</td>
+      <td>${bar(p.spd,'#39ff88')}</td><td>${bar(p.dis,'#ff6b35')}</td><td>${bar(p.wrc_r,'#b06eff')}</td>
+    </tr>`;
   }).join('');
 }
 
@@ -614,6 +685,7 @@ function sortBy(f) {
 }
 
 function showD(idx) {
+  currentIdx = idx;
   const p = RAW[idx];
   const cls = sc(p);
   // Update the static score circle (positioned below the flip/close buttons)
@@ -621,6 +693,11 @@ function showD(idx) {
   scoreEl.className = `sc ${cls}`;
   scoreEl.textContent = p.prospect_score;
   scoreEl.style.display = 'flex';
+  // Update the star button
+  const dstar = document.getElementById('dstar');
+  dstar.style.display = 'flex';
+  dstar.className = inWatch(p) ? 'on' : '';
+  dstar.textContent = inWatch(p) ? '★' : '☆';
   const tools = [
     {l:'HIT',v:p.hit,c:'#00d4ff'},{l:'POWER',v:p.pwr,c:'#ffd700'},
     {l:'SPEED',v:p.spd,c:'#39ff88'},{l:'DISC',v:p.dis,c:'#ff6b35'},
@@ -731,14 +808,14 @@ function showD(idx) {
 }
 
 function closeDov(e) { if(e.target===document.getElementById('dov')) closeD(); }
-function closeD() { document.getElementById('dov').classList.remove('open'); document.getElementById('dscore').style.display='none'; }
+function closeD() { document.getElementById('dov').classList.remove('open'); document.getElementById('dscore').style.display='none'; document.getElementById('dstar').style.display='none'; }
 
 function setView(v) {
   view=v;
-  document.getElementById('btn-table').classList.toggle('active',v==='table');
-  document.getElementById('btn-cards').classList.toggle('active',v==='cards');
+  ['table','cards','watch'].forEach(n => document.getElementById('btn-'+n).classList.toggle('active',v===n));
   document.getElementById('tv').style.display=v==='table'?'':'none';
   document.getElementById('cv').style.display=v==='cards'?'':'none';
+  document.getElementById('wv').style.display=v==='watch'?'':'none';
   renderAll();
 }
 
