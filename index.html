@@ -123,7 +123,7 @@
   .sv2 { font-family: 'Bebas Neue', cursive; font-size: 17px; }
   .sl2 { font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: var(--text-dim); letter-spacing: 0.5px; }
   .cdiv { height: 1px; background: var(--border); margin: 7px 0; }
-  .ctg { display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; }
+  .ctg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px 6px; }
   .ti { text-align: center; }
   .tl { font-size: 8px; color: var(--text-dim); letter-spacing: 0.3px; text-transform: uppercase; }
   .tb { height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; margin: 2px 0; }
@@ -165,7 +165,7 @@
   .ds { margin-bottom: 18px; }
   .ds h3 { font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: var(--text-dim); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 5px; }
   .dg4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
-  .dg5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+  .dg5 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px 14px; }
   .dstat .dl { font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: var(--text-dim); letter-spacing: 1px; margin-bottom: 2px; }
   .dstat .dv { font-family: 'Bebas Neue', cursive; font-size: 22px; }
   .dtb { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin: 3px 0; }
@@ -588,7 +588,7 @@ function renderCards() {
     const cls = sc(p);
     const idx = RAW.indexOf(p);
     return `<div class="pcard" onclick="showD(${idx})">
-      <button class="star-btn ${inWatch(p)?'on':''}" onclick="toggleWatch(RAW[${idx}],event)" style="position:absolute;top:10px;left:10px;font-size:17px">★</button>
+      <button class="star-btn ${inWatch(p)?'on':''}" onclick="toggleWatch(RAW[${idx}],event)" style="position:absolute;top:16px;left:10px;font-size:17px">★</button>
       <div class="ch">
         <div style="padding-left:18px">
           <div class="cn">${p.name}</div>
