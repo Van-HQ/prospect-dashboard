@@ -166,6 +166,9 @@
   .dmeta { display: flex; gap: 8px; margin-top: 5px; flex-wrap: wrap; align-items: center; }
   .dmeta-dot { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text-mid); }
   .dmeta-sub { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text-mid); letter-spacing: 0.02em; }
+  .dlinks { display: flex; gap: 5px; margin-top: 7px; flex-wrap: wrap; }
+  .dlink { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-dim); border: 1px solid var(--border); padding: 2px 8px; border-radius: 2px; text-decoration: none; transition: color 0.15s, border-color 0.15s; }
+  .dlink:hover { color: var(--accent); border-color: var(--accent); }
   .db { padding: 12px 22px; }
   .ds { margin-bottom: 12px; }
   .ds h3 { font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: var(--text-dim); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 6px; border-bottom: 1px solid var(--border); padding-bottom: 3px; }
@@ -713,6 +716,14 @@ function sortBy(f) {
 function showD(idx) {
   currentIdx = idx;
   const p = RAW[idx];
+  // Build external links dynamically from player name (mirrors Excel HYPERLINK formulas)
+  const _n = encodeURIComponent(p.name);
+  const plink = {
+    bin:  `https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(p.name+' 1st bowman autograph')}&LH_BIN=1&_sop=15&LH_PrefLoc=1`,
+    sn:   `https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(p.name+' 1st bowman')}&LH_Auction=1&_sop=1&LH_PrefLoc=1&Features=Serial%2520Numbered`,
+    fg:   `https://www.google.com/search?q=${encodeURIComponent(p.name+' site:fangraphs.com players')}`,
+    scp:  `https://www.sportscardspro.com/search-products?type=prices&q=${_n}&sort=popularity&sport=baseball-cards&rookies-only=false&exclude-variants=false&show-images=true`
+  };
   const cls = sc(p);
   // Update the static score circle (positioned below the flip/close buttons)
   const scoreEl = document.getElementById('dscore');
@@ -756,6 +767,12 @@ function showD(idx) {
                 ${p.mlb_rank&&p.org_rank?`<span style="color:var(--border);font-size:10px">|</span>`:''}
                 ${p.org_rank?`<span class="dmeta-sub">Org Rank #${p.org_rank}</span>`:''}
               </div>`:''}
+              <div class="dlinks">
+                <a href="${plink.bin}" target="_blank" class="dlink">BIN ↗</a>
+                <a href="${plink.sn}" target="_blank" class="dlink">S/N ↗</a>
+                <a href="${plink.fg}" target="_blank" class="dlink">STATS ↗</a>
+                <a href="${plink.scp}" target="_blank" class="dlink">SCP ↗</a>
+              </div>
           </div>
         </div>
         <div class="db">
