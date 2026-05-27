@@ -533,14 +533,14 @@ function renderTable() {
     {k:'ab',l:'AB'},{k:'avg',l:'AVG'},{k:'obp',l:'OBP'},{k:'slg',l:'SLG'},
     {k:'ops',l:'OPS'},{k:'iso',l:'ISO'},{k:'woba',l:'wOBA'},{k:'wrc',l:'wRC+'},
     {k:'hr',l:'HR'},{k:'sb2',l:'SB'},{k:'bb',l:'BB%'},{k:'k',l:'K%'},
-    {k:'hit',l:'HIT'},{k:'pwr',l:'PWR'},{k:'spd',l:'SPD'},{k:'dis',l:'DIS'},{k:'wrc_r',l:'WRC+'}
+    {k:'hit',l:'HIT'},{k:'pwr',l:'PWR'},{k:'spd',l:'SPD'},{k:'dis',l:'DIS'},{k:'age_r',l:'AGE'},{k:'wrc_r',l:'WRC+'}
   ];
   document.getElementById('th').innerHTML = `<tr><th class="star-td"></th>${cols.map(c =>
     `<th class="${sortF===c.k?'sorted':''}" onclick="sortBy('${c.k}')">${c.l}<span class="arr">${sortF===c.k?(sortD<0?'▼':'▲'):''}</span></th>`
   ).join('')}</tr>`;
 
   const pg = getPage();
-  if (!pg.length) { document.getElementById('tb').innerHTML = '<tr><td colspan="25" class="empty">No results</td></tr>'; return; }
+  if (!pg.length) { document.getElementById('tb').innerHTML = '<tr><td colspan="26" class="empty">No results</td></tr>'; return; }
 
   document.getElementById('tb').innerHTML = pg.map((p, i) => {
     const gi = (page-1)*PS + i + 1;
@@ -570,6 +570,7 @@ function renderTable() {
       <td>${bar(p.pwr,'#ffd700')}</td>
       <td>${bar(p.spd,'#39ff88')}</td>
       <td>${bar(p.dis,'#ff6b35')}</td>
+      <td>${bar(p.age_r,'#f472b6')}</td>
       <td>${bar(p.wrc_r,'#b06eff')}</td>
     </tr>`;
   }).join('');
@@ -581,7 +582,7 @@ function renderCards() {
   const tools = [
     {l:'HIT',k:'hit',c:'#00d4ff'},{l:'PWR',k:'pwr',c:'#ffd700'},
     {l:'SPD',k:'spd',c:'#39ff88'},{l:'DIS',k:'dis',c:'#ff6b35'},
-    {l:'wRC',k:'wrc_r',c:'#b06eff'}
+    {l:'AGE',k:'age_r',c:'#f472b6'},{l:'wRC',k:'wrc_r',c:'#b06eff'}
   ];
   document.getElementById('cg').innerHTML = pg.map(p => {
     const cls = sc(p);
@@ -621,13 +622,13 @@ function renderWatch() {
   const wt = document.getElementById('wt');
   if (!starred.length) {
     wh.innerHTML = '';
-    wt.innerHTML = `<tr><td colspan="23" class="watch-empty">★ Your watchlist is empty — click the star on any player to add them</td></tr>`;
+    wt.innerHTML = `<tr><td colspan="24" class="watch-empty">★ Your watchlist is empty — click the star on any player to add them</td></tr>`;
     return;
   }
   wh.innerHTML = `<tr>
     <th class="star-td"></th><th>Player</th><th>Team</th><th>Lvl</th><th>Age</th><th>Score</th>
     <th>AB</th><th>AVG</th><th>OBP</th><th>SLG</th><th>OPS</th><th>ISO</th><th>wOBA</th><th>wRC+</th>
-    <th>HR</th><th>SB</th><th>BB%</th><th>K%</th><th>HIT</th><th>PWR</th><th>SPD</th><th>DIS</th><th>WRC+</th>
+    <th>HR</th><th>SB</th><th>BB%</th><th>K%</th><th>HIT</th><th>PWR</th><th>SPD</th><th>DIS</th><th>AGE</th><th>WRC+</th>
   </tr>`;
   wt.innerHTML = starred.map(p => {
     const cls = sc(p); const idx = RAW.indexOf(p);
@@ -650,7 +651,8 @@ function renderWatch() {
       <td style="${bbColor(p.bb)?`color:${bbColor(p.bb)};font-weight:600`:''}">${d1p(p.bb)}</td>
       <td style="${kColor(p.k)?`color:${kColor(p.k)};font-weight:600`:''}">${d1p(p.k)}</td>
       <td>${bar(p.hit,'#00d4ff')}</td><td>${bar(p.pwr,'#ffd700')}</td>
-      <td>${bar(p.spd,'#39ff88')}</td><td>${bar(p.dis,'#ff6b35')}</td><td>${bar(p.wrc_r,'#b06eff')}</td>
+      <td>${bar(p.spd,'#39ff88')}</td><td>${bar(p.dis,'#ff6b35')}</td>
+      <td>${bar(p.age_r,'#f472b6')}</td><td>${bar(p.wrc_r,'#b06eff')}</td>
     </tr>`;
   }).join('');
 }
