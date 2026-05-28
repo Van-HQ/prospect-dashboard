@@ -320,6 +320,7 @@ let RAW = [];
 let filtered = [];
 let sortF = 'ltw', sortD = -1;
 let activeProfile = null; // 'power' | 'contact' | null
+let activeFallers = false;
 
 function flipCard() {
   const fi = document.getElementById('fi');
@@ -520,8 +521,12 @@ function applyF() {
     );
   }
   // Risers: only players with a positive MoM score delta and min 50 AB
-  if (sortF === 'prospect_score_d') {
+  if (sortF === 'prospect_score_d' && !activeFallers) {
     filtered = filtered.filter(p => (p.prospect_score_d ?? 0) >= 1 && (p.ab ?? 0) >= 50);
+  }
+  // Fallers: only players with a negative MoM score delta and min 50 AB
+  if (activeFallers) {
+    filtered = filtered.filter(p => (p.prospect_score_d ?? 0) <= -1 && (p.ab ?? 0) >= 50);
   }
   sortData();
   page = 1;
@@ -557,9 +562,19 @@ function quickFilter(type) {
     case 'top25':
       sortF = sortF==='prospect_score' ? 'ltw' : 'prospect_score';
       sortD = -1; document.getElementById('sb').value = sortF; applyF(); break;
-    case 'risers':
-      sortF = sortF==='prospect_score_d' ? 'ltw' : 'prospect_score_d';
-      sortD = -1; document.getElementById('sb').value = 'ltw'; applyF(); break;
+    case 'risers': {
+      const wasRisers = sortF==='prospect_score_d' && !activeFallers;
+      activeFallers = false;
+      sortF = wasRisers ? 'ltw' : 'prospect_score_d';
+      sortD = -1; applyF(); break;
+    }
+    case 'fallers':
+      if (activeFallers) {
+        activeFallers = false; sortF = 'ltw'; sortD = -1;
+      } else {
+        activeFallers = true; sortF = 'prospect_score_d'; sortD = 1;
+      }
+      applyF(); break;
     case 'power':
       activeProfile = activeProfile==='power' ? null : 'power'; applyF(); break;
     case 'contact':
@@ -590,8 +605,9 @@ function updateSummary() {
   const lvl = document.getElementById('fl').value;
   const age = document.getElementById('fa').value;
   const chips = [
-    { l:'Top 25',    type:'top25',  on: sortF==='prospect_score' },
-    { l:'Risers ▲',  type:'risers', on: sortF==='prospect_score_d' },
+    { l:'Top 25',    type:'top25',   on: sortF==='prospect_score' },
+    { l:'Risers ▲',  type:'risers',  on: sortF==='prospect_score_d' && !activeFallers },
+    { l:'Fallers ▼', type:'fallers', on: activeFallers },
     { l:'Power',   type:'power',   on: activeProfile==='power' },
     { l:'Contact', type:'contact', on: activeProfile==='contact' },
     { l:'Age ≤ 20',  type:'age20',  on: age==='20' },
@@ -638,7 +654,7 @@ function renderTable() {
       <td><span class="tbadge">${p.team}</span></td>
       <td><span class="lvl ${lc(p.level)}">${lvlShort(p.level)}</span></td>
       <td>${p.age}</td>
-      <td class="${cls}" style="font-weight:600">${p.prospect_score}${sortF==='prospect_score_d'&&p.prospect_score_d!=null?`<span style="color:#39ff88;font-size:9px;margin-left:4px;font-weight:700">+${Math.round(p.prospect_score_d)}</span>`:tbl(p.prospect_score_d)}</td>
+      <td class="${cls}" style="font-weight:600">${p.prospect_score}${sortF==='prospect_score_d'&&p.prospect_score_d!=null?activeFallers?`<span style="color:#ff4444;font-size:9px;margin-left:4px;font-weight:700">${Math.round(p.prospect_score_d)}</span>`:`<span style="color:#39ff88;font-size:9px;margin-left:4px;font-weight:700">+${Math.round(p.prospect_score_d)}</span>`:tbl(p.prospect_score_d)}</td>
       <td style="color:var(--text-dim)">${dltw(p.ltw)}${tbl(p.ltw_d)}</td>
       <td>${p.ab}</td>
       <td style="${avgColor(p.avg)?`color:${avgColor(p.avg)};font-weight:600`:''}">${d3(p.avg)}${tbl(p.avg_d)}</td>
@@ -751,7 +767,7 @@ function renderWatch() {
       <td><span class="tbadge">${p.team}</span></td>
       <td><span class="lvl ${lc(p.level)}">${lvlShort(p.level)}</span></td>
       <td>${p.age}</td>
-      <td class="${cls}" style="font-weight:600">${p.prospect_score}${sortF==='prospect_score_d'&&p.prospect_score_d!=null?`<span style="color:#39ff88;font-size:9px;margin-left:4px;font-weight:700">+${Math.round(p.prospect_score_d)}</span>`:tbl(p.prospect_score_d)}</td>
+      <td class="${cls}" style="font-weight:600">${p.prospect_score}${sortF==='prospect_score_d'&&p.prospect_score_d!=null?activeFallers?`<span style="color:#ff4444;font-size:9px;margin-left:4px;font-weight:700">${Math.round(p.prospect_score_d)}</span>`:`<span style="color:#39ff88;font-size:9px;margin-left:4px;font-weight:700">+${Math.round(p.prospect_score_d)}</span>`:tbl(p.prospect_score_d)}</td>
       <td style="color:var(--text-dim)">${dltw(p.ltw)}${tbl(p.ltw_d)}</td>
       <td>${p.ab}</td>
       <td style="${avgColor(p.avg)?`color:${avgColor(p.avg)};font-weight:600`:''}">${d3(p.avg)}${tbl(p.avg_d)}</td>
