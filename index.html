@@ -605,12 +605,10 @@ function updateSummary() {
   const lvl = document.getElementById('fl').value;
   const age = document.getElementById('fa').value;
   const chips = [
-    { l:'Top 25',    type:'top25',   on: sortF==='prospect_score' },
     { l:'Risers ▲',  type:'risers',  on: sortF==='prospect_score_d' && !activeFallers },
     { l:'Fallers ▼', type:'fallers', on: activeFallers },
-    { l:'Power',   type:'power',   on: activeProfile==='power' },
-    { l:'Contact', type:'contact', on: activeProfile==='contact' },
-    { l:'Age ≤ 20',  type:'age20',  on: age==='20' },
+    { l:'Power',     type:'power',   on: activeProfile==='power' },
+    { l:'Contact',   type:'contact', on: activeProfile==='contact' },
   ];
   document.getElementById('sumbar').innerHTML =
     `<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:4px 0 10px">
@@ -722,30 +720,19 @@ function renderCards() {
 function renderWatch() {
   const wh = document.getElementById('wh');
   const wt = document.getElementById('wt');
-  const starred = RAW.filter(inWatch);
-  if (!starred.length) {
+  const allWatched = RAW.filter(inWatch);
+  if (!allWatched.length) {
     wh.innerHTML = '';
     wt.innerHTML = `<tr><td colspan="26" class="watch-empty">★ Your watchlist is empty — click the star on any player to add them</td></tr>`;
     return;
   }
-  // Apply the same global sort as the main table
-  const sortMap = {
-    name: p=>p.name, team: p=>p.team, level: p=>p.level,
-    prospect_score: p=>p.prospect_score??0, ltw: p=>p.ltw??0,
-    avg: p=>p.avg??0, obp: p=>p.obp??0, slg: p=>p.slg??0,
-    ops: p=>p.ops??0, iso: p=>p.iso??0, woba: p=>p.woba??0,
-    wrc: p=>p.wrc??0, hr: p=>p.hr??0, sb: p=>p.sb??0,
-    bb: p=>p.bb??0, k: p=>p.k??0, ld: p=>p.ld??0, ab: p=>p.ab??0,
-    hit: p=>p.hit??0, pwr: p=>p.pwr??0, spd: p=>p.spd??0,
-    dis: p=>p.dis??0, age_r: p=>p.age_r??0, wrc_r: p=>p.wrc_r??0,
-    age: p=>p.age??0,
-  };
-  const fn = sortMap[sortF] || (p=>p.ltw??0);
-  starred.sort((a,b) => {
-    const va=fn(a), vb=fn(b);
-    if (typeof va==='string') return va.localeCompare(vb)*sortD;
-    return (vb-va)*(sortD<0?1:-1);
-  });
+  // Use filtered (already sorted by sortData) so all active chips apply here too
+  const starred = filtered.filter(inWatch);
+  if (!starred.length) {
+    wh.innerHTML = '';
+    wt.innerHTML = `<tr><td colspan="26" class="watch-empty">No watchlist players match the current filters</td></tr>`;
+    return;
+  }
   // Same cols + header as renderTable
   const cols = [
     {k:'#',l:'#'},{k:'name',l:'Player'},{k:'team',l:'Team'},{k:'level',l:'Lvl'},
