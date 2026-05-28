@@ -519,9 +519,9 @@ function applyF() {
       (p.wrc ?? 0) >  120
     );
   }
-  // Risers: only players with a positive MoM score delta
+  // Risers: only players with a positive MoM score delta and min 50 AB
   if (sortF === 'prospect_score_d') {
-    filtered = filtered.filter(p => (p.prospect_score_d ?? 0) > 0);
+    filtered = filtered.filter(p => (p.prospect_score_d ?? 0) > 0 && (p.ab ?? 0) >= 50);
   }
   sortData();
   page = 1;
@@ -638,7 +638,7 @@ function renderTable() {
       <td><span class="tbadge">${p.team}</span></td>
       <td><span class="lvl ${lc(p.level)}">${lvlShort(p.level)}</span></td>
       <td>${p.age}</td>
-      <td class="${cls}" style="font-weight:600">${p.prospect_score}${sortF==='prospect_score_d'&&p.prospect_score_d!=null?`<span style="color:#39ff88;font-size:9px;margin-left:4px;font-weight:700">+${p.prospect_score_d}</span>`:tbl(p.prospect_score_d)}</td>
+      <td class="${cls}" style="font-weight:600">${p.prospect_score}${sortF==='prospect_score_d'&&p.prospect_score_d!=null?`<span style="color:#39ff88;font-size:9px;margin-left:4px;font-weight:700">+${Math.round(p.prospect_score_d)}</span>`:tbl(p.prospect_score_d)}</td>
       <td style="color:var(--text-dim)">${dltw(p.ltw)}${tbl(p.ltw_d)}</td>
       <td>${p.ab}</td>
       <td style="${avgColor(p.avg)?`color:${avgColor(p.avg)};font-weight:600`:''}">${d3(p.avg)}${tbl(p.avg_d)}</td>
@@ -751,7 +751,7 @@ function renderWatch() {
       <td><span class="tbadge">${p.team}</span></td>
       <td><span class="lvl ${lc(p.level)}">${lvlShort(p.level)}</span></td>
       <td>${p.age}</td>
-      <td class="${cls}" style="font-weight:600">${p.prospect_score}${sortF==='prospect_score_d'&&p.prospect_score_d!=null?`<span style="color:#39ff88;font-size:9px;margin-left:4px;font-weight:700">+${p.prospect_score_d}</span>`:tbl(p.prospect_score_d)}</td>
+      <td class="${cls}" style="font-weight:600">${p.prospect_score}${sortF==='prospect_score_d'&&p.prospect_score_d!=null?`<span style="color:#39ff88;font-size:9px;margin-left:4px;font-weight:700">+${Math.round(p.prospect_score_d)}</span>`:tbl(p.prospect_score_d)}</td>
       <td style="color:var(--text-dim)">${dltw(p.ltw)}${tbl(p.ltw_d)}</td>
       <td>${p.ab}</td>
       <td style="${avgColor(p.avg)?`color:${avgColor(p.avg)};font-weight:600`:''}">${d3(p.avg)}${tbl(p.avg_d)}</td>
