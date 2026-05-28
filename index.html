@@ -569,6 +569,8 @@ function sortData() {
     prospect_score_d: p => p.prospect_score_d ?? 0,
     ld: p => p.ld ?? 0,
     val: p => p._val ?? 0,
+    price_raw: p => p.price_raw ?? 0,
+    price_psa10: p => p.price_psa10 ?? 0,
     age: p => p.age, ab: p => p.ab, iso: p => p.iso,
     obp: p => p.obp, slg: p => p.slg, bb: p => p.bb, k: p => p.k,
     swstr: p => p.swstr ?? 0
@@ -660,7 +662,7 @@ function renderTable() {
   const cols = [
     {k:'#',l:'#'},{k:'name',l:'Player'},{k:'team',l:'Team'},{k:'level',l:'Lvl'},
     {k:'age',l:'Age'},
-    ...(activeValue ? [{k:'val',l:'VAL'}] : []),
+    ...(activeValue ? [{k:'val',l:'VAL'},{k:'price_raw',l:'RAW $'},{k:'price_psa10',l:'PSA 10'}] : []),
     {k:'prospect_score',l:'Score'},{k:'ltw',l:'LTW'},
     {k:'ab',l:'AB'},{k:'avg',l:'AVG'},{k:'obp',l:'OBP'},{k:'slg',l:'SLG'},
     {k:'ops',l:'OPS'},{k:'iso',l:'ISO'},{k:'woba',l:'wOBA'},{k:'wrc',l:'wRC+'},
@@ -684,7 +686,7 @@ function renderTable() {
       <td><span class="tbadge">${p.team}</span></td>
       <td><span class="lvl ${lc(p.level)}">${lvlShort(p.level)}</span></td>
       <td>${p.age}</td>
-      ${activeValue ? `<td style="${valColor(p._val)?`color:${valColor(p._val)};font-weight:700`:''}">${p._val ?? '—'}</td>` : ''}
+      ${activeValue ? `<td style="${valColor(p._val)?`color:${valColor(p._val)};font-weight:700`:''}">${p._val ?? '—'}</td><td style="color:var(--text-dim)">${p.price_raw!=null?'$'+p.price_raw.toFixed(2):'—'}</td><td style="color:var(--gold)">${p.price_psa10!=null?'$'+p.price_psa10.toFixed(2):'—'}</td>` : ''}
       <td class="${cls}" style="font-weight:600">${p.prospect_score}${sortF==='prospect_score_d'&&p.prospect_score_d!=null?activeFallers?`<span style="color:#ff4444;font-size:9px;margin-left:4px;font-weight:700">${Math.round(p.prospect_score_d)}</span>`:`<span style="color:#39ff88;font-size:9px;margin-left:4px;font-weight:700">+${Math.round(p.prospect_score_d)}</span>`:tbl(p.prospect_score_d)}</td>
       <td style="color:var(--text-dim)">${dltw(p.ltw)}${tbl(p.ltw_d)}</td>
       <td>${p.ab}</td>
@@ -770,7 +772,7 @@ function renderWatch() {
   const cols = [
     {k:'#',l:'#'},{k:'name',l:'Player'},{k:'team',l:'Team'},{k:'level',l:'Lvl'},
     {k:'age',l:'Age'},
-    ...(activeValue ? [{k:'val',l:'VAL'}] : []),
+    ...(activeValue ? [{k:'val',l:'VAL'},{k:'price_raw',l:'RAW $'},{k:'price_psa10',l:'PSA 10'}] : []),
     {k:'prospect_score',l:'Score'},{k:'ltw',l:'LTW'},
     {k:'ab',l:'AB'},{k:'avg',l:'AVG'},{k:'obp',l:'OBP'},{k:'slg',l:'SLG'},
     {k:'ops',l:'OPS'},{k:'iso',l:'ISO'},{k:'woba',l:'wOBA'},{k:'wrc',l:'wRC+'},
@@ -789,7 +791,7 @@ function renderWatch() {
       <td><span class="tbadge">${p.team}</span></td>
       <td><span class="lvl ${lc(p.level)}">${lvlShort(p.level)}</span></td>
       <td>${p.age}</td>
-      ${activeValue ? `<td style="${valColor(p._val)?`color:${valColor(p._val)};font-weight:700`:''}">${p._val ?? '—'}</td>` : ''}
+      ${activeValue ? `<td style="${valColor(p._val)?`color:${valColor(p._val)};font-weight:700`:''}">${p._val ?? '—'}</td><td style="color:var(--text-dim)">${p.price_raw!=null?'$'+p.price_raw.toFixed(2):'—'}</td><td style="color:var(--gold)">${p.price_psa10!=null?'$'+p.price_psa10.toFixed(2):'—'}</td>` : ''}
       <td class="${cls}" style="font-weight:600">${p.prospect_score}${sortF==='prospect_score_d'&&p.prospect_score_d!=null?activeFallers?`<span style="color:#ff4444;font-size:9px;margin-left:4px;font-weight:700">${Math.round(p.prospect_score_d)}</span>`:`<span style="color:#39ff88;font-size:9px;margin-left:4px;font-weight:700">+${Math.round(p.prospect_score_d)}</span>`:tbl(p.prospect_score_d)}</td>
       <td style="color:var(--text-dim)">${dltw(p.ltw)}${tbl(p.ltw_d)}</td>
       <td>${p.ab}</td>
