@@ -37,6 +37,9 @@
   .header-right { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
   .stat-pill { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text-dim); border: 1px solid var(--border); padding: 3px 8px; border-radius: 2px; white-space: nowrap; }
   .stat-pill span { color: var(--accent); font-weight: 600; }
+  .chip { font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.5px; padding: 4px 11px; border-radius: 3px; border: 1px solid var(--border); background: transparent; color: var(--text-dim); cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+  .chip:hover { border-color: var(--accent); color: var(--accent); }
+  .chip.on { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 600; }
 
   .controls {
     background: var(--surface); border-bottom: 1px solid var(--border);
@@ -510,6 +513,7 @@ function sortData() {
     name: p => p.name,
     hit: p => p.hit, pwr: p => p.pwr, spd: p => p.spd,
     dis: p => p.dis, age_r: p => p.age_r ?? 0, wrc_r: p => p.wrc_r,
+    prospect_score_d: p => p.prospect_score_d ?? 0,
     age: p => p.age, ab: p => p.ab, iso: p => p.iso,
     obp: p => p.obp, slg: p => p.slg, bb: p => p.bb, k: p => p.k,
     swstr: p => p.swstr ?? 0
@@ -521,7 +525,58 @@ function sortData() {
   });
 }
 
-function updateSummary() { /* reserved for future use */ }
+function quickFilter(type) {
+  const lvl = document.getElementById('fl').value;
+  const age = document.getElementById('fa').value;
+  switch(type) {
+    case 'top25':
+      sortF = sortF==='prospect_score' ? 'ltw' : 'prospect_score';
+      sortD = -1; document.getElementById('sb').value = sortF; applyF(); break;
+    case 'risers':
+      sortF = sortF==='prospect_score_d' ? 'ltw' : 'prospect_score_d';
+      sortD = -1; document.getElementById('sb').value = 'ltw'; applyF(); break;
+    case 'aaa':
+      document.getElementById('fl').value = lvl==='AAA' ? '' : 'AAA'; applyF(); break;
+    case 'aa':
+      document.getElementById('fl').value = lvl==='AA' ? '' : 'AA'; applyF(); break;
+    case 'age20':
+      document.getElementById('fa').value = age==='20' ? '' : '20'; applyF(); break;
+    case 'watch':
+      setView(view==='watch' ? 'table' : 'watch'); break;
+  }
+}
+
+function updateSummary() {
+  // ── Market snapshot → header-right ───────────────────────────────────────
+  const priced   = RAW.filter(p => p.price_raw  != null);
+  const psa10d   = RAW.filter(p => p.price_psa10 != null);
+  const wlPriced = RAW.filter(p => inWatch(p) && p.price_raw != null);
+  const avgRaw   = priced.length   ? priced.reduce((s,p)=>s+p.price_raw,0)   / priced.length   : null;
+  const avgPsa10 = psa10d.length   ? psa10d.reduce((s,p)=>s+p.price_psa10,0) / psa10d.length   : null;
+  const wlVal    = wlPriced.reduce((s,p)=>s+p.price_raw, 0);
+  const fmt = v => '$' + v.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0});
+  document.getElementById('header-right').innerHTML = [
+    avgRaw   != null ? `<div class="stat-pill">Avg Raw <span>${fmt(avgRaw)}</span></div>`   : '',
+    avgPsa10 != null ? `<div class="stat-pill">Avg PSA10 <span style="color:var(--accent)">${fmt(avgPsa10)}</span></div>` : '',
+    wlPriced.length  ? `<div class="stat-pill">★ Est. Value <span style="color:var(--gold)">${fmt(wlVal)}</span></div>` : '',
+  ].join('');
+
+  // ── Quick filter chips → sumbar ───────────────────────────────────────────
+  const lvl = document.getElementById('fl').value;
+  const age = document.getElementById('fa').value;
+  const chips = [
+    { l:'Top 25',    type:'top25',  on: sortF==='prospect_score' },
+    { l:'Risers ▲',  type:'risers', on: sortF==='prospect_score_d' },
+    { l:'AAA',       type:'aaa',    on: lvl==='AAA' },
+    { l:'AA',        type:'aa',     on: lvl==='AA' },
+    { l:'Age ≤ 20',  type:'age20',  on: age==='20' },
+    { l:'★ Watchlist',type:'watch', on: view==='watch' },
+  ];
+  document.getElementById('sumbar').innerHTML =
+    `<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:4px 0 10px">
+      ${chips.map(c=>`<button class="chip${c.on?' on':''}" onclick="quickFilter('${c.type}')">${c.l}</button>`).join('')}
+    </div>`;
+}
 
 function getPage() { return filtered.slice((page-1)*PS, page*PS); }
 
