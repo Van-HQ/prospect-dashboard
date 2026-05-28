@@ -654,39 +654,67 @@ function renderCards() {
 }
 
 function renderWatch() {
-  const starred = RAW.filter(inWatch).sort((a,b) => (b.prospect_score??0)-(a.prospect_score??0));
   const wh = document.getElementById('wh');
   const wt = document.getElementById('wt');
+  const starred = RAW.filter(inWatch);
   if (!starred.length) {
     wh.innerHTML = '';
-    wt.innerHTML = `<tr><td colspan="24" class="watch-empty">★ Your watchlist is empty — click the star on any player to add them</td></tr>`;
+    wt.innerHTML = `<tr><td colspan="26" class="watch-empty">★ Your watchlist is empty — click the star on any player to add them</td></tr>`;
     return;
   }
-  wh.innerHTML = `<tr>
-    <th class="star-td"></th><th>Player</th><th>Team</th><th>Lvl</th><th>Age</th><th>Score</th>
-    <th>AB</th><th>AVG</th><th>OBP</th><th>SLG</th><th>OPS</th><th>ISO</th><th>wOBA</th><th>wRC+</th>
-    <th>HR</th><th>SB</th><th>BB%</th><th>K%</th><th>HIT</th><th>PWR</th><th>SPD</th><th>DIS</th><th>AGE</th><th>WRC+</th>
-  </tr>`;
-  wt.innerHTML = starred.map(p => {
-    const cls = sc(p); const idx = RAW.indexOf(p);
+  // Apply the same global sort as the main table
+  const sortMap = {
+    name: p=>p.name, team: p=>p.team, level: p=>p.level,
+    prospect_score: p=>p.prospect_score??0, ltw: p=>p.ltw??0,
+    avg: p=>p.avg??0, obp: p=>p.obp??0, slg: p=>p.slg??0,
+    ops: p=>p.ops??0, iso: p=>p.iso??0, woba: p=>p.woba??0,
+    wrc: p=>p.wrc??0, hr: p=>p.hr??0, sb: p=>p.sb??0,
+    bb: p=>p.bb??0, k: p=>p.k??0, ab: p=>p.ab??0,
+    hit: p=>p.hit??0, pwr: p=>p.pwr??0, spd: p=>p.spd??0,
+    dis: p=>p.dis??0, age_r: p=>p.age_r??0, wrc_r: p=>p.wrc_r??0,
+    age: p=>p.age??0,
+  };
+  const fn = sortMap[sortF] || (p=>p.ltw??0);
+  starred.sort((a,b) => {
+    const va=fn(a), vb=fn(b);
+    if (typeof va==='string') return va.localeCompare(vb)*sortD;
+    return (vb-va)*(sortD<0?1:-1);
+  });
+  // Same cols + header as renderTable
+  const cols = [
+    {k:'#',l:'#'},{k:'name',l:'Player'},{k:'team',l:'Team'},{k:'level',l:'Lvl'},
+    {k:'age',l:'Age'},{k:'prospect_score',l:'Score'},{k:'ltw',l:'LTW'},
+    {k:'ab',l:'AB'},{k:'avg',l:'AVG'},{k:'obp',l:'OBP'},{k:'slg',l:'SLG'},
+    {k:'ops',l:'OPS'},{k:'iso',l:'ISO'},{k:'woba',l:'wOBA'},{k:'wrc',l:'wRC+'},
+    {k:'hr',l:'HR'},{k:'sb2',l:'SB'},{k:'bb',l:'BB%'},{k:'k',l:'K%'},
+    {k:'hit',l:'HIT'},{k:'pwr',l:'PWR'},{k:'spd',l:'SPD'},{k:'dis',l:'DIS'},{k:'age_r',l:'AGE'},{k:'wrc_r',l:'WRC+'}
+  ];
+  wh.innerHTML = `<tr><th class="star-td st st1"></th>${cols.map((c,i) =>
+    `<th class="${i===0?'st st2':i===1?'st st3':''} ${sortF===c.k?'sorted':''}" onclick="sortBy('${c.k}')">${c.l}<span class="arr">${sortF===c.k?(sortD<0?'▼':'▲'):''}</span></th>`
+  ).join('')}</tr>`;
+  wt.innerHTML = starred.map((p,i) => {
+    const gi=i+1; const cls=sc(p); const idx=RAW.indexOf(p);
     return `<tr onclick="showD(${idx})">
-      <td class="star-td"><button class="star-btn on" onclick="toggleWatch(RAW[${idx}],event)">★</button></td>
-      <td class="pname">${p.name}</td>
+      <td class="star-td st st1"><button class="star-btn on" onclick="toggleWatch(RAW[${idx}],event)">★</button></td>
+      <td class="st st2" style="color:var(--text-dim)">${gi}</td>
+      <td class="pname st st3">${p.name}</td>
       <td><span class="tbadge">${p.team}</span></td>
       <td><span class="lvl ${lc(p.level)}">${lvlShort(p.level)}</span></td>
       <td>${p.age}</td>
-      <td class="${cls}" style="font-weight:600">${p.prospect_score}</td>
+      <td class="${cls}" style="font-weight:600">${p.prospect_score}${tbl(p.prospect_score_d)}</td>
+      <td style="color:var(--text-dim)">${dltw(p.ltw)}${tbl(p.ltw_d)}</td>
       <td>${p.ab}</td>
-      <td style="${avgColor(p.avg)?`color:${avgColor(p.avg)};font-weight:600`:''}">${d3(p.avg)}</td>
-      <td style="${obpColor(p.obp)?`color:${obpColor(p.obp)};font-weight:600`:''}">${d3(p.obp)}</td>
-      <td style="${slgColor(p.slg)?`color:${slgColor(p.slg)};font-weight:600`:''}">${d3(p.slg)}</td>
-      <td style="${opsColor(p.ops)?`color:${opsColor(p.ops)};font-weight:600`:''}">${d3(p.ops)}</td>
-      <td style="${isoColor(p.iso)?`color:${isoColor(p.iso)};font-weight:600`:''}">${d3(p.iso)}</td>
-      <td style="${wobaColor(p.woba)?`color:${wobaColor(p.woba)};font-weight:600`:''}">${d3(p.woba)}</td>
-      <td style="color:${wrcColor(p.wrc)};font-weight:600">${p.wrc??'—'}</td>
-      <td>${p.hr??'—'}</td><td>${p.sb??'—'}</td>
-      <td style="${bbColor(p.bb)?`color:${bbColor(p.bb)};font-weight:600`:''}">${d1p(p.bb)}</td>
-      <td style="${kColor(p.k)?`color:${kColor(p.k)};font-weight:600`:''}">${d1p(p.k)}</td>
+      <td style="${avgColor(p.avg)?`color:${avgColor(p.avg)};font-weight:600`:''}">${d3(p.avg)}${tbl(p.avg_d)}</td>
+      <td style="${obpColor(p.obp)?`color:${obpColor(p.obp)};font-weight:600`:''}">${d3(p.obp)}${tbl(p.obp_d)}</td>
+      <td style="${slgColor(p.slg)?`color:${slgColor(p.slg)};font-weight:600`:''}">${d3(p.slg)}${tbl(p.slg_d)}</td>
+      <td style="${opsColor(p.ops)?`color:${opsColor(p.ops)};font-weight:600`:''}">${d3(p.ops)}${tbl(p.ops_d)}</td>
+      <td style="${isoColor(p.iso)?`color:${isoColor(p.iso)};font-weight:600`:''}">${d3(p.iso)}${tbl(p.iso_d)}</td>
+      <td style="${wobaColor(p.woba)?`color:${wobaColor(p.woba)};font-weight:600`:''}">${d3(p.woba)}${tbl(p.woba_d)}</td>
+      <td style="color:${wrcColor(p.wrc)};font-weight:600">${p.wrc??'—'}${tbl(p.wrc_d)}</td>
+      <td>${p.hr??'—'}${tbl(p.hr_d)}</td>
+      <td>${p.sb??'—'}${tbl(p.sb_d)}</td>
+      <td style="${bbColor(p.bb)?`color:${bbColor(p.bb)};font-weight:600`:''}">${d1p(p.bb)}${tbl(p.bb_d)}</td>
+      <td style="${kColor(p.k)?`color:${kColor(p.k)};font-weight:600`:''}">${d1p(p.k)}${tbl(p.k_d,true)}</td>
       <td>${bar(p.hit,'#00d4ff')}</td><td>${bar(p.pwr,'#ffd700')}</td>
       <td>${bar(p.spd,'#39ff88')}</td><td>${bar(p.dis,'#ff6b35')}</td>
       <td>${bar(p.age_r,'#f472b6')}</td><td>${bar(p.wrc_r,'#b06eff')}</td>
