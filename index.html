@@ -284,6 +284,7 @@
       <option value="pwr">PWR</option>
       <option value="spd">SPD</option>
       <option value="dis">DIS</option>
+      <option value="age_r">AGE Grade</option>
       <option value="wrc_r">wRC+ Grade</option>
     </optgroup>
     <optgroup label="── Other ──">
@@ -513,7 +514,7 @@ function sortData() {
     hr: p => p.hr, sb2: p => p.sb, woba: p => p.woba,
     name: p => p.name,
     hit: p => p.hit, pwr: p => p.pwr, spd: p => p.spd,
-    dis: p => p.dis, wrc_r: p => p.wrc_r,
+    dis: p => p.dis, age_r: p => p.age_r ?? 0, wrc_r: p => p.wrc_r,
     age: p => p.age, ab: p => p.ab, iso: p => p.iso,
     obp: p => p.obp, slg: p => p.slg, bb: p => p.bb, k: p => p.k,
     swstr: p => p.swstr ?? 0
