@@ -206,12 +206,7 @@
   <div class="header-left">
     <h1>Prospect Dashboard</h1>
   </div>
-  <div class="header-right">
-    <div class="stat-pill">Showing: <span id="total-count">—</span></div>
-    <div class="stat-pill">Avg Score: <span id="avg-score">—</span></div>
-    <div class="stat-pill">Avg OPS: <span id="avg-ops">—</span></div>
-    <div class="stat-pill">Avg wRC+: <span id="avg-wrc">—</span></div>
-  </div>
+  <div class="header-right" id="header-right"></div>
 </div>
 
 <div class="controls">
@@ -300,7 +295,7 @@
 </div>
 
 <div class="main">
-  <div class="summary-bar" id="sumbar"></div>
+  <div id="sumbar"></div>
   <div id="tv"><div class="table-container"><table><thead id="th"></thead><tbody id="tb"></tbody></table></div></div>
   <div id="cv" style="display:none"><div class="cards-grid" id="cg"></div></div>
   <div id="wv" style="display:none"><div class="table-container"><table><thead id="wh"></thead><tbody id="wt"></tbody></table></div></div>
@@ -526,32 +521,7 @@ function sortData() {
   });
 }
 
-function updateSummary() {
-  const n = filtered.length;
-  document.getElementById('total-count').textContent = n.toLocaleString();
-  document.getElementById('avg-score').textContent = n ? (filtered.reduce((s,p)=>s+(p.prospect_score??0),0)/n).toFixed(1) : '—';
-  const opsPlayers = filtered.filter(p=>p.ops!=null);
-  document.getElementById('avg-ops').textContent = opsPlayers.length ? (opsPlayers.reduce((s,p)=>s+p.ops,0)/opsPlayers.length).toFixed(3) : '—';
-  const wrcPlayers = filtered.filter(p=>p.wrc!=null);
-  document.getElementById('avg-wrc').textContent = wrcPlayers.length ? Math.round(wrcPlayers.reduce((s,p)=>s+p.wrc,0)/wrcPlayers.length) : '—';
-
-  const lc2 = {};
-  filtered.forEach(p => { const l = lvlShort(p.level); lc2[l] = (lc2[l]||0)+1; });
-  const cards = [
-    {label:'Prospects',value:n,sub:'in current view'},
-    {label:'Avg Prospect Score',value:n?(filtered.reduce((s,p)=>s+(p.prospect_score??0),0)/n).toFixed(1):'—',sub:'out of 100'},
-    {label:'Avg OPS',value:opsPlayers.length?(opsPlayers.reduce((s,p)=>s+p.ops,0)/opsPlayers.length).toFixed(3):'—',sub:'all levels'},
-    {label:'Avg wRC+',value:wrcPlayers.length?Math.round(wrcPlayers.reduce((s,p)=>s+p.wrc,0)/wrcPlayers.length):'—',sub:'lg avg = 100'},
-    {label:'AAA',value:lc2['AAA']||0,sub:'triple-A'},
-    {label:'AA',value:lc2['AA']||0,sub:'double-A'},
-    {label:'A+ / High-A',value:lc2['A+']||0,sub:'high-A'},
-    {label:'A / Low-A',value:lc2['A']||0,sub:'low-A'},
-    {label:'CPX / Rookie',value:lc2['CPX']||0,sub:'complex/rookie'},
-  ];
-  document.getElementById('sumbar').innerHTML = cards.map(c =>
-    `<div class="summary-card"><div class="label">${c.label}</div><div class="value">${c.value}</div><div class="sub">${c.sub}</div></div>`
-  ).join('');
-}
+function updateSummary() { /* reserved for future use */ }
 
 function getPage() { return filtered.slice((page-1)*PS, page*PS); }
 
