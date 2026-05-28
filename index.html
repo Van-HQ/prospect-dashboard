@@ -321,6 +321,7 @@ let filtered = [];
 let sortF = 'ltw', sortD = -1;
 let activeProfile = null; // 'power' | 'contact' | null
 let activeFallers = false;
+let activeValue = false;
 
 function flipCard() {
   const fi = document.getElementById('fi');
@@ -456,6 +457,18 @@ function wobaColor(v) { return v >= 0.425 ? 'var(--accent3)' : v <= 0.290 ? 'var
 function wrcColor(v)  { return v >= 160   ? 'var(--accent3)' : v <= 80    ? 'var(--red)' : ''; }
 function bbColor(v)   { return v >= 15    ? 'var(--accent3)' : ''; }
 function kColor(v)    { return v <= 15    ? 'var(--accent3)' : v >= 28    ? 'var(--red)' : ''; }
+function valColor(v)  { return v >= 70 ? '#39ff88' : v < 40 ? 'var(--red)' : ''; }
+
+function computeValueScores(players) {
+  // Value score: prospect quality per $ of card price (normalized 0-100)
+  // High score = high prospect score relative to price = undervalued
+  const priced = players.filter(p => p.prospect_score != null && p.price_raw != null && p.price_raw > 0);
+  if (!priced.length) return;
+  const raws = priced.map(p => p.prospect_score / Math.log10(p.price_raw + 1));
+  const min = Math.min(...raws), max = Math.max(...raws);
+  const range = max - min || 1;
+  priced.forEach((p, i) => { p._val = Math.round((raws[i] - min) / range * 100); });
+}
 
 let showTrends = false;
 function toggleTrends() {
@@ -528,6 +541,10 @@ function applyF() {
   if (activeFallers) {
     filtered = filtered.filter(p => (p.prospect_score_d ?? 0) <= -1 && (p.ab ?? 0) >= 50);
   }
+  // Value: undervalued prospects — high prospect score relative to card price
+  if (activeValue) {
+    filtered = filtered.filter(p => p._val != null && p._val >= 60 && (p.prospect_score ?? 0) >= 60);
+  }
   sortData();
   page = 1;
   updateSummary();
@@ -544,6 +561,7 @@ function sortData() {
     dis: p => p.dis, age_r: p => p.age_r ?? 0, wrc_r: p => p.wrc_r,
     prospect_score_d: p => p.prospect_score_d ?? 0,
     ld: p => p.ld ?? 0,
+    val: p => p._val ?? 0,
     age: p => p.age, ab: p => p.ab, iso: p => p.iso,
     obp: p => p.obp, slg: p => p.slg, bb: p => p.bb, k: p => p.k,
     swstr: p => p.swstr ?? 0
@@ -574,6 +592,10 @@ function quickFilter(type) {
       } else {
         activeFallers = true; sortF = 'prospect_score_d'; sortD = 1;
       }
+      applyF(); break;
+    case 'value':
+      activeValue = !activeValue;
+      if (activeValue) { sortF = 'val'; sortD = -1; } else { sortF = 'ltw'; }
       applyF(); break;
     case 'power':
       activeProfile = activeProfile==='power' ? null : 'power'; applyF(); break;
@@ -607,6 +629,7 @@ function updateSummary() {
   const chips = [
     { l:'Risers ▲',  type:'risers',  on: sortF==='prospect_score_d' && !activeFallers },
     { l:'Fallers ▼', type:'fallers', on: activeFallers },
+    { l:'Value',     type:'value',   on: activeValue },
     { l:'Power',     type:'power',   on: activeProfile==='power' },
     { l:'Contact',   type:'contact', on: activeProfile==='contact' },
   ];
@@ -629,7 +652,9 @@ function renderAll() {
 function renderTable() {
   const cols = [
     {k:'#',l:'#'},{k:'name',l:'Player'},{k:'team',l:'Team'},{k:'level',l:'Lvl'},
-    {k:'age',l:'Age'},{k:'prospect_score',l:'Score'},{k:'ltw',l:'LTW'},
+    {k:'age',l:'Age'},
+    ...(activeValue ? [{k:'val',l:'VAL'}] : []),
+    {k:'prospect_score',l:'Score'},{k:'ltw',l:'LTW'},
     {k:'ab',l:'AB'},{k:'avg',l:'AVG'},{k:'obp',l:'OBP'},{k:'slg',l:'SLG'},
     {k:'ops',l:'OPS'},{k:'iso',l:'ISO'},{k:'woba',l:'wOBA'},{k:'wrc',l:'wRC+'},
     {k:'hr',l:'HR'},{k:'sb2',l:'SB'},{k:'bb',l:'BB%'},{k:'k',l:'K%'},{k:'ld',l:'LD%'},
@@ -652,6 +677,7 @@ function renderTable() {
       <td><span class="tbadge">${p.team}</span></td>
       <td><span class="lvl ${lc(p.level)}">${lvlShort(p.level)}</span></td>
       <td>${p.age}</td>
+      ${activeValue ? `<td style="${valColor(p._val)?`color:${valColor(p._val)};font-weight:700`:''}">${p._val ?? '—'}</td>` : ''}
       <td class="${cls}" style="font-weight:600">${p.prospect_score}${sortF==='prospect_score_d'&&p.prospect_score_d!=null?activeFallers?`<span style="color:#ff4444;font-size:9px;margin-left:4px;font-weight:700">${Math.round(p.prospect_score_d)}</span>`:`<span style="color:#39ff88;font-size:9px;margin-left:4px;font-weight:700">+${Math.round(p.prospect_score_d)}</span>`:tbl(p.prospect_score_d)}</td>
       <td style="color:var(--text-dim)">${dltw(p.ltw)}${tbl(p.ltw_d)}</td>
       <td>${p.ab}</td>
@@ -736,7 +762,9 @@ function renderWatch() {
   // Same cols + header as renderTable
   const cols = [
     {k:'#',l:'#'},{k:'name',l:'Player'},{k:'team',l:'Team'},{k:'level',l:'Lvl'},
-    {k:'age',l:'Age'},{k:'prospect_score',l:'Score'},{k:'ltw',l:'LTW'},
+    {k:'age',l:'Age'},
+    ...(activeValue ? [{k:'val',l:'VAL'}] : []),
+    {k:'prospect_score',l:'Score'},{k:'ltw',l:'LTW'},
     {k:'ab',l:'AB'},{k:'avg',l:'AVG'},{k:'obp',l:'OBP'},{k:'slg',l:'SLG'},
     {k:'ops',l:'OPS'},{k:'iso',l:'ISO'},{k:'woba',l:'wOBA'},{k:'wrc',l:'wRC+'},
     {k:'hr',l:'HR'},{k:'sb2',l:'SB'},{k:'bb',l:'BB%'},{k:'k',l:'K%'},{k:'ld',l:'LD%'},
@@ -754,6 +782,7 @@ function renderWatch() {
       <td><span class="tbadge">${p.team}</span></td>
       <td><span class="lvl ${lc(p.level)}">${lvlShort(p.level)}</span></td>
       <td>${p.age}</td>
+      ${activeValue ? `<td style="${valColor(p._val)?`color:${valColor(p._val)};font-weight:700`:''}">${p._val ?? '—'}</td>` : ''}
       <td class="${cls}" style="font-weight:600">${p.prospect_score}${sortF==='prospect_score_d'&&p.prospect_score_d!=null?activeFallers?`<span style="color:#ff4444;font-size:9px;margin-left:4px;font-weight:700">${Math.round(p.prospect_score_d)}</span>`:`<span style="color:#39ff88;font-size:9px;margin-left:4px;font-weight:700">+${Math.round(p.prospect_score_d)}</span>`:tbl(p.prospect_score_d)}</td>
       <td style="color:var(--text-dim)">${dltw(p.ltw)}${tbl(p.ltw_d)}</td>
       <td>${p.ab}</td>
@@ -982,6 +1011,7 @@ async function init() {
       </td></tr>`;
     return;
   }
+  computeValueScores(RAW);
   filtered = [...RAW];
   sortData();
   updateSummary();
