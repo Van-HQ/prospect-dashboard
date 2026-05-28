@@ -541,9 +541,9 @@ function applyF() {
   if (activeFallers) {
     filtered = filtered.filter(p => (p.prospect_score_d ?? 0) <= -1 && (p.ab ?? 0) >= 50);
   }
-  // Value: undervalued prospects — high prospect score relative to card price
+  // Value: undervalued prospects — sort by value score, players without price data fall to bottom
   if (activeValue) {
-    filtered = filtered.filter(p => p._val != null && p._val >= 60 && (p.prospect_score ?? 0) >= 60);
+    filtered = filtered.filter(p => p._val != null);
   }
   sortData();
   page = 1;
