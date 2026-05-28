@@ -146,6 +146,12 @@
   .star-btn { background: none; border: none; cursor: pointer; color: var(--border); font-size: 15px; padding: 0; line-height: 1; transition: color 0.15s; }
   .star-btn:hover, .star-btn.on { color: var(--gold); }
   .star-td { width: 28px; text-align: center; }
+  /* ── Sticky first 3 columns ── */
+  .st { position: sticky; z-index: 2; background: var(--bg); }
+  thead th.st { background: var(--surface2); z-index: 3; }
+  .st1 { left: 0; }
+  .st2 { left: 28px; min-width: 36px; width: 36px; }
+  .st3 { left: 64px; box-shadow: 3px 0 8px rgba(0,0,0,0.4); }
   .watch-empty { text-align:center; padding:60px 20px; color:var(--text-dim); font-family:'IBM Plex Mono',monospace; font-size:13px; }
   .tr-up { color:#39ff88; font-size:9px; vertical-align:middle; margin-left:2px; }
   .tr-dn { color:#ff4444; font-size:9px; vertical-align:middle; margin-left:2px; }
@@ -561,8 +567,8 @@ function renderTable() {
     {k:'hr',l:'HR'},{k:'sb2',l:'SB'},{k:'bb',l:'BB%'},{k:'k',l:'K%'},
     {k:'hit',l:'HIT'},{k:'pwr',l:'PWR'},{k:'spd',l:'SPD'},{k:'dis',l:'DIS'},{k:'age_r',l:'AGE'},{k:'wrc_r',l:'WRC+'}
   ];
-  document.getElementById('th').innerHTML = `<tr><th class="star-td"></th>${cols.map(c =>
-    `<th class="${sortF===c.k?'sorted':''}" onclick="sortBy('${c.k}')">${c.l}<span class="arr">${sortF===c.k?(sortD<0?'▼':'▲'):''}</span></th>`
+  document.getElementById('th').innerHTML = `<tr><th class="star-td st st1"></th>${cols.map((c,i) =>
+    `<th class="${i===0?'st st2':i===1?'st st3':''} ${sortF===c.k?'sorted':''}" onclick="sortBy('${c.k}')">${c.l}<span class="arr">${sortF===c.k?(sortD<0?'▼':'▲'):''}</span></th>`
   ).join('')}</tr>`;
 
   const pg = getPage();
@@ -572,9 +578,9 @@ function renderTable() {
     const gi = (page-1)*PS + i + 1;
     const cls = sc(p); const idx = RAW.indexOf(p);
     return `<tr onclick="showD(${idx})">
-      <td class="star-td"><button class="star-btn ${inWatch(p)?'on':''}" onclick="toggleWatch(RAW[${idx}],event)">★</button></td>
-      <td style="color:var(--text-dim)">${gi}</td>
-      <td class="pname">${p.name}</td>
+      <td class="star-td st st1"><button class="star-btn ${inWatch(p)?'on':''}" onclick="toggleWatch(RAW[${idx}],event)">★</button></td>
+      <td class="st st2" style="color:var(--text-dim)">${gi}</td>
+      <td class="pname st st3">${p.name}</td>
       <td><span class="tbadge">${p.team}</span></td>
       <td><span class="lvl ${lc(p.level)}">${lvlShort(p.level)}</span></td>
       <td>${p.age}</td>
