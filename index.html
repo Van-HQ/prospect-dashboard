@@ -147,8 +147,12 @@
   .star-btn:hover, .star-btn.on { color: var(--gold); }
   .star-td { width: 28px; text-align: center; }
   /* ── Sticky first 3 columns ── */
-  .st { position: sticky; z-index: 2; background: var(--bg); }
-  thead th.st { background: var(--surface2); z-index: 3; }
+  /* tbody: needs position:sticky + opaque bg so scrolled content doesn't bleed through */
+  tbody td.st { position: sticky; z-index: 2; background: var(--bg); }
+  tbody tr:hover td.st { background: rgba(0,35,50,1); }
+  /* thead: already has position:sticky+top:0 — just bump z-index above normal headers */
+  thead th.st { z-index: 11; }
+  /* left offsets for each column */
   .st1 { left: 0; }
   .st2 { left: 28px; min-width: 36px; width: 36px; }
   .st3 { left: 64px; box-shadow: 3px 0 8px rgba(0,0,0,0.4); }
