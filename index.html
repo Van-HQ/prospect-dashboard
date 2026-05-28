@@ -319,6 +319,7 @@
 let RAW = [];
 let filtered = [];
 let sortF = 'ltw', sortD = -1;
+let activeProfile = null; // 'power' | 'contact' | null
 
 function flipCard() {
   const fi = document.getElementById('fi');
@@ -499,6 +500,25 @@ function applyF() {
     if (minAB && p.ab < minAB) return false;
     return true;
   });
+  // Profile filters (applied after standard filters)
+  if (activeProfile === 'power') {
+    filtered = filtered.filter(p =>
+      (p.ab  ?? 0) >= 50  &&
+      (p.iso ?? 0) >  0.220 &&
+      (p.k   ?? 0) <  28  &&
+      (p.ld  ?? 0) >  20  &&
+      (p.wrc ?? 0) >  120
+    );
+  } else if (activeProfile === 'contact') {
+    filtered = filtered.filter(p =>
+      (p.ab  ?? 0) >= 50  &&
+      (p.hit ?? 0) >  0.75 &&
+      (p.avg ?? 0) >  0.270 &&
+      (p.k   ?? 0) <  18  &&
+      (p.ld  ?? 0) >  20  &&
+      (p.wrc ?? 0) >  120
+    );
+  }
   sortData();
   page = 1;
   updateSummary();
@@ -514,6 +534,7 @@ function sortData() {
     hit: p => p.hit, pwr: p => p.pwr, spd: p => p.spd,
     dis: p => p.dis, age_r: p => p.age_r ?? 0, wrc_r: p => p.wrc_r,
     prospect_score_d: p => p.prospect_score_d ?? 0,
+    ld: p => p.ld ?? 0,
     age: p => p.age, ab: p => p.ab, iso: p => p.iso,
     obp: p => p.obp, slg: p => p.slg, bb: p => p.bb, k: p => p.k,
     swstr: p => p.swstr ?? 0
@@ -535,10 +556,10 @@ function quickFilter(type) {
     case 'risers':
       sortF = sortF==='prospect_score_d' ? 'ltw' : 'prospect_score_d';
       sortD = -1; document.getElementById('sb').value = 'ltw'; applyF(); break;
-    case 'aaa':
-      document.getElementById('fl').value = lvl==='AAA' ? '' : 'AAA'; applyF(); break;
-    case 'aa':
-      document.getElementById('fl').value = lvl==='AA' ? '' : 'AA'; applyF(); break;
+    case 'power':
+      activeProfile = activeProfile==='power' ? null : 'power'; applyF(); break;
+    case 'contact':
+      activeProfile = activeProfile==='contact' ? null : 'contact'; applyF(); break;
     case 'age20':
       document.getElementById('fa').value = age==='20' ? '' : '20'; applyF(); break;
     case 'watch':
@@ -567,8 +588,8 @@ function updateSummary() {
   const chips = [
     { l:'Top 25',    type:'top25',  on: sortF==='prospect_score' },
     { l:'Risers ▲',  type:'risers', on: sortF==='prospect_score_d' },
-    { l:'AAA',       type:'aaa',    on: lvl==='AAA' },
-    { l:'AA',        type:'aa',     on: lvl==='AA' },
+    { l:'⚡ Power',   type:'power',   on: activeProfile==='power' },
+    { l:'🎯 Contact', type:'contact', on: activeProfile==='contact' },
     { l:'Age ≤ 20',  type:'age20',  on: age==='20' },
     { l:'★ Watchlist',type:'watch', on: view==='watch' },
   ];
@@ -594,7 +615,7 @@ function renderTable() {
     {k:'age',l:'Age'},{k:'prospect_score',l:'Score'},{k:'ltw',l:'LTW'},
     {k:'ab',l:'AB'},{k:'avg',l:'AVG'},{k:'obp',l:'OBP'},{k:'slg',l:'SLG'},
     {k:'ops',l:'OPS'},{k:'iso',l:'ISO'},{k:'woba',l:'wOBA'},{k:'wrc',l:'wRC+'},
-    {k:'hr',l:'HR'},{k:'sb2',l:'SB'},{k:'bb',l:'BB%'},{k:'k',l:'K%'},
+    {k:'hr',l:'HR'},{k:'sb2',l:'SB'},{k:'bb',l:'BB%'},{k:'k',l:'K%'},{k:'ld',l:'LD%'},
     {k:'hit',l:'HIT'},{k:'pwr',l:'PWR'},{k:'spd',l:'SPD'},{k:'dis',l:'DIS'},{k:'age_r',l:'AGE'},{k:'wrc_r',l:'WRC+'}
   ];
   document.getElementById('th').innerHTML = `<tr><th class="star-td st st1"></th>${cols.map((c,i) =>
@@ -628,6 +649,7 @@ function renderTable() {
       <td>${p.sb ?? '—'}${tbl(p.sb_d)}</td>
       <td style="${bbColor(p.bb)?`color:${bbColor(p.bb)};font-weight:600`:''}">${d1p(p.bb)}${tbl(p.bb_d)}</td>
       <td style="${kColor(p.k)?`color:${kColor(p.k)};font-weight:600`:''}">${d1p(p.k)}${tbl(p.k_d,true)}</td>
+      <td style="${p.ld!=null&&p.ld>20?'color:#39ff88;font-weight:600':''}">${p.ld!=null?p.ld.toFixed(1)+'%':'—'}</td>
       <td>${bar(p.hit,'#00d4ff')}</td>
       <td>${bar(p.pwr,'#ffd700')}</td>
       <td>${bar(p.spd,'#39ff88')}</td>
@@ -694,7 +716,7 @@ function renderWatch() {
     avg: p=>p.avg??0, obp: p=>p.obp??0, slg: p=>p.slg??0,
     ops: p=>p.ops??0, iso: p=>p.iso??0, woba: p=>p.woba??0,
     wrc: p=>p.wrc??0, hr: p=>p.hr??0, sb: p=>p.sb??0,
-    bb: p=>p.bb??0, k: p=>p.k??0, ab: p=>p.ab??0,
+    bb: p=>p.bb??0, k: p=>p.k??0, ld: p=>p.ld??0, ab: p=>p.ab??0,
     hit: p=>p.hit??0, pwr: p=>p.pwr??0, spd: p=>p.spd??0,
     dis: p=>p.dis??0, age_r: p=>p.age_r??0, wrc_r: p=>p.wrc_r??0,
     age: p=>p.age??0,
@@ -711,7 +733,7 @@ function renderWatch() {
     {k:'age',l:'Age'},{k:'prospect_score',l:'Score'},{k:'ltw',l:'LTW'},
     {k:'ab',l:'AB'},{k:'avg',l:'AVG'},{k:'obp',l:'OBP'},{k:'slg',l:'SLG'},
     {k:'ops',l:'OPS'},{k:'iso',l:'ISO'},{k:'woba',l:'wOBA'},{k:'wrc',l:'wRC+'},
-    {k:'hr',l:'HR'},{k:'sb2',l:'SB'},{k:'bb',l:'BB%'},{k:'k',l:'K%'},
+    {k:'hr',l:'HR'},{k:'sb2',l:'SB'},{k:'bb',l:'BB%'},{k:'k',l:'K%'},{k:'ld',l:'LD%'},
     {k:'hit',l:'HIT'},{k:'pwr',l:'PWR'},{k:'spd',l:'SPD'},{k:'dis',l:'DIS'},{k:'age_r',l:'AGE'},{k:'wrc_r',l:'WRC+'}
   ];
   wh.innerHTML = `<tr><th class="star-td st st1"></th>${cols.map((c,i) =>
@@ -740,6 +762,7 @@ function renderWatch() {
       <td>${p.sb??'—'}${tbl(p.sb_d)}</td>
       <td style="${bbColor(p.bb)?`color:${bbColor(p.bb)};font-weight:600`:''}">${d1p(p.bb)}${tbl(p.bb_d)}</td>
       <td style="${kColor(p.k)?`color:${kColor(p.k)};font-weight:600`:''}">${d1p(p.k)}${tbl(p.k_d,true)}</td>
+      <td style="${p.ld!=null&&p.ld>20?'color:#39ff88;font-weight:600':''}">${p.ld!=null?p.ld.toFixed(1)+'%':'—'}</td>
       <td>${bar(p.hit,'#00d4ff')}</td><td>${bar(p.pwr,'#ffd700')}</td>
       <td>${bar(p.spd,'#39ff88')}</td><td>${bar(p.dis,'#ff6b35')}</td>
       <td>${bar(p.age_r,'#f472b6')}</td><td>${bar(p.wrc_r,'#b06eff')}</td>
