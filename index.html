@@ -666,7 +666,7 @@ function renderTable() {
       <td>${p.sb ?? '—'}${tbl(p.sb_d)}</td>
       <td style="${bbColor(p.bb)?`color:${bbColor(p.bb)};font-weight:600`:''}">${d1p(p.bb)}${tbl(p.bb_d)}</td>
       <td style="${kColor(p.k)?`color:${kColor(p.k)};font-weight:600`:''}">${d1p(p.k)}${tbl(p.k_d,true)}</td>
-      <td style="${p.ld!=null&&p.ld>20?'color:#39ff88;font-weight:600':''}">${p.ld!=null?p.ld.toFixed(1)+'%':'—'}</td>
+      <td style="${p.ld!=null?(p.ld>=25?'color:#39ff88;font-weight:600':p.ld<15?'color:#ff4444;font-weight:600':''):''}">${p.ld!=null?p.ld.toFixed(1)+'%':'—'}</td>
       <td>${bar(p.hit,'#00d4ff')}</td>
       <td>${bar(p.pwr,'#ffd700')}</td>
       <td>${bar(p.spd,'#39ff88')}</td>
@@ -768,7 +768,7 @@ function renderWatch() {
       <td>${p.sb??'—'}${tbl(p.sb_d)}</td>
       <td style="${bbColor(p.bb)?`color:${bbColor(p.bb)};font-weight:600`:''}">${d1p(p.bb)}${tbl(p.bb_d)}</td>
       <td style="${kColor(p.k)?`color:${kColor(p.k)};font-weight:600`:''}">${d1p(p.k)}${tbl(p.k_d,true)}</td>
-      <td style="${p.ld!=null&&p.ld>20?'color:#39ff88;font-weight:600':''}">${p.ld!=null?p.ld.toFixed(1)+'%':'—'}</td>
+      <td style="${p.ld!=null?(p.ld>=25?'color:#39ff88;font-weight:600':p.ld<15?'color:#ff4444;font-weight:600':''):''}">${p.ld!=null?p.ld.toFixed(1)+'%':'—'}</td>
       <td>${bar(p.hit,'#00d4ff')}</td><td>${bar(p.pwr,'#ffd700')}</td>
       <td>${bar(p.spd,'#39ff88')}</td><td>${bar(p.dis,'#ff6b35')}</td>
       <td>${bar(p.age_r,'#f472b6')}</td><td>${bar(p.wrc_r,'#b06eff')}</td>
