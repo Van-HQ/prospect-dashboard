@@ -521,7 +521,7 @@ function applyF() {
   }
   // Risers: only players with a positive MoM score delta and min 50 AB
   if (sortF === 'prospect_score_d') {
-    filtered = filtered.filter(p => (p.prospect_score_d ?? 0) > 0 && (p.ab ?? 0) >= 50);
+    filtered = filtered.filter(p => (p.prospect_score_d ?? 0) >= 1 && (p.ab ?? 0) >= 50);
   }
   sortData();
   page = 1;
