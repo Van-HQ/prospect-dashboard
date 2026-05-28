@@ -966,7 +966,7 @@ function showD(idx) {
             <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text-dim);margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.price_card||''}${p.price_set?` · <span style="color:var(--text-dim)">${shortSet(p.price_set)}</span>`:''}</div>
             <div class="dg4" style="grid-template-columns:repeat(4,1fr)">
               <div class="dstat"><div class="dl">Raw</div><div class="dv" style="font-size:17px;color:var(--text)">$${p.price_raw!=null?p.price_raw.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'—'}</div></div>
-              <div class="dstat"><div class="dl">Val Score</div><div class="dv" style="font-size:17px;color:${valColor(p._val)||'var(--text)'}">${p._val ?? '—'}</div></div>
+              <div class="dstat"><div class="dl">Value</div><div class="dv" style="font-size:17px;color:${valColor(p._val)||'var(--text)'}">${p._val ?? '—'}</div></div>
               <div class="dstat"><div class="dl">PSA 9</div><div class="dv" style="font-size:17px;color:var(--gold)">$${p.price_psa9!=null?p.price_psa9.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'—'}</div></div>
               <div class="dstat"><div class="dl">PSA 10</div><div class="dv" style="font-size:17px;color:var(--accent)">$${p.price_psa10!=null?p.price_psa10.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'—'}</div></div>
             </div>
