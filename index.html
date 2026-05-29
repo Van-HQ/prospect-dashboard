@@ -548,7 +548,7 @@ function applyF() {
     );
   } else if (activeProfile === 'prodigy') {
     filtered = filtered.filter(p =>
-      (p.age_r          ?? 0) >= 70 &&
+      (p.age_r          ?? 0) >= 0.70 &&
       (p.prospect_score ?? 0) >= 70
     );
   }
