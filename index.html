@@ -139,6 +139,11 @@
   .detail-overlay.open { display: flex; }
   .dpanel { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; width: 92%; max-width: 660px; max-height: 90vh; overflow-y: auto; position: relative; animation: su 0.2s ease; }
   @keyframes su { from { opacity:0; transform: translateY(16px); } to { opacity:1; transform: translateY(0); } }
+  .dnav { position: absolute; top: 50%; transform: translateY(-50%); background: none; border: none; color: rgba(255,255,255,0.2); font-size: 32px; cursor: pointer; padding: 16px; transition: color 0.15s; z-index: 201; user-select: none; line-height: 1; }
+  .dnav:hover { color: rgba(255,255,255,0.7); }
+  .dnav:disabled { opacity: 0; pointer-events: none; }
+  #dnav-prev { left: 12px; }
+  #dnav-next { right: 12px; }
   .dclose { position: absolute; top: 12px; right: 12px; background: none; border: 1px solid var(--border); color: var(--text-dim); width: 26px; height: 26px; border-radius: 50%; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; z-index: 10; }
   .dclose:hover { border-color: var(--red); color: var(--red); }
   .dflip { position: absolute; top: 12px; right: 46px; background: none; border: 1px solid var(--border); color: var(--text-dim); width: 26px; height: 26px; border-radius: 50%; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; z-index: 10; }
@@ -306,6 +311,8 @@
 </div>
 
 <div class="detail-overlay" id="dov" onclick="closeDov(event)">
+  <button class="dnav" id="dnav-prev" onclick="navD(-1);event.stopPropagation()">‹</button>
+  <button class="dnav" id="dnav-next" onclick="navD(1);event.stopPropagation()">›</button>
   <div class="dpanel" id="dp">
     <button class="dclose" onclick="closeD()">✕</button>
     <button class="dflip" onclick="flipCard()" title="Radar view">⇌</button>
@@ -843,6 +850,17 @@ function sortBy(f) {
   applyF();
 }
 
+function navD(dir) {
+  const pos = filtered.findIndex(p => p === RAW[currentIdx]);
+  const next = pos + dir;
+  if (next >= 0 && next < filtered.length) showD(RAW.indexOf(filtered[next]));
+}
+function updateNavBtns(idx) {
+  const pos = filtered.findIndex(p => p === RAW[idx]);
+  document.getElementById('dnav-prev').disabled = pos <= 0;
+  document.getElementById('dnav-next').disabled = pos >= filtered.length - 1;
+}
+
 function showD(idx) {
   currentIdx = idx;
   const p = RAW[idx];
@@ -988,6 +1006,7 @@ function showD(idx) {
     </div>
   </div>`;
   document.getElementById('dov').classList.add('open');
+  updateNavBtns(idx);
 }
 
 function closeDov(e) { if(e.target===document.getElementById('dov')) closeD(); }
@@ -1002,6 +1021,11 @@ function setView(v) {
   renderAll();
 }
 
+document.addEventListener('keydown', e => {
+  if (!document.getElementById('dov').classList.contains('open')) return;
+  if (e.key === 'ArrowLeft')  { e.preventDefault(); navD(-1); }
+  if (e.key === 'ArrowRight') { e.preventDefault(); navD(1);  }
+});
 document.getElementById('search').addEventListener('input', applyF);
 document.getElementById('ft').addEventListener('change', applyF);
 document.getElementById('fl').addEventListener('change', applyF);
