@@ -469,7 +469,7 @@ function shortSet(s) {
 function computeValueScores(players) {
   // Value score: prospect quality per $ of card price (normalized 0-100)
   // High score = high prospect score relative to price = undervalued
-  const priced = players.filter(p => p.prospect_score != null && p.price_raw != null && p.price_raw > 0);
+  const priced = players.filter(p => p.prospect_score != null && p.prospect_score >= 65 && p.price_raw != null && p.price_raw > 0);
   if (!priced.length) return;
   const raws = priced.map(p => p.prospect_score / Math.log10(p.price_raw + 1));
   const min = Math.min(...raws), max = Math.max(...raws);
