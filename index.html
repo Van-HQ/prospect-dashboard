@@ -256,6 +256,17 @@
     <option value="50">50</option><option value="75">75</option><option value="100">100</option>
     <option value="125">125</option><option value="150">150</option><option value="175">175</option>
   </select>
+  <span class="sort-label">Pos:</span>
+  <select id="fpos">
+    <option value="">All</option>
+    <option value="C">C</option>
+    <option value="1B">1B</option>
+    <option value="2B">2B</option>
+    <option value="3B">3B</option>
+    <option value="SS">SS</option>
+    <option value="OF">OF</option>
+    <option value="INF">INF</option>
+  </select>
   <span class="sort-label">Sort:</span>
   <select id="sb">
     <optgroup label="── Rankings ──">
@@ -515,6 +526,7 @@ function applyF() {
   const lvl = document.getElementById('fl').value;
   const maxAge = document.getElementById('fa').value ? parseInt(document.getElementById('fa').value) : null;
   const minAB = document.getElementById('fab').value ? parseInt(document.getElementById('fab').value) : null;
+  const fpos  = document.getElementById('fpos').value;
 
   filtered = RAW.filter(p => {
     if (q && !p.name.toLowerCase().includes(q) && !p.team.toLowerCase().includes(q)) return false;
@@ -526,6 +538,7 @@ function applyF() {
     }
     if (maxAge && p.age > maxAge) return false;
     if (minAB && p.ab < minAB) return false;
+    if (fpos && (p.pos || '').split('/')[0] !== fpos) return false;
     return true;
   });
   // Profile filters (applied after standard filters)
@@ -1043,6 +1056,7 @@ document.getElementById('ft').addEventListener('change', applyF);
 document.getElementById('fl').addEventListener('change', applyF);
 document.getElementById('fa').addEventListener('change', applyF);
 document.getElementById('fab').addEventListener('change', applyF);
+document.getElementById('fpos').addEventListener('change', applyF);
 document.getElementById('sb').addEventListener('change', e => { sortF=e.target.value; applyF(); });
 
 async function init() {
