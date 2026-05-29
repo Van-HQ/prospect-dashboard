@@ -546,6 +546,11 @@ function applyF() {
       (p.ld  ?? 0) >  20  &&
       (p.wrc ?? 0) >  120
     );
+  } else if (activeProfile === 'prodigy') {
+    filtered = filtered.filter(p =>
+      (p.age_r          ?? 0) >= 70 &&
+      (p.prospect_score ?? 0) >= 70
+    );
   }
   // Risers: only players with a positive MoM score delta and min 50 AB
   if (sortF === 'prospect_score_d' && !activeFallers) {
@@ -617,6 +622,8 @@ function quickFilter(type) {
       activeProfile = activeProfile==='power' ? null : 'power'; applyF(); break;
     case 'contact':
       activeProfile = activeProfile==='contact' ? null : 'contact'; applyF(); break;
+    case 'prodigy':
+      activeProfile = activeProfile==='prodigy' ? null : 'prodigy'; applyF(); break;
     case 'age20':
       document.getElementById('fa').value = age==='20' ? '' : '20'; applyF(); break;
     case 'watch':
@@ -648,6 +655,7 @@ function updateSummary() {
     { l:'Value',     type:'value',   on: activeValue },
     { l:'Power',     type:'power',   on: activeProfile==='power' },
     { l:'Contact',   type:'contact', on: activeProfile==='contact' },
+    { l:'Prodigy',   type:'prodigy', on: activeProfile==='prodigy' },
   ];
   document.getElementById('sumbar').innerHTML =
     `<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:4px 0 10px">
