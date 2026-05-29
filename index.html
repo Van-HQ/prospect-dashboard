@@ -850,15 +850,18 @@ function sortBy(f) {
   applyF();
 }
 
+function navList() { return view === 'watch' ? filtered.filter(inWatch) : filtered; }
 function navD(dir) {
-  const pos = filtered.findIndex(p => p === RAW[currentIdx]);
+  const list = navList();
+  const pos = list.findIndex(p => p === RAW[currentIdx]);
   const next = pos + dir;
-  if (next >= 0 && next < filtered.length) showD(RAW.indexOf(filtered[next]));
+  if (next >= 0 && next < list.length) showD(RAW.indexOf(list[next]));
 }
 function updateNavBtns(idx) {
-  const pos = filtered.findIndex(p => p === RAW[idx]);
+  const list = navList();
+  const pos = list.findIndex(p => p === RAW[idx]);
   document.getElementById('dnav-prev').disabled = pos <= 0;
-  document.getElementById('dnav-next').disabled = pos >= filtered.length - 1;
+  document.getElementById('dnav-next').disabled = pos >= list.length - 1;
 }
 
 function showD(idx) {
