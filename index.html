@@ -340,6 +340,7 @@ let sortF = 'ltw', sortD = -1;
 let activeProfile = null; // 'power' | 'contact' | null
 let activeFallers = false;
 let activeValue = false;
+let activeGems = false;
 
 function flipCard() {
   const fi = document.getElementById('fi');
@@ -577,6 +578,15 @@ function applyF() {
   if (activeValue) {
     filtered = filtered.filter(p => p._val != null && (p.prospect_score ?? 0) >= 65 && (p.age_r ?? 0) >= 0.40);
   }
+  // Gems: flying under the radar — rank > 100, score ≥ 65, 50 AB min, wRC+ ≥ 110
+  if (activeGems) {
+    filtered = filtered.filter(p =>
+      (p.rank         ?? 9999) > 100 &&
+      (p.prospect_score ?? 0) >= 65  &&
+      (p.ab           ?? 0)   >= 50  &&
+      (p.wrc          ?? 0)   >= 110
+    );
+  }
   sortData();
   page = 1;
   updateSummary();
@@ -638,6 +648,10 @@ function quickFilter(type) {
       activeProfile = activeProfile==='contact' ? null : 'contact'; applyF(); break;
     case 'prodigy':
       activeProfile = activeProfile==='prodigy' ? null : 'prodigy'; applyF(); break;
+    case 'gems':
+      activeGems = !activeGems;
+      if (activeGems) { sortF = 'wrc'; sortD = -1; } else { sortF = 'ltw'; }
+      applyF(); break;
     case 'age20':
       document.getElementById('fa').value = age==='20' ? '' : '20'; applyF(); break;
     case 'watch':
@@ -670,6 +684,7 @@ function updateSummary() {
     { l:'Power',     type:'power',   on: activeProfile==='power' },
     { l:'Contact',   type:'contact', on: activeProfile==='contact' },
     { l:'Prodigy',   type:'prodigy', on: activeProfile==='prodigy' },
+    { l:'Gems',      type:'gems',    on: activeGems },
   ];
   document.getElementById('sumbar').innerHTML =
     `<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:4px 0 10px">
