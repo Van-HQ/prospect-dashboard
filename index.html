@@ -946,7 +946,7 @@ function showD(idx) {
             <h3>Batted Ball</h3>
             <div class="dg4">
               <div class="dstat"><div class="dl">LD%</div><div class="dv" style="color:${p.ld!=null?(p.ld>=25?'#39ff88':p.ld<15?'var(--red)':''):''};">${d0p(p.ld)}</div></div>
-              <div class="dstat"><div class="dl">GB/FB</div><div class="dv">${d2(p.gbfb)}</div></div>
+              <div class="dstat"><div class="dl">GB/FB</div><div class="dv" style="color:${p.gbfb!=null?(p.gbfb>=1.75?'var(--red)':p.gbfb<=1?'#39ff88':''):''};">${d2(p.gbfb)}</div></div>
               <div class="dstat"><div class="dl">HR/FB%</div><div class="dv">${d1p(p.hrfb)}</div></div>
               <div class="dstat"><div class="dl">K%</div><div class="dv" style="color:${kColor(p.k)}">${d1p(p.k)}${trend(p.k_d,true)}</div></div>
             </div>
