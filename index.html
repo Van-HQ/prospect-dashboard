@@ -259,9 +259,9 @@
   <span class="sort-label">Sort:</span>
   <select id="sb">
     <optgroup label="── Rankings ──">
-      <option value="ltw">LTW Score</option>
+      <option value="rank"># Rank</option>
       <option value="prospect_score">Prospect Score</option>
-      <option value="name">Name A-Z</option>
+      <option value="ltw">LTW Score</option>
     </optgroup>
     <optgroup label="── Slash Line ──">
       <option value="avg">AVG</option>
@@ -572,6 +572,7 @@ function applyF() {
 
 function sortData() {
   const fn = {
+    rank: p => -(p.rank ?? 9999),
     ltw: p => p.ltw, prospect_score: p => p.prospect_score,
     ops: p => p.ops, avg: p => p.avg, wrc: p => p.wrc,
     hr: p => p.hr, sb2: p => p.sb, woba: p => p.woba,
