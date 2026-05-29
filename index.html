@@ -469,7 +469,7 @@ function shortSet(s) {
 function computeValueScores(players) {
   // Value score: prospect quality per $ of card price (normalized 0-100)
   // High score = high prospect score relative to price = undervalued
-  const priced = players.filter(p => p.prospect_score != null && p.prospect_score >= 65 && p.price_raw != null && p.price_raw > 0);
+  const priced = players.filter(p => p.prospect_score != null && p.price_raw != null && p.price_raw > 0);
   if (!priced.length) return;
   const raws = priced.map(p => p.prospect_score / Math.log10(p.price_raw + 1));
   const min = Math.min(...raws), max = Math.max(...raws);
@@ -548,9 +548,9 @@ function applyF() {
   if (activeFallers) {
     filtered = filtered.filter(p => (p.prospect_score_d ?? 0) <= -1 && (p.ab ?? 0) >= 50);
   }
-  // Value: undervalued prospects — sort by value score, players without price data fall to bottom
+  // Value: undervalued prospects — min score 65, sort by value score
   if (activeValue) {
-    filtered = filtered.filter(p => p._val != null);
+    filtered = filtered.filter(p => p._val != null && (p.prospect_score ?? 0) >= 65);
   }
   sortData();
   page = 1;
