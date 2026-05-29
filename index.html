@@ -962,7 +962,7 @@ function showD(idx) {
             </div>
           </div>
           ${p.price_raw!=null?`<div class="ds">
-            <h3>Market Value <span style="font-weight:400;letter-spacing:0;text-transform:none;color:var(--text-dim);font-size:8px">via ${p.price_url?`<a href="${p.price_url}" target="_blank" style="color:var(--text-dim);text-decoration:none;border-bottom:1px solid var(--border)" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-dim)'">SCP ↗</a>`:'SCP'} · ${p.price_updated||''}</span></h3>
+            <h3>Market Value <span style="font-weight:400;letter-spacing:0;text-transform:none;color:var(--text-dim);font-size:8px">via ${p.price_url?`<a href="${p.price_url}" target="_blank" style="color:var(--text-dim);text-decoration:none;border-bottom:1px solid var(--border)" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-dim)'">SCP ↗</a>`:'SCP'} · ${p.price_updated?p.price_updated.split('-').slice(1).concat(p.price_updated.split('-')[0]).join('/'):''}</span></h3>
             <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text-dim);margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.price_card||''}${p.price_set?` · <span style="color:var(--text-dim)">${shortSet(p.price_set)}</span>`:''}</div>
             <div class="dg4" style="grid-template-columns:repeat(4,1fr)">
               <div class="dstat"><div class="dl">Raw</div><div class="dv" style="font-size:17px;color:var(--text)">$${p.price_raw!=null?p.price_raw.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'—'}</div></div>
