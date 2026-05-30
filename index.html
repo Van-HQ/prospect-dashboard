@@ -942,16 +942,19 @@ function quickFilter(type) {
       applyF(); break;
     case 'power':
       activeProfile = activeProfile==='power' ? null : 'power';
+      sortF = activeProfile === 'power' ? 'pwr' : 'ltw'; sortD = -1;
       syncChipToPanel(activeProfile); applyF(); break;
     case 'contact':
       activeProfile = activeProfile==='contact' ? null : 'contact';
+      sortF = activeProfile === 'contact' ? 'hit' : 'ltw'; sortD = -1;
       syncChipToPanel(activeProfile); applyF(); break;
     case 'prodigy':
       activeProfile = activeProfile==='prodigy' ? null : 'prodigy';
+      sortF = activeProfile === 'prodigy' ? 'wrc' : 'ltw'; sortD = -1;
       syncChipToPanel(activeProfile); applyF(); break;
     case 'gems':
       activeProfile = activeProfile === 'surging' ? null : 'surging';
-      if (activeProfile === 'surging') { sortF = 'wrc'; sortD = -1; } else { sortF = 'ltw'; }
+      sortF = activeProfile === 'surging' ? 'wrc' : 'ltw'; sortD = -1;
       syncChipToPanel(activeProfile); applyF(); break;
     case 'age20':
       document.getElementById('fa').value = age==='20' ? '' : '20'; applyF(); break;
