@@ -718,18 +718,18 @@ const FILTER_IDS = ['ft','fl','fa','fab','fpos','feta',
 
 // ── Chip → panel sync ────────────────────────────────────────────────────────
 // Column filter inputs that chips can own (cleared on every chip change)
-const CHIP_COL_INPUTS = ['fab','ff-avg','ff-iso','ff-kmax','ff-ld','ff-wrc','ff-score'];
+const CHIP_COL_INPUTS = ['fab','ff-avg','ff-hrfb','ff-kmax','ff-ld','ff-wrc','ff-score'];
 const CHIP_PANEL_MAP = {
-  power:   { 'fab':'50', 'ff-iso':'0.220', 'ff-kmax':'28', 'ff-ld':'20',  'ff-wrc':'120' },
-  contact: { 'fab':'50', 'ff-avg':'0.270', 'ff-kmax':'18', 'ff-ld':'20',  'ff-wrc':'120' },
+  power:   { 'fab':'50', 'ff-hrfb':'12', 'ff-kmax':'28', 'ff-ld':'20', 'ff-wrc':'120' },
+  contact: { 'fab':'50', 'ff-avg':'0.270', 'ff-kmax':'18', 'ff-ld':'20', 'ff-wrc':'120' },
   prodigy: { 'ff-score':'70' },
-  surging: { 'fab':'50', 'ff-score':'60',  'ff-wrc':'120' },
+  surging: { 'fab':'50', 'ff-score':'60', 'ff-wrc':'120' },
   value:   { 'ff-score':'65' },
 };
 function syncChipToPanel(profile) {
-  CHIP_COL_INPUTS.forEach(id => document.getElementById(id).value = '');
+  CHIP_COL_INPUTS.forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   const map = CHIP_PANEL_MAP[profile];
-  if (map) Object.entries(map).forEach(([id, val]) => { document.getElementById(id).value = val; });
+  if (map) Object.entries(map).forEach(([id, val]) => { const el = document.getElementById(id); if (el) el.value = val; });
   updateFilterBadge();
 }
 
