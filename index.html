@@ -442,7 +442,7 @@ const MARKET_COLS = [
   {k:'price_set',l:'Set'},{k:'price_card',l:'Card'},{k:'scp',l:'SCP ↗'}
 ];
 
-function setColView(v) { activeColView = v; renderAll(); }
+function setColView(v) { activeColView = v; updateSummary(); renderAll(); }
 
 function marketRow(p, gi, idx, starOn) {
   const cls = sc(p);
