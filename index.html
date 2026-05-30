@@ -337,10 +337,9 @@
 let RAW = [];
 let filtered = [];
 let sortF = 'ltw', sortD = -1;
-let activeProfile = null; // 'power' | 'contact' | null
+let activeProfile = null; // 'power' | 'contact' | 'prodigy' | 'surging' | null
 let activeFallers = false;
 let activeValue = false;
-let activeGems = false;
 
 function flipCard() {
   const fi = document.getElementById('fi');
@@ -579,7 +578,7 @@ function applyF() {
     filtered = filtered.filter(p => p._val != null && (p.prospect_score ?? 0) >= 65 && (p.age_r ?? 0) >= 0.40 && (p.price_raw ?? 0) >= 3);
   }
   // Surging: production outrunning scouting grades — score 60–99, wRC+ ≥ 120, age ≥ 40, delta ≥ +2, 50 AB min
-  if (activeGems) {
+  if (activeProfile === 'surging') {
     filtered = filtered.filter(p =>
       (p.prospect_score    ?? 0)    >= 60 &&
       (p.prospect_score    ?? 0)    <= 99 &&
@@ -651,8 +650,8 @@ function quickFilter(type) {
     case 'prodigy':
       activeProfile = activeProfile==='prodigy' ? null : 'prodigy'; applyF(); break;
     case 'gems':
-      activeGems = !activeGems;
-      if (activeGems) { sortF = 'wrc'; sortD = -1; } else { sortF = 'ltw'; }
+      activeProfile = activeProfile === 'surging' ? null : 'surging';
+      if (activeProfile === 'surging') { sortF = 'wrc'; sortD = -1; } else { sortF = 'ltw'; }
       applyF(); break;
     case 'age20':
       document.getElementById('fa').value = age==='20' ? '' : '20'; applyF(); break;
@@ -686,7 +685,7 @@ function updateSummary() {
     { l:'Power',     type:'power',   on: activeProfile==='power' },
     { l:'Contact',   type:'contact', on: activeProfile==='contact' },
     { l:'Prodigy',   type:'prodigy', on: activeProfile==='prodigy' },
-    { l:'Surging',   type:'gems',    on: activeGems },
+    { l:'Surging',   type:'gems',    on: activeProfile==='surging' },
   ];
   document.getElementById('sumbar').innerHTML =
     `<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:4px 0 10px">
