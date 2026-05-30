@@ -61,10 +61,24 @@
   .search-wrap input {
     width: 100%; background: var(--surface2); border: 1px solid var(--border);
     color: var(--text); font-family: 'IBM Plex Mono', monospace; font-size: 12px;
-    padding: 6px 10px 6px 28px; border-radius: 3px; outline: none; transition: border-color 0.2s;
+    padding: 6px 26px 6px 28px; border-radius: 3px; outline: none; transition: border-color 0.2s;
+    box-sizing: border-box;
   }
   .search-wrap input:focus { border-color: var(--accent); }
   .search-wrap .ico { position: absolute; left: 9px; top: 50%; transform: translateY(-50%); color: var(--text-dim); font-size: 13px; }
+  .search-clear { position: absolute; right: 7px; top: 50%; transform: translateY(-50%);
+    background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 13px;
+    padding: 0; line-height: 1; display: none; }
+  .search-clear:hover { color: var(--text); }
+  .search-ac { position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+    background: var(--surface2); border: 1px solid var(--accent); border-radius: 3px;
+    z-index: 500; max-height: 220px; overflow-y: auto; display: none; box-shadow: 0 4px 16px rgba(0,0,0,0.4); }
+  .search-ac.open { display: block; }
+  .search-ac-item { padding: 7px 10px; font-size: 11px; font-family: 'IBM Plex Mono', monospace;
+    cursor: pointer; color: var(--text-mid); border-bottom: 1px solid var(--border); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .search-ac-item:last-child { border-bottom: none; }
+  .search-ac-item:hover, .search-ac-item.ac-active { background: var(--surface); color: var(--text); }
+  .search-ac-item .ac-sub { color: var(--text-dim); font-size: 10px; margin-left: 6px; }
   select, .filter-btn {
     background: var(--surface2); border: 1px solid var(--border); color: var(--text-mid);
     font-family: 'IBM Plex Mono', monospace; font-size: 11px; padding: 6px 9px;
@@ -255,7 +269,9 @@
 <div class="controls">
   <div class="search-wrap">
     <span class="ico">⌕</span>
-    <input type="text" id="search" placeholder="Search player or team...">
+    <input type="text" id="search" placeholder="Player, team, pos, ETA…" autocomplete="off">
+    <button class="search-clear" id="search-clear" title="Clear search">✕</button>
+    <div class="search-ac" id="search-ac"></div>
   </div>
   <button class="fp-btn" id="fp-btn" onclick="toggleFilters()">⚙ Filters<span class="fp-badge" id="fp-badge" style="display:none">0</span></button>
   <span class="sort-label">Sort:</span>
@@ -807,7 +823,9 @@ function applyF() {
   const ffDis  = document.getElementById('ff-dis').value  ? parseFloat(document.getElementById('ff-dis').value)  : null;
 
   filtered = RAW.filter(p => {
-    if (q && !p.name.toLowerCase().includes(q) && !p.team.toLowerCase().includes(q)) return false;
+    if (q && !p.name.toLowerCase().includes(q) && !p.team.toLowerCase().includes(q)
+           && !(p.pos||'').toLowerCase().includes(q)
+           && !(p.eta||'').toString().includes(q)) return false;
     if (team && p.team !== team) return false;
     if (lvl) {
       if (lvl === 'CPX' && !p.level.includes('CPX') && !p.level.includes('ROK')) return false;
@@ -1415,12 +1433,87 @@ function setView(v) {
   renderAll();
 }
 
-document.addEventListener('keydown', e => {
-  if (!document.getElementById('dov').classList.contains('open')) return;
-  if (e.key === 'ArrowLeft')  { e.preventDefault(); navD(-1); }
-  if (e.key === 'ArrowRight') { e.preventDefault(); navD(1);  }
+// ── Search: clear button, autocomplete, keyboard shortcut ────────────────────
+const searchEl  = document.getElementById('search');
+const clearBtn  = document.getElementById('search-clear');
+const acBox     = document.getElementById('search-ac');
+let acIdx = -1;
+
+function hideAC() { acBox.classList.remove('open'); acIdx = -1; }
+
+function updateAC() {
+  const q = searchEl.value.trim().toLowerCase();
+  if (!q) { hideAC(); return; }
+  const matches = RAW.filter(p => p.name.toLowerCase().includes(q)).slice(0, 8);
+  if (!matches.length) { hideAC(); return; }
+  acBox.innerHTML = matches.map((p, i) =>
+    `<div class="search-ac-item" data-name="${p.name}" data-i="${i}">
+      ${p.name}<span class="ac-sub">${p.team}${p.pos ? ' · ' + p.pos : ''}${p.eta ? ' · ' + p.eta : ''}</span>
+    </div>`
+  ).join('');
+  acBox.querySelectorAll('.search-ac-item').forEach(el => {
+    el.addEventListener('mousedown', e => {
+      e.preventDefault();
+      searchEl.value = el.dataset.name;
+      clearBtn.style.display = 'block';
+      hideAC();
+      applyF();
+    });
+  });
+  acBox.classList.add('open');
+  acIdx = -1;
+}
+
+function setAcActive(idx) {
+  const items = acBox.querySelectorAll('.search-ac-item');
+  items.forEach(el => el.classList.remove('ac-active'));
+  if (idx >= 0 && idx < items.length) { items[idx].classList.add('ac-active'); acIdx = idx; }
+}
+
+searchEl.addEventListener('input', () => {
+  clearBtn.style.display = searchEl.value ? 'block' : 'none';
+  updateAC();
+  applyF();
 });
-document.getElementById('search').addEventListener('input', applyF);
+searchEl.addEventListener('blur',  () => setTimeout(hideAC, 150));
+searchEl.addEventListener('focus', updateAC);
+searchEl.addEventListener('keydown', e => {
+  const items = acBox.querySelectorAll('.search-ac-item');
+  if (acBox.classList.contains('open') && items.length) {
+    if (e.key === 'ArrowDown')  { e.preventDefault(); setAcActive(Math.min(acIdx + 1, items.length - 1)); }
+    if (e.key === 'ArrowUp')    { e.preventDefault(); setAcActive(Math.max(acIdx - 1, 0)); }
+    if (e.key === 'Enter' && acIdx >= 0) {
+      e.preventDefault();
+      searchEl.value = items[acIdx].dataset.name;
+      clearBtn.style.display = 'block';
+      hideAC(); applyF();
+    }
+    if (e.key === 'Escape') { hideAC(); }
+  }
+});
+
+clearBtn.addEventListener('click', () => {
+  searchEl.value = '';
+  clearBtn.style.display = 'none';
+  hideAC();
+  applyF();
+  searchEl.focus();
+});
+
+document.addEventListener('keydown', e => {
+  // Detail panel arrow navigation
+  if (document.getElementById('dov').classList.contains('open')) {
+    if (e.key === 'ArrowLeft')  { e.preventDefault(); navD(-1); }
+    if (e.key === 'ArrowRight') { e.preventDefault(); navD(1);  }
+    return;
+  }
+  // / to focus search
+  if (e.key === '/' && document.activeElement !== searchEl) {
+    e.preventDefault();
+    searchEl.focus();
+    searchEl.select();
+  }
+});
 document.getElementById('ft').addEventListener('change', applyF);
 document.getElementById('fl').addEventListener('change', applyF);
 document.getElementById('fa').addEventListener('change', applyF);
