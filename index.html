@@ -40,6 +40,16 @@
   .chip { font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; padding: 4px 11px; border-radius: 3px; border: 1px solid var(--border); background: transparent; color: var(--text-dim); cursor: pointer; transition: all 0.15s; white-space: nowrap; }
   .chip:hover { border-color: var(--accent); color: var(--accent); }
   .chip.on { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 600; }
+  .saved-chip { border-color: var(--gold) !important; color: var(--gold) !important; text-transform: none !important; letter-spacing: 0 !important; font-size: 11px !important; padding: 4px 8px 4px 11px !important; }
+  .saved-chip:hover { background: rgba(255,215,0,0.1) !important; border-color: var(--gold) !important; color: var(--gold) !important; }
+  .chip-del { font-size: 13px; margin-left: 7px; opacity: 0.5; vertical-align: middle; transition: opacity 0.15s; }
+  .chip-del:hover { opacity: 1; }
+  .sv-add { border-style: dashed; }
+  .sv-input { background: var(--surface2); border: 1px solid var(--accent); color: var(--text); font-family: 'IBM Plex Mono', monospace; font-size: 11px; padding: 4px 9px; border-radius: 3px; outline: none; width: 160px; }
+  .sv-btn { font-family: 'IBM Plex Mono', monospace; font-size: 10px; padding: 4px 10px; border-radius: 3px; cursor: pointer; border: 1px solid var(--border); background: none; transition: all 0.15s; color: var(--text-dim); }
+  .sv-ok { border-color: var(--accent); color: var(--accent); }
+  .sv-ok:hover { background: var(--accent); color: #000; }
+  .sv-x:hover { border-color: var(--red); color: var(--red); }
 
   .controls {
     background: var(--surface); border-bottom: 1px solid var(--border);
@@ -419,6 +429,8 @@ let sortF = 'ltw', sortD = -1;
 let activeProfile = null; // 'power' | 'contact' | 'prodigy' | 'surging' | null
 let activeFallers = false;
 let activeValue = false;
+let savedViews = JSON.parse(localStorage.getItem('dash_saved_views') || '[]');
+let savingView = false;
 
 function flipCard() {
   const fi = document.getElementById('fi');
@@ -575,6 +587,49 @@ function computeValueScores(players) {
 }
 
 let showTrends = false;
+// ── Saved views ──────────────────────────────────────────────────────────────
+const FILTER_IDS = ['ft','fl','fa','fab','fpos','ff-avg','ff-obp','ff-slg','ff-ops',
+  'ff-wrc','ff-woba','ff-iso','ff-kmax','ff-bb','ff-ld','ff-score','ff-ltw','ff-hit','ff-pwr','ff-spd','ff-dis'];
+
+function getCurrentFilterState() {
+  const state = { sortF, sortD, activeProfile, activeFallers, activeValue,
+                  search: document.getElementById('search').value };
+  FILTER_IDS.forEach(id => { state[id] = document.getElementById(id).value; });
+  return state;
+}
+function saveCurrentView() {
+  savingView = true; updateSummary();
+  setTimeout(() => { const el = document.getElementById('sv-input'); if (el) el.focus(); }, 40);
+}
+function confirmSaveView() {
+  const input = document.getElementById('sv-input');
+  const name = (input ? input.value : '').trim();
+  if (!name) return;
+  savedViews.push({ name, state: getCurrentFilterState() });
+  localStorage.setItem('dash_saved_views', JSON.stringify(savedViews));
+  savingView = false; updateSummary();
+}
+function cancelSaveView() { savingView = false; updateSummary(); }
+function loadView(idx) {
+  const { state } = savedViews[idx];
+  FILTER_IDS.forEach(id => { document.getElementById(id).value = state[id] || ''; });
+  document.getElementById('search').value = state.search || '';
+  sortF = state.sortF || 'ltw';
+  sortD = state.sortD ?? -1;
+  activeProfile = state.activeProfile || null;
+  activeFallers = !!state.activeFallers;
+  activeValue   = !!state.activeValue;
+  document.getElementById('sb').value = sortF;
+  if (!activeValue) computeValueScores(RAW);
+  applyF();
+}
+function deleteView(idx, e) {
+  e.stopPropagation();
+  savedViews.splice(idx, 1);
+  localStorage.setItem('dash_saved_views', JSON.stringify(savedViews));
+  updateSummary();
+}
+
 let filtersOpen = false;
 function toggleFilters() {
   filtersOpen = !filtersOpen;
@@ -818,9 +873,17 @@ function updateSummary() {
     { l:'Prodigy',   type:'prodigy', on: activeProfile==='prodigy' },
     { l:'Surging',   type:'gems',    on: activeProfile==='surging' },
   ];
+  const savedChips = savedViews.map((v,i) =>
+    `<button class="chip saved-chip" onclick="loadView(${i})" title="Load view: ${v.name}">${v.name}<span class="chip-del" onclick="deleteView(${i},event)">×</span></button>`
+  ).join('');
+  const saveControl = savingView
+    ? `<input id="sv-input" class="sv-input" type="text" placeholder="Name this view…" onkeydown="if(event.key==='Enter')confirmSaveView();if(event.key==='Escape')cancelSaveView()"><button class="sv-btn sv-ok" onclick="confirmSaveView()">Save</button><button class="sv-btn sv-x" onclick="cancelSaveView()">✕</button>`
+    : `<button class="chip sv-add" onclick="saveCurrentView()">＋ Save View</button>`;
   document.getElementById('sumbar').innerHTML =
     `<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:4px 0 10px">
       ${chips.map(c=>`<button class="chip${c.on?' on':''}" onclick="quickFilter('${c.type}')">${c.l}</button>`).join('')}
+      ${savedChips}
+      ${saveControl}
     </div>`;
 }
 
