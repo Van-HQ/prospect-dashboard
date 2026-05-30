@@ -591,6 +591,23 @@ let showTrends = false;
 const FILTER_IDS = ['ft','fl','fa','fab','fpos','ff-avg','ff-obp','ff-slg','ff-ops',
   'ff-wrc','ff-woba','ff-iso','ff-kmax','ff-bb','ff-ld','ff-score','ff-ltw','ff-hit','ff-pwr','ff-spd','ff-dis'];
 
+// ── Chip → panel sync ────────────────────────────────────────────────────────
+// Column filter inputs that chips can own (cleared on every chip change)
+const CHIP_COL_INPUTS = ['fab','ff-avg','ff-iso','ff-kmax','ff-ld','ff-wrc','ff-score'];
+const CHIP_PANEL_MAP = {
+  power:   { 'fab':'50', 'ff-iso':'0.220', 'ff-kmax':'28', 'ff-ld':'20',  'ff-wrc':'120' },
+  contact: { 'fab':'50', 'ff-avg':'0.270', 'ff-kmax':'18', 'ff-ld':'20',  'ff-wrc':'120' },
+  prodigy: { 'ff-score':'70' },
+  surging: { 'fab':'50', 'ff-score':'60',  'ff-wrc':'120' },
+  value:   { 'ff-score':'65' },
+};
+function syncChipToPanel(profile) {
+  CHIP_COL_INPUTS.forEach(id => document.getElementById(id).value = '');
+  const map = CHIP_PANEL_MAP[profile];
+  if (map) Object.entries(map).forEach(([id, val]) => { document.getElementById(id).value = val; });
+  updateFilterBadge();
+}
+
 function getCurrentFilterState() {
   const state = { sortF, sortD, activeProfile, activeFallers, activeValue,
                   search: document.getElementById('search').value };
@@ -652,6 +669,10 @@ function updateFilterBadge() {
 function resetFilters() {
   ['ft','fl','fa','fab','fpos'].forEach(id => document.getElementById(id).value = '');
   ['ff-avg','ff-obp','ff-slg','ff-ops','ff-wrc','ff-woba','ff-iso','ff-kmax','ff-bb','ff-ld','ff-score','ff-ltw','ff-hit','ff-pwr','ff-spd','ff-dis'].forEach(id => document.getElementById(id).value = '');
+  activeProfile = null; activeFallers = false; activeValue = false;
+  sortF = 'ltw'; sortD = -1;
+  document.getElementById('sb').value = 'ltw';
+  computeValueScores(RAW);
   applyF();
 }
 function toggleTrends() {
@@ -834,17 +855,21 @@ function quickFilter(type) {
     case 'value':
       activeValue = !activeValue;
       if (activeValue) { sortF = 'val'; sortD = -1; } else { sortF = 'ltw'; computeValueScores(RAW); }
+      syncChipToPanel(activeValue ? 'value' : null);
       applyF(); break;
     case 'power':
-      activeProfile = activeProfile==='power' ? null : 'power'; applyF(); break;
+      activeProfile = activeProfile==='power' ? null : 'power';
+      syncChipToPanel(activeProfile); applyF(); break;
     case 'contact':
-      activeProfile = activeProfile==='contact' ? null : 'contact'; applyF(); break;
+      activeProfile = activeProfile==='contact' ? null : 'contact';
+      syncChipToPanel(activeProfile); applyF(); break;
     case 'prodigy':
-      activeProfile = activeProfile==='prodigy' ? null : 'prodigy'; applyF(); break;
+      activeProfile = activeProfile==='prodigy' ? null : 'prodigy';
+      syncChipToPanel(activeProfile); applyF(); break;
     case 'gems':
       activeProfile = activeProfile === 'surging' ? null : 'surging';
       if (activeProfile === 'surging') { sortF = 'wrc'; sortD = -1; } else { sortF = 'ltw'; }
-      applyF(); break;
+      syncChipToPanel(activeProfile); applyF(); break;
     case 'age20':
       document.getElementById('fa').value = age==='20' ? '' : '20'; applyF(); break;
     case 'watch':
