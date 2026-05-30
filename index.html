@@ -433,7 +433,7 @@ let activeFallers = false;
 let activeValue = false;
 let savedViews = JSON.parse(localStorage.getItem('dash_saved_views') || '[]');
 let savingView = false;
-let activeColView = 'all'; // 'all' | 'market'
+let activeColView = 'all'; // 'all' | 'market' | 'stats'
 
 const MARKET_COLS = [
   {k:'#',l:'#'},{k:'name',l:'Player'},{k:'team',l:'Team'},{k:'age',l:'Age'},{k:'pos',l:'Pos'},
@@ -468,6 +468,51 @@ function marketHeader(colArr) {
   return `<tr><th class="star-td st st1"></th>${colArr.map((c,i)=>
     `<th class="${i===0?'st st2':i===1?'st st3':''} ${sortF===c.k?'sorted':''}" onclick="sortBy('${c.k}')">${c.l}<span class="arr">${sortF===c.k?(sortD<0?'▼':'▲'):''}</span></th>`
   ).join('')}</tr>`;
+}
+
+const STATS_COLS = [
+  {k:'#',l:'#'},{k:'name',l:'Player'},{k:'team',l:'Team'},{k:'age',l:'Age'},{k:'prospect_score',l:'Score'},
+  {k:'ab',l:'AB'},{k:'avg',l:'AVG'},{k:'obp',l:'OBP'},{k:'slg',l:'SLG'},
+  {k:'iso',l:'ISO'},{k:'woba',l:'wOBA'},{k:'wrc',l:'wRC+'},
+  {k:'hr',l:'HR'},{k:'sb2',l:'SB'},{k:'bb',l:'BB%'},{k:'k',l:'K%'},
+  {k:'ld',l:'LD%'},{k:'swstr',l:'SwStr%'},{k:'gbfb',l:'GB/FB'},{k:'hrfb',l:'HR/FB'},
+  {k:'hit',l:'HIT'},{k:'dis',l:'DIS'},{k:'pwr',l:'PWR'},{k:'spd',l:'SPD'},
+  {k:'age_r',l:'AGE'},{k:'wrc_r',l:'WRC+'},{k:'fg',l:'FG'}
+];
+
+function statsRow(p, gi, idx, starOn) {
+  const cls = sc(p);
+  const fgUrl = `https://www.google.com/search?q=${encodeURIComponent(p.name + ' fangraphs')}`;
+  return `<tr onclick="showD(${idx})">
+    <td class="star-td st st1"><button class="star-btn ${starOn?'on':inWatch(p)?'on':''}" onclick="toggleWatch(RAW[${idx}],event)">★</button></td>
+    <td class="st st2" style="color:var(--text-dim)">${gi}</td>
+    <td class="pname st st3">${p.name}</td>
+    <td><span class="tbadge">${p.team}</span></td>
+    <td>${p.age}</td>
+    <td class="${cls}" style="font-weight:600">${p.prospect_score??'—'}</td>
+    <td>${p.ab??'—'}</td>
+    <td style="${avgColor(p.avg)?`color:${avgColor(p.avg)};font-weight:600`:''}">${d3(p.avg)}</td>
+    <td style="${obpColor(p.obp)?`color:${obpColor(p.obp)};font-weight:600`:''}">${d3(p.obp)}</td>
+    <td style="${slgColor(p.slg)?`color:${slgColor(p.slg)};font-weight:600`:''}">${d3(p.slg)}</td>
+    <td style="${isoColor(p.iso)?`color:${isoColor(p.iso)};font-weight:600`:''}">${d3(p.iso)}</td>
+    <td style="${wobaColor(p.woba)?`color:${wobaColor(p.woba)};font-weight:600`:''}">${d3(p.woba)}</td>
+    <td style="color:${wrcColor(p.wrc)};font-weight:600">${p.wrc??'—'}</td>
+    <td>${p.hr??'—'}</td>
+    <td>${p.sb??'—'}</td>
+    <td style="${bbColor(p.bb)?`color:${bbColor(p.bb)};font-weight:600`:''}">${d1p(p.bb)}</td>
+    <td style="${kColor(p.k)?`color:${kColor(p.k)};font-weight:600`:''}">${d1p(p.k)}</td>
+    <td style="${p.ld!=null?(p.ld>=25?'color:#39ff88;font-weight:600':p.ld<15?'color:#ff4444;font-weight:600':''):''}">${p.ld!=null?p.ld.toFixed(1)+'%':'—'}</td>
+    <td>${p.swstr!=null?p.swstr.toFixed(1)+'%':'—'}</td>
+    <td style="${p.gbfb!=null?(p.gbfb>=1.75?'color:var(--red)':p.gbfb<=1?'color:#39ff88':''):''}">${d2(p.gbfb)}</td>
+    <td>${p.hrfb!=null?p.hrfb.toFixed(1)+'%':'—'}</td>
+    <td>${bar(p.hit,'#00d4ff')}</td>
+    <td>${bar(p.dis,'#ff6b35')}</td>
+    <td>${bar(p.pwr,'#ffd700')}</td>
+    <td>${bar(p.spd,'#39ff88')}</td>
+    <td>${bar(p.age_r,'#f472b6')}</td>
+    <td>${bar(p.wrc_r,'#b06eff')}</td>
+    <td style="text-align:center"><a href="${fgUrl}" target="_blank" onclick="event.stopPropagation()" style="color:var(--accent);text-decoration:none;font-size:11px;letter-spacing:0.5px">FG ↗</a></td>
+  </tr>`;
 }
 
 function flipCard() {
@@ -950,8 +995,9 @@ function updateSummary() {
     ? `<input id="sv-input" class="sv-input" type="text" placeholder="Name this view…" onkeydown="if(event.key==='Enter')confirmSaveView();if(event.key==='Escape')cancelSaveView()"><button class="sv-btn sv-ok" onclick="confirmSaveView()">Save</button><button class="sv-btn sv-x" onclick="cancelSaveView()">✕</button>`
     : `<button class="chip sv-add" onclick="saveCurrentView()">＋ Save View</button>`;
   const colViews = [
-    { l:'All', v:'all' },
+    { l:'All',    v:'all' },
     { l:'Market', v:'market' },
+    { l:'Stats',  v:'stats' },
   ];
   document.getElementById('sumbar').innerHTML =
     `<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:4px 0 8px">
@@ -981,6 +1027,13 @@ function renderTable() {
     const pg = getPage();
     if (!pg.length) { document.getElementById('tb').innerHTML = '<tr><td colspan="14" class="empty">No results</td></tr>'; return; }
     document.getElementById('tb').innerHTML = pg.map((p,i) => marketRow(p, (page-1)*PS+i+1, RAW.indexOf(p), false)).join('');
+    return;
+  }
+  if (activeColView === 'stats') {
+    document.getElementById('th').innerHTML = marketHeader(STATS_COLS);
+    const pg = getPage();
+    if (!pg.length) { document.getElementById('tb').innerHTML = '<tr><td colspan="28" class="empty">No results</td></tr>'; return; }
+    document.getElementById('tb').innerHTML = pg.map((p,i) => statsRow(p, (page-1)*PS+i+1, RAW.indexOf(p), false)).join('');
     return;
   }
   const cols = [
@@ -1096,6 +1149,11 @@ function renderWatch() {
   if (activeColView === 'market') {
     wh.innerHTML = marketHeader(MARKET_COLS);
     wt.innerHTML = starred.map((p,i) => marketRow(p, i+1, RAW.indexOf(p), true)).join('');
+    return;
+  }
+  if (activeColView === 'stats') {
+    wh.innerHTML = marketHeader(STATS_COLS);
+    wt.innerHTML = starred.map((p,i) => statsRow(p, i+1, RAW.indexOf(p), true)).join('');
     return;
   }
   // Same cols + header as renderTable
