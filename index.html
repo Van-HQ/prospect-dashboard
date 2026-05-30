@@ -578,14 +578,15 @@ function applyF() {
   if (activeValue) {
     filtered = filtered.filter(p => p._val != null && (p.prospect_score ?? 0) >= 65 && (p.age_r ?? 0) >= 0.40);
   }
-  // Surging: production outrunning scouting grades — score 60–79, wRC+ ≥ 130, delta ≥ +2, 50 AB min
+  // Surging: production outrunning scouting grades — score 60–79, wRC+ ≥ 120, age ≥ 40, delta ≥ +2, 50 AB min
   if (activeGems) {
     filtered = filtered.filter(p =>
-      (p.prospect_score    ?? 0) >= 60 &&
-      (p.prospect_score    ?? 0) <= 79 &&
-      (p.wrc               ?? 0) >= 130 &&
-      (p.prospect_score_d  ?? 0) >= 2  &&
-      (p.ab                ?? 0) >= 50
+      (p.prospect_score    ?? 0)    >= 60 &&
+      (p.prospect_score    ?? 0)    <= 79 &&
+      (p.wrc               ?? 0)    >= 120 &&
+      (p.age_r             ?? 0)    >= 0.40 &&
+      (p.prospect_score_d  ?? 0)    >= 2  &&
+      (p.ab                ?? 0)    >= 50
     );
   }
   sortData();
