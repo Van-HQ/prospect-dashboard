@@ -98,11 +98,10 @@
   .fp-btn:hover { border-color: var(--accent); color: var(--accent); }
   .fp-btn.active { border-color: var(--accent); color: var(--accent); }
   .fp-badge { display: inline-block; background: var(--accent); color: #000; font-size: 9px; font-weight: 700; padding: 1px 5px; border-radius: 8px; margin-left: 5px; vertical-align: middle; }
-  .filter-panel { background: var(--surface); border-bottom: 1px solid var(--border); padding: 12px 24px; display: none; }
+  .filter-panel { background: var(--surface); border-bottom: 1px solid var(--border); padding: 10px 20px; display: none; }
   .filter-panel.open { display: block; animation: su 0.15s ease; }
-  .fp-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px 24px; }
-  @media (max-width: 1100px) { .fp-grid { grid-template-columns: repeat(2, 1fr); } }
-  @media (max-width: 700px)  { .fp-grid { grid-template-columns: 1fr; } }
+  .fp-grid { display: flex; flex-wrap: wrap; gap: 10px 28px; align-items: start; }
+  .fp-grid > div { min-width: 150px; }
   .fp-section-title { font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: var(--text-dim); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px solid var(--border); }
   .fp-col { display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px 14px; }
   .fp-field { display: flex; flex-direction: column; gap: 2px; }
