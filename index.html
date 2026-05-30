@@ -100,8 +100,9 @@
   .fp-badge { display: inline-block; background: var(--accent); color: #000; font-size: 9px; font-weight: 700; padding: 1px 5px; border-radius: 8px; margin-left: 5px; vertical-align: middle; }
   .filter-panel { background: var(--surface); border-bottom: 1px solid var(--border); padding: 16px 24px; display: none; }
   .filter-panel.open { display: block; animation: su 0.15s ease; }
-  .fp-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+  .fp-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
   @media (max-width: 1100px) { .fp-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 700px)  { .fp-grid { grid-template-columns: 1fr; } }
   .fp-section-title { font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: var(--text-dim); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 10px; padding-bottom: 5px; border-bottom: 1px solid var(--border); }
   .fp-col { display: flex; flex-direction: column; gap: 7px; }
   .fp-field { display: flex; flex-direction: column; gap: 3px; }
@@ -323,9 +324,9 @@
 <div class="filter-panel" id="filter-panel">
   <div class="fp-grid">
 
-    <!-- BASIC -->
+    <!-- GENERAL -->
     <div>
-      <div class="fp-section-title">Basic</div>
+      <div class="fp-section-title">General</div>
       <div class="fp-col">
         <div class="fp-field"><span class="fp-label">Team</span>
           <select id="ft">
@@ -356,13 +357,6 @@
             <option value="24">24</option><option value="25">25</option>
           </select>
         </div>
-        <div class="fp-field"><span class="fp-label">Min AB</span>
-          <select id="fab">
-            <option value="">Any</option>
-            <option value="50">50</option><option value="75">75</option><option value="100">100</option>
-            <option value="125">125</option><option value="150">150</option><option value="175">175</option>
-          </select>
-        </div>
         <div class="fp-field"><span class="fp-label">Position</span>
           <select id="fpos">
             <option value="">All</option>
@@ -371,6 +365,15 @@
             <option value="OF">OF</option><option value="INF">INF</option>
           </select>
         </div>
+        <div class="fp-field"><span class="fp-label">ETA</span>
+          <select id="feta">
+            <option value="">Any</option>
+            <option>2025</option><option>2026</option><option>2027</option>
+            <option>2028</option><option>2029</option>
+          </select>
+        </div>
+        <div class="fp-field"><span class="fp-label">Max MLB Rank</span><input type="number" id="ff-mlbrank" step="1" min="1" placeholder="50"></div>
+        <div class="fp-field"><span class="fp-label">Max Org Rank</span><input type="number" id="ff-orgrank" step="1" min="1" placeholder="5"></div>
       </div>
     </div>
 
@@ -385,32 +388,51 @@
       </div>
     </div>
 
+    <!-- BATTING -->
+    <div>
+      <div class="fp-section-title">Batting</div>
+      <div class="fp-col">
+        <div class="fp-field"><span class="fp-label">Min AB</span><input type="number" id="fab" step="1" min="0" placeholder="50"></div>
+        <div class="fp-field"><span class="fp-label">Min HR</span><input type="number" id="ff-hr" step="1" min="0" placeholder="5"></div>
+        <div class="fp-field"><span class="fp-label">Min SB</span><input type="number" id="ff-sb" step="1" min="0" placeholder="5"></div>
+        <div class="fp-field"><span class="fp-label">Min BB%</span><input type="number" id="ff-bb" step="0.1" min="0" placeholder="8"></div>
+        <div class="fp-field"><span class="fp-label">Max K%</span><input type="number" id="ff-kmax" step="0.1" min="0" placeholder="25"></div>
+      </div>
+    </div>
+
     <!-- ADVANCED -->
     <div>
       <div class="fp-section-title">Advanced</div>
       <div class="fp-col">
-        <div class="fp-field"><span class="fp-label">Min wRC+</span><input type="number" id="ff-wrc" step="1" min="0" placeholder="110"></div>
         <div class="fp-field"><span class="fp-label">Min wOBA</span><input type="number" id="ff-woba" step="0.001" min="0" placeholder=".340"></div>
-        <div class="fp-field"><span class="fp-label">Min ISO</span><input type="number" id="ff-iso" step="0.001" min="0" placeholder=".180"></div>
-        <div class="fp-field"><span class="fp-label">Max K%</span><input type="number" id="ff-kmax" step="0.1" min="0" placeholder="25"></div>
-        <div class="fp-field"><span class="fp-label">Min BB%</span><input type="number" id="ff-bb" step="0.1" min="0" placeholder="8"></div>
+        <div class="fp-field"><span class="fp-label">Min wRC+</span><input type="number" id="ff-wrc" step="1" min="0" placeholder="110"></div>
         <div class="fp-field"><span class="fp-label">Min LD%</span><input type="number" id="ff-ld" step="0.1" min="0" placeholder="22"></div>
+        <div class="fp-field"><span class="fp-label">Max SwStr%</span><input type="number" id="ff-swstr" step="0.1" min="0" placeholder="12"></div>
+        <div class="fp-field"><span class="fp-label">Max GB/FB</span><input type="number" id="ff-gbfb" step="0.1" min="0" placeholder="1.5"></div>
+        <div class="fp-field"><span class="fp-label">Min HR/FB</span><input type="number" id="ff-hrfb" step="0.1" min="0" placeholder="10"></div>
       </div>
     </div>
 
-    <!-- RANKINGS + TOOL GRADES -->
+    <!-- TOOL GRADES -->
     <div>
-      <div class="fp-section-title">Rankings</div>
-      <div class="fp-col" style="margin-bottom:14px">
-        <div class="fp-field"><span class="fp-label">Min Score</span><input type="number" id="ff-score" step="1" min="0" max="100" placeholder="65"></div>
-        <div class="fp-field"><span class="fp-label">Min LTW</span><input type="number" id="ff-ltw" step="100" min="0" placeholder="5000"></div>
-      </div>
       <div class="fp-section-title">Tool Grades</div>
-      <div class="fp-grades">
+      <div class="fp-col">
         <div class="fp-field"><span class="fp-label">Min HIT</span><input type="number" id="ff-hit" step="5" min="20" max="80" placeholder="50"></div>
         <div class="fp-field"><span class="fp-label">Min PWR</span><input type="number" id="ff-pwr" step="5" min="20" max="80" placeholder="50"></div>
         <div class="fp-field"><span class="fp-label">Min SPD</span><input type="number" id="ff-spd" step="5" min="20" max="80" placeholder="50"></div>
         <div class="fp-field"><span class="fp-label">Min DIS</span><input type="number" id="ff-dis" step="5" min="20" max="80" placeholder="50"></div>
+        <div class="fp-field"><span class="fp-label">Min AGE Grd</span><input type="number" id="ff-age-r" step="0.05" min="0" max="1" placeholder="0.50"></div>
+        <div class="fp-field"><span class="fp-label">Min wRC+ Grd</span><input type="number" id="ff-wrc-r" step="0.05" min="0" max="1" placeholder="0.50"></div>
+      </div>
+    </div>
+
+    <!-- RANKINGS -->
+    <div>
+      <div class="fp-section-title">Rankings</div>
+      <div class="fp-col">
+        <div class="fp-field"><span class="fp-label">Min Score</span><input type="number" id="ff-score" step="1" min="0" max="100" placeholder="65"></div>
+        <div class="fp-field"><span class="fp-label">Min LTW</span><input type="number" id="ff-ltw" step="100" min="0" placeholder="5000"></div>
+        <div class="fp-field"><span class="fp-label">Min Value</span><input type="number" id="ff-val" step="1" min="0" max="100" placeholder="50"></div>
       </div>
     </div>
 
@@ -687,8 +709,13 @@ function computeValueScores(players) {
 
 let showTrends = false;
 // ── Saved views ──────────────────────────────────────────────────────────────
-const FILTER_IDS = ['ft','fl','fa','fab','fpos','ff-avg','ff-obp','ff-slg','ff-ops',
-  'ff-wrc','ff-woba','ff-iso','ff-kmax','ff-bb','ff-ld','ff-score','ff-ltw','ff-hit','ff-pwr','ff-spd','ff-dis'];
+const FILTER_IDS = ['ft','fl','fa','fab','fpos','feta',
+  'ff-avg','ff-obp','ff-slg','ff-ops',
+  'ff-hr','ff-sb','ff-bb','ff-kmax',
+  'ff-woba','ff-wrc','ff-ld','ff-swstr','ff-gbfb','ff-hrfb',
+  'ff-hit','ff-pwr','ff-spd','ff-dis','ff-age-r','ff-wrc-r',
+  'ff-score','ff-ltw','ff-val',
+  'ff-mlbrank','ff-orgrank'];
 
 // ── Chip → panel sync ────────────────────────────────────────────────────────
 // Column filter inputs that chips can own (cleared on every chip change)
@@ -759,15 +786,13 @@ function toggleFilters() {
   document.getElementById('fp-btn').classList.toggle('active', filtersOpen);
 }
 function updateFilterBadge() {
-  const ids = ['ft','fl','fa','fab','fpos','ff-avg','ff-obp','ff-slg','ff-ops','ff-wrc','ff-woba','ff-iso','ff-kmax','ff-bb','ff-ld','ff-score','ff-ltw','ff-hit','ff-pwr','ff-spd','ff-dis'];
-  const n = ids.filter(id => document.getElementById(id).value).length;
+  const n = FILTER_IDS.filter(id => document.getElementById(id).value).length;
   const badge = document.getElementById('fp-badge');
   badge.textContent = n;
   badge.style.display = n > 0 ? 'inline-block' : 'none';
 }
 function resetFilters() {
-  ['ft','fl','fa','fab','fpos'].forEach(id => document.getElementById(id).value = '');
-  ['ff-avg','ff-obp','ff-slg','ff-ops','ff-wrc','ff-woba','ff-iso','ff-kmax','ff-bb','ff-ld','ff-score','ff-ltw','ff-hit','ff-pwr','ff-spd','ff-dis'].forEach(id => document.getElementById(id).value = '');
+  FILTER_IDS.forEach(id => document.getElementById(id).value = '');
   activeProfile = null; activeFallers = false; activeValue = false;
   sortF = 'ltw'; sortD = -1;
   document.getElementById('sb').value = 'ltw';
@@ -798,29 +823,42 @@ function d1p(v) { return v != null ? v.toFixed(1) + '%' : '—'; }
 function d0p(v) { return v != null ? parseFloat(v).toFixed(0) + '%' : '—'; }
 function dltw(v){ return v != null ? v.toLocaleString() : '—'; }
 
+function pf(id) { const v = document.getElementById(id).value; return v ? parseFloat(v) : null; }
+function pi(id) { const v = document.getElementById(id).value; return v ? parseInt(v)   : null; }
+
 function applyF() {
-  const q = document.getElementById('search').value.toLowerCase();
-  const team = document.getElementById('ft').value;
-  const lvl = document.getElementById('fl').value;
-  const maxAge = document.getElementById('fa').value ? parseInt(document.getElementById('fa').value) : null;
-  const minAB  = document.getElementById('fab').value ? parseInt(document.getElementById('fab').value) : null;
-  const fpos   = document.getElementById('fpos').value;
-  const ffAvg  = document.getElementById('ff-avg').value  ? parseFloat(document.getElementById('ff-avg').value)  : null;
-  const ffObp  = document.getElementById('ff-obp').value  ? parseFloat(document.getElementById('ff-obp').value)  : null;
-  const ffSlg  = document.getElementById('ff-slg').value  ? parseFloat(document.getElementById('ff-slg').value)  : null;
-  const ffOps  = document.getElementById('ff-ops').value  ? parseFloat(document.getElementById('ff-ops').value)  : null;
-  const ffWrc  = document.getElementById('ff-wrc').value  ? parseFloat(document.getElementById('ff-wrc').value)  : null;
-  const ffWoba = document.getElementById('ff-woba').value ? parseFloat(document.getElementById('ff-woba').value) : null;
-  const ffIso  = document.getElementById('ff-iso').value  ? parseFloat(document.getElementById('ff-iso').value)  : null;
-  const ffKmax = document.getElementById('ff-kmax').value ? parseFloat(document.getElementById('ff-kmax').value) : null;
-  const ffBb   = document.getElementById('ff-bb').value   ? parseFloat(document.getElementById('ff-bb').value)   : null;
-  const ffLd   = document.getElementById('ff-ld').value   ? parseFloat(document.getElementById('ff-ld').value)   : null;
-  const ffScore= document.getElementById('ff-score').value? parseFloat(document.getElementById('ff-score').value): null;
-  const ffLtw  = document.getElementById('ff-ltw').value  ? parseFloat(document.getElementById('ff-ltw').value)  : null;
-  const ffHit  = document.getElementById('ff-hit').value  ? parseFloat(document.getElementById('ff-hit').value)  : null;
-  const ffPwr  = document.getElementById('ff-pwr').value  ? parseFloat(document.getElementById('ff-pwr').value)  : null;
-  const ffSpd  = document.getElementById('ff-spd').value  ? parseFloat(document.getElementById('ff-spd').value)  : null;
-  const ffDis  = document.getElementById('ff-dis').value  ? parseFloat(document.getElementById('ff-dis').value)  : null;
+  const q        = document.getElementById('search').value.toLowerCase();
+  const team     = document.getElementById('ft').value;
+  const lvl      = document.getElementById('fl').value;
+  const fpos     = document.getElementById('fpos').value;
+  const feta     = document.getElementById('feta').value;
+  const maxAge   = pi('fa');
+  const minAB    = pi('fab');
+  const ffMlbRnk = pi('ff-mlbrank');
+  const ffOrgRnk = pi('ff-orgrank');
+  const ffAvg    = pf('ff-avg');
+  const ffObp    = pf('ff-obp');
+  const ffSlg    = pf('ff-slg');
+  const ffOps    = pf('ff-ops');
+  const ffHr     = pi('ff-hr');
+  const ffSb     = pi('ff-sb');
+  const ffBb     = pf('ff-bb');
+  const ffKmax   = pf('ff-kmax');
+  const ffWoba   = pf('ff-woba');
+  const ffWrc    = pf('ff-wrc');
+  const ffLd     = pf('ff-ld');
+  const ffSwstr  = pf('ff-swstr');
+  const ffGbfb   = pf('ff-gbfb');
+  const ffHrfb   = pf('ff-hrfb');
+  const ffHit    = pf('ff-hit');
+  const ffPwr    = pf('ff-pwr');
+  const ffSpd    = pf('ff-spd');
+  const ffDis    = pf('ff-dis');
+  const ffAgeR   = pf('ff-age-r');
+  const ffWrcR   = pf('ff-wrc-r');
+  const ffScore  = pf('ff-score');
+  const ffLtw    = pf('ff-ltw');
+  const ffVal    = pf('ff-val');
 
   filtered = RAW.filter(p => {
     if (q && !p.name.toLowerCase().includes(q) && !p.team.toLowerCase().includes(q)
@@ -832,25 +870,35 @@ function applyF() {
       else if (lvl !== 'CPX' && lvl === 'A' && p.level !== 'A') return false;
       else if (lvl !== 'CPX' && lvl !== 'A' && !p.level.includes(lvl)) return false;
     }
-    if (maxAge  && p.age > maxAge) return false;
-    if (minAB   && p.ab  < minAB)  return false;
     if (fpos    && (p.pos || '').split('/')[0] !== fpos) return false;
+    if (feta    && (p.eta || '') !== feta) return false;
+    if (maxAge  && p.age > maxAge) return false;
+    if (minAB   && (p.ab  ?? 0) < minAB) return false;
+    if (ffMlbRnk != null && (p.mlb_rank ?? 9999) > ffMlbRnk) return false;
+    if (ffOrgRnk != null && (p.org_rank ?? 9999) > ffOrgRnk) return false;
     if (ffAvg   && (p.avg  ?? 0) < ffAvg)  return false;
     if (ffObp   && (p.obp  ?? 0) < ffObp)  return false;
     if (ffSlg   && (p.slg  ?? 0) < ffSlg)  return false;
     if (ffOps   && (p.ops  ?? 0) < ffOps)  return false;
-    if (ffWrc   && (p.wrc  ?? 0) < ffWrc)  return false;
-    if (ffWoba  && (p.woba ?? 0) < ffWoba) return false;
-    if (ffIso   && (p.iso  ?? 0) < ffIso)  return false;
-    if (ffKmax  && (p.k    ?? 0) > ffKmax) return false;
+    if (ffHr    != null && (p.hr  ?? 0) < ffHr)   return false;
+    if (ffSb    != null && (p.sb  ?? 0) < ffSb)   return false;
     if (ffBb    && (p.bb   ?? 0) < ffBb)   return false;
+    if (ffKmax  && (p.k    ?? 0) > ffKmax) return false;
+    if (ffWoba  && (p.woba ?? 0) < ffWoba) return false;
+    if (ffWrc   && (p.wrc  ?? 0) < ffWrc)  return false;
     if (ffLd    && (p.ld   ?? 0) < ffLd)   return false;
-    if (ffScore && (p.prospect_score ?? 0) < ffScore) return false;
-    if (ffLtw   && (p.ltw  ?? 0) < ffLtw)  return false;
+    if (ffSwstr != null && (p.swstr ?? 9999) > ffSwstr) return false;
+    if (ffGbfb  != null && (p.gbfb  ?? 9999) > ffGbfb)  return false;
+    if (ffHrfb  != null && (p.hrfb  ?? 0) < ffHrfb)     return false;
     if (ffHit   && (p.hit  ?? 0) < ffHit)  return false;
     if (ffPwr   && (p.pwr  ?? 0) < ffPwr)  return false;
     if (ffSpd   && (p.spd  ?? 0) < ffSpd)  return false;
     if (ffDis   && (p.dis  ?? 0) < ffDis)  return false;
+    if (ffAgeR  && (p.age_r ?? 0) < ffAgeR) return false;
+    if (ffWrcR  && (p.wrc_r ?? 0) < ffWrcR) return false;
+    if (ffScore && (p.prospect_score ?? 0) < ffScore) return false;
+    if (ffLtw   && (p.ltw  ?? 0) < ffLtw)  return false;
+    if (ffVal   != null && (p._val ?? 0) < ffVal) return false;
     return true;
   });
   updateFilterBadge();
@@ -1520,8 +1568,13 @@ document.getElementById('fa').addEventListener('change', applyF);
 document.getElementById('fab').addEventListener('change', applyF);
 document.getElementById('fpos').addEventListener('change', applyF);
 document.getElementById('sb').addEventListener('change', e => { sortF=e.target.value; applyF(); });
-['ff-avg','ff-obp','ff-slg','ff-ops','ff-wrc','ff-woba','ff-iso','ff-kmax','ff-bb','ff-ld','ff-score','ff-ltw','ff-hit','ff-pwr','ff-spd','ff-dis']
+['ff-avg','ff-obp','ff-slg','ff-ops',
+ 'ff-hr','ff-sb','ff-bb','ff-kmax',
+ 'ff-woba','ff-wrc','ff-ld','ff-swstr','ff-gbfb','ff-hrfb',
+ 'ff-hit','ff-pwr','ff-spd','ff-dis','ff-age-r','ff-wrc-r',
+ 'ff-score','ff-ltw','ff-val','ff-mlbrank','ff-orgrank','fab']
   .forEach(id => document.getElementById(id).addEventListener('input', applyF));
+document.getElementById('feta').addEventListener('change', applyF);
 
 async function init() {
   try {
