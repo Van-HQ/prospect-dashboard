@@ -576,6 +576,7 @@ function applyF() {
   // Value: undervalued prospects — min score 65, min AGE grade 40, min raw price $3, sort by value score
   if (activeValue) {
     filtered = filtered.filter(p => p._val != null && (p.prospect_score ?? 0) >= 65 && (p.age_r ?? 0) >= 0.40 && (p.price_raw ?? 0) >= 3);
+    computeValueScores(filtered); // re-normalize relative to current filtered set
   }
   // Surging: production outrunning scouting grades — score 60–99, wRC+ ≥ 120, age ≥ 40, delta ≥ +2, 50 AB min
   if (activeProfile === 'surging') {
@@ -641,7 +642,7 @@ function quickFilter(type) {
       applyF(); break;
     case 'value':
       activeValue = !activeValue;
-      if (activeValue) { sortF = 'val'; sortD = -1; } else { sortF = 'ltw'; }
+      if (activeValue) { sortF = 'val'; sortD = -1; } else { sortF = 'ltw'; computeValueScores(RAW); }
       applyF(); break;
     case 'power':
       activeProfile = activeProfile==='power' ? null : 'power'; applyF(); break;
