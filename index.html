@@ -504,7 +504,7 @@ function statsRow(p, gi, idx, starOn) {
     <td style="${p.ld!=null?(p.ld>=25?'color:#39ff88;font-weight:600':p.ld<15?'color:#ff4444;font-weight:600':''):''}">${p.ld!=null?p.ld.toFixed(1)+'%':'—'}</td>
     <td>${p.swstr!=null?p.swstr.toFixed(1)+'%':'—'}</td>
     <td style="${p.gbfb!=null?(p.gbfb>=1.75?'color:var(--red)':p.gbfb<=1?'color:#39ff88':''):''}">${d2(p.gbfb)}</td>
-    <td>${p.hrfb!=null?p.hrfb.toFixed(1)+'%':'—'}</td>
+    <td style="${p.hrfb!=null?(p.hrfb>=20?'color:#39ff88;font-weight:600':p.hrfb<=5?'color:var(--red);font-weight:600':''):''}">${p.hrfb!=null?p.hrfb.toFixed(1)+'%':'—'}</td>
     <td>${bar(p.hit,'#00d4ff')}</td>
     <td>${bar(p.dis,'#ff6b35')}</td>
     <td>${bar(p.pwr,'#ffd700')}</td>
