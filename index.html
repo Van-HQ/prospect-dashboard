@@ -574,9 +574,9 @@ function applyF() {
   if (activeFallers) {
     filtered = filtered.filter(p => (p.prospect_score_d ?? 0) <= -1 && (p.ab ?? 0) >= 50);
   }
-  // Value: undervalued prospects — min score 65, min AGE grade 40, sort by value score
+  // Value: undervalued prospects — min score 65, min AGE grade 40, min raw price $3, sort by value score
   if (activeValue) {
-    filtered = filtered.filter(p => p._val != null && (p.prospect_score ?? 0) >= 65 && (p.age_r ?? 0) >= 0.40);
+    filtered = filtered.filter(p => p._val != null && (p.prospect_score ?? 0) >= 65 && (p.age_r ?? 0) >= 0.40 && (p.price_raw ?? 0) >= 3);
   }
   // Surging: production outrunning scouting grades — score 60–99, wRC+ ≥ 120, age ≥ 40, delta ≥ +2, 50 AB min
   if (activeGems) {
