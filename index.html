@@ -610,6 +610,11 @@ function confirmSaveView() {
   savingView = false; updateSummary();
 }
 function cancelSaveView() { savingView = false; updateSummary(); }
+function openFilterPanel() {
+  filtersOpen = true;
+  document.getElementById('filter-panel').classList.add('open');
+  document.getElementById('fp-btn').classList.add('active');
+}
 function loadView(idx) {
   const { state } = savedViews[idx];
   FILTER_IDS.forEach(id => { document.getElementById(id).value = state[id] || ''; });
@@ -621,6 +626,7 @@ function loadView(idx) {
   activeValue   = !!state.activeValue;
   document.getElementById('sb').value = sortF;
   if (!activeValue) computeValueScores(RAW);
+  openFilterPanel();
   applyF();
 }
 function deleteView(idx, e) {
@@ -811,7 +817,7 @@ function quickFilter(type) {
   switch(type) {
     case 'top25':
       sortF = sortF==='prospect_score' ? 'ltw' : 'prospect_score';
-      sortD = -1; document.getElementById('sb').value = sortF; applyF(); break;
+      sortD = -1; applyF(); break;
     case 'risers': {
       const wasRisers = sortF==='prospect_score_d' && !activeFallers;
       activeFallers = false;
@@ -844,6 +850,7 @@ function quickFilter(type) {
     case 'watch':
       setView(view==='watch' ? 'table' : 'watch'); break;
   }
+  document.getElementById('sb').value = sortF;
 }
 
 function updateSummary() {
