@@ -1008,7 +1008,7 @@ function updateSummary() {
       ${savedChips}
       ${saveControl}
     </div>
-    <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:2px 0 10px;border-top:1px solid var(--border)">
+    <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:0 0 10px">
       <span style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text-dim);letter-spacing:1px;text-transform:uppercase;margin-right:2px">Columns:</span>
       ${colViews.map(v=>`<button class="chip col-chip${activeColView===v.v?' col-on':''}" onclick="setColView('${v.v}')">${v.l}</button>`).join('')}
     </div>`;
