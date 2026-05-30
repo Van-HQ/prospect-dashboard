@@ -1047,6 +1047,7 @@ function renderTable() {
     {k:'ab',l:'AB'},{k:'avg',l:'AVG'},{k:'obp',l:'OBP'},{k:'slg',l:'SLG'},
     {k:'ops',l:'OPS'},{k:'iso',l:'ISO'},{k:'woba',l:'wOBA'},{k:'wrc',l:'wRC+'},
     {k:'hr',l:'HR'},{k:'sb2',l:'SB'},{k:'bb',l:'BB%'},{k:'k',l:'K%'},{k:'ld',l:'LD%'},
+    {k:'swstr',l:'SwStr%'},{k:'gbfb',l:'GB/FB'},{k:'hrfb',l:'HR/FB'},
     {k:'hit',l:'HIT'},{k:'pwr',l:'PWR'},{k:'spd',l:'SPD'},{k:'dis',l:'DIS'},{k:'age_r',l:'AGE'},{k:'wrc_r',l:'WRC+'}
   ];
   document.getElementById('th').innerHTML = `<tr><th class="star-td st st1"></th>${cols.map((c,i) =>
@@ -1083,6 +1084,9 @@ function renderTable() {
       <td style="${bbColor(p.bb)?`color:${bbColor(p.bb)};font-weight:600`:''}">${d1p(p.bb)}${tbl(p.bb_d)}</td>
       <td style="${kColor(p.k)?`color:${kColor(p.k)};font-weight:600`:''}">${d1p(p.k)}${tbl(p.k_d,true)}</td>
       <td style="${p.ld!=null?(p.ld>=25?'color:#39ff88;font-weight:600':p.ld<15?'color:#ff4444;font-weight:600':''):''}">${p.ld!=null?p.ld.toFixed(1)+'%':'—'}</td>
+      <td>${p.swstr!=null?p.swstr.toFixed(1)+'%':'—'}</td>
+      <td style="${p.gbfb!=null?(p.gbfb>=1.75?'color:var(--red);font-weight:600':p.gbfb<=1?'color:#39ff88;font-weight:600':''):''}">${d2(p.gbfb)}</td>
+      <td style="${p.hrfb!=null?(p.hrfb>=20?'color:#39ff88;font-weight:600':p.hrfb<=5?'color:var(--red);font-weight:600':''):''}">${p.hrfb!=null?p.hrfb.toFixed(1)+'%':'—'}</td>
       <td>${bar(p.hit,'#00d4ff')}</td>
       <td>${bar(p.pwr,'#ffd700')}</td>
       <td>${bar(p.spd,'#39ff88')}</td>
@@ -1168,6 +1172,7 @@ function renderWatch() {
     {k:'ab',l:'AB'},{k:'avg',l:'AVG'},{k:'obp',l:'OBP'},{k:'slg',l:'SLG'},
     {k:'ops',l:'OPS'},{k:'iso',l:'ISO'},{k:'woba',l:'wOBA'},{k:'wrc',l:'wRC+'},
     {k:'hr',l:'HR'},{k:'sb2',l:'SB'},{k:'bb',l:'BB%'},{k:'k',l:'K%'},{k:'ld',l:'LD%'},
+    {k:'swstr',l:'SwStr%'},{k:'gbfb',l:'GB/FB'},{k:'hrfb',l:'HR/FB'},
     {k:'hit',l:'HIT'},{k:'pwr',l:'PWR'},{k:'spd',l:'SPD'},{k:'dis',l:'DIS'},{k:'age_r',l:'AGE'},{k:'wrc_r',l:'WRC+'}
   ];
   wh.innerHTML = `<tr><th class="star-td st st1"></th>${cols.map((c,i) =>
