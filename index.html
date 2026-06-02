@@ -566,7 +566,14 @@ function flipCard() {
   fi.classList.toggle('flipped');
   if (fi.classList.contains('flipped')) {
     dp.style.overflow = 'hidden';
+    // Wait for flip animation then match flip-inner height to back content
+    setTimeout(() => {
+      const fb = fi.querySelector('.flip-back');
+      if (fb) fi.style.minHeight = fb.scrollHeight + 'px';
+      dp.style.overflow = '';
+    }, 400);
   } else {
+    fi.style.minHeight = '';
     setTimeout(() => { dp.style.overflow = ''; }, 500);
   }
 }
