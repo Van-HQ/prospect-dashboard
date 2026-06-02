@@ -484,10 +484,33 @@ const MARKET_COLS = [
   {k:'#',l:'#'},{k:'name',l:'Player'},{k:'team',l:'Team'},{k:'age',l:'Age'},{k:'pos',l:'Pos'},
   {k:'prospect_score',l:'Score'},{k:'val',l:'Val'},
   {k:'price_raw',l:'Raw $'},{k:'price_psa9',l:'PSA 9'},{k:'price_psa10',l:'PSA 10'},
+  {k:'d15_raw_pct',l:'15D Δ'},{k:'d30_raw_pct',l:'30D Δ'},
   {k:'price_set',l:'Set'},{k:'price_card',l:'Card'},{k:'scp',l:'SCP ↗'}
 ];
 
 function setColView(v) { activeColView = v; updateSummary(); renderAll(); }
+
+function fmtDelta(dval, dpct) {
+  if (dpct == null) return '<span style="color:var(--text-dim)">—</span>';
+  if (dpct === 0)   return '<span style="color:var(--text-dim)">—</span>';
+  const pos   = dpct > 0;
+  const color = pos ? '#39ff88' : '#ff4444';
+  const sign  = pos ? '+' : '';
+  const dollar = dval != null ? `<span style="font-size:9px">${dval>=0?'+':''}$${Math.abs(dval).toFixed(2)} </span>` : '';
+  return `<span style="color:${color};white-space:nowrap;font-family:'IBM Plex Mono',monospace">${dollar}<span style="font-weight:700">${sign}${dpct}%</span></span>`;
+}
+
+function cardBadge(pct30, pct15) {
+  const b = (pct, lbl) => {
+    if (pct == null || pct === 0) return '';
+    const sign  = pct > 0 ? '+' : '';
+    const color = pct > 0 ? '#39ff88' : '#ff4444';
+    return `<span style="font-size:8px;color:${color};font-family:'IBM Plex Mono',monospace;font-weight:700;white-space:nowrap">${sign}${pct}% ${lbl}</span>`;
+  };
+  const b30 = b(pct30, '30D'), b15 = b(pct15, '15D');
+  if (!b30 && !b15) return '';
+  return `<div style="margin-top:3px;display:flex;gap:4px;flex-wrap:wrap;justify-content:center">${b30}${b15}</div>`;
+}
 
 function marketRow(p, gi, idx, starOn) {
   const cls = sc(p);
@@ -503,6 +526,8 @@ function marketRow(p, gi, idx, starOn) {
     <td>${p.price_raw!=null?'$'+p.price_raw.toFixed(2):'—'}</td>
     <td style="color:var(--gold)">${p.price_psa9!=null?'$'+p.price_psa9.toFixed(2):'—'}</td>
     <td style="color:var(--accent)">${p.price_psa10!=null?'$'+p.price_psa10.toFixed(2):'—'}</td>
+    <td style="font-size:10px">${fmtDelta(p.d15_raw, p.d15_raw_pct)}</td>
+    <td style="font-size:10px">${fmtDelta(p.d30_raw, p.d30_raw_pct)}</td>
     <td style="color:var(--text-dim);font-size:10px">${p.price_set?shortSet(p.price_set):'—'}</td>
     <td style="color:var(--text-dim);font-size:10px;max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.price_card||'—'}</td>
     <td style="text-align:center">${p.price_url?`<a href="${p.price_url}" target="_blank" onclick="event.stopPropagation()" style="color:var(--accent);text-decoration:none;font-size:13px">↗</a>`:'—'}</td>
@@ -993,6 +1018,8 @@ function sortData() {
     val: p => p._val ?? 0,
     price_raw: p => p.price_raw ?? 0,
     price_psa10: p => p.price_psa10 ?? 0,
+    d15_raw_pct: p => p.d15_raw_pct ?? -9999,
+    d30_raw_pct: p => p.d30_raw_pct ?? -9999,
     age: p => p.age, ab: p => p.ab, iso: p => p.iso,
     obp: p => p.obp, slg: p => p.slg, bb: p => p.bb, k: p => p.k,
     swstr: p => p.swstr ?? 0
@@ -1466,10 +1493,10 @@ function showD(idx) {
             <h3>Market Value <span style="font-weight:400;letter-spacing:0;text-transform:none;color:var(--text-dim);font-size:8px">via ${p.price_url?`<a href="${p.price_url}" target="_blank" style="color:var(--text-dim);text-decoration:none;border-bottom:1px solid var(--border)" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-dim)'">SCP ↗</a>`:'SCP'} · ${p.price_updated?p.price_updated.split('-').slice(1).concat(p.price_updated.split('-')[0]).join('/'):''}</span></h3>
             <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text-dim);margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.price_card||''}${p.price_set?` · <span style="color:var(--text-dim)">${shortSet(p.price_set)}</span>`:''}</div>
             <div class="dg4" style="grid-template-columns:repeat(4,1fr)">
-              <div class="dstat"><div class="dl">Raw</div><div class="dv" style="font-size:17px;color:var(--text)">$${p.price_raw!=null?p.price_raw.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'—'}</div></div>
+              <div class="dstat"><div class="dl">Raw</div><div class="dv" style="font-size:17px;color:var(--text)">$${p.price_raw!=null?p.price_raw.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'—'}</div>${cardBadge(p.d30_raw_pct,p.d15_raw_pct)}</div>
               <div class="dstat"><div class="dl">Value</div><div class="dv" style="font-size:17px;color:${valColor(p._val)||'var(--text)'}">${p._val ?? '—'}</div></div>
-              <div class="dstat"><div class="dl">PSA 9</div><div class="dv" style="font-size:17px;color:var(--gold)">$${p.price_psa9!=null?p.price_psa9.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'—'}</div></div>
-              <div class="dstat"><div class="dl">PSA 10</div><div class="dv" style="font-size:17px;color:var(--accent)">$${p.price_psa10!=null?p.price_psa10.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'—'}</div></div>
+              <div class="dstat"><div class="dl">PSA 9</div><div class="dv" style="font-size:17px;color:var(--gold)">$${p.price_psa9!=null?p.price_psa9.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'—'}</div>${cardBadge(p.d30_psa9_pct,p.d15_psa9_pct)}</div>
+              <div class="dstat"><div class="dl">PSA 10</div><div class="dv" style="font-size:17px;color:var(--accent)">$${p.price_psa10!=null?p.price_psa10.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'—'}</div>${cardBadge(p.d30_psa10_pct,p.d15_psa10_pct)}</div>
             </div>
           </div>`:''}
         </div>
