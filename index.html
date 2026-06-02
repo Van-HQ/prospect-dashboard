@@ -1069,13 +1069,13 @@ function updateSummary() {
   ];
   document.getElementById('sumbar').innerHTML =
     `<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:4px 0 8px">
-      <span style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text-dim);letter-spacing:1px;text-transform:uppercase;margin-right:2px">Filters:</span>
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text-dim);letter-spacing:1px;text-transform:uppercase;display:inline-block;min-width:52px">Filters:</span>
       ${chips.map(c=>`<button class="chip${c.on?' on':''}" onclick="quickFilter('${c.type}')">${c.l}</button>`).join('')}
       ${savedChips}
       ${saveControl}
     </div>
     <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:0 0 10px">
-      <span style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text-dim);letter-spacing:1px;text-transform:uppercase;margin-right:2px">Views:</span>
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text-dim);letter-spacing:1px;text-transform:uppercase;display:inline-block;min-width:52px">Views:</span>
       ${colViews.map(v=>`<button class="chip col-chip${activeColView===v.v?' col-on':''}" onclick="setColView('${v.v}')">${v.l}</button>`).join('')}
     </div>`;
 }
