@@ -1503,11 +1503,17 @@ function showD(idx) {
     </div>
   </div>`;
   document.getElementById('dov').classList.add('open');
+  document.body.style.overflow = 'hidden';
   updateNavBtns(idx);
 }
 
 function closeDov(e) { if(e.target===document.getElementById('dov')) closeD(); }
-function closeD() { document.getElementById('dov').classList.remove('open'); document.getElementById('dscore').style.display='none'; document.getElementById('dstar').style.display='none'; }
+function closeD() {
+  document.getElementById('dov').classList.remove('open');
+  document.getElementById('dscore').style.display='none';
+  document.getElementById('dstar').style.display='none';
+  document.body.style.overflow = '';
+}
 
 function setView(v) {
   view=v;
