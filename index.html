@@ -462,8 +462,8 @@
   <button class="dnav" id="dnav-next" onclick="navD(1);event.stopPropagation()">›</button>
   <div class="dpanel" id="dp">
     <button class="dclose" onclick="closeD()">✕</button>
-    <button class="dflip" onclick="flipCard()" title="Radar view">⇌</button>
-    <button id="dstar" onclick="toggleWatch(RAW[currentIdx],event)" title="Add to watchlist">★</button>
+    <button class="dflip" onclick="flipCard()" title="Radar Chart (F)">⇌</button>
+    <button id="dstar" onclick="toggleWatch(RAW[currentIdx],event)" title="Watchlist (W)">★</button>
     <div id="dscore" class="sc"></div>
     <div id="dc"></div>
   </div>
@@ -1624,6 +1624,7 @@ document.addEventListener('keydown', e => {
     if (e.key === 'ArrowLeft')  { e.preventDefault(); navD(-1); }
     if (e.key === 'ArrowRight') { e.preventDefault(); navD(1);  }
     if (e.key === 'f' || e.key === 'F') { e.preventDefault(); flipCard(); }
+    if (e.key === 'w' || e.key === 'W') { e.preventDefault(); toggleWatch(RAW[currentIdx], e); }
     return;
   }
   // / to focus search
