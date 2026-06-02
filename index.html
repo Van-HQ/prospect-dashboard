@@ -221,7 +221,15 @@
   .flip-inner { transform-style: preserve-3d; transition: transform 0.65s cubic-bezier(0.4,0.2,0.2,1); position: relative; }
   .flip-inner.flipped { transform: rotateY(180deg); }
   .flip-front { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
-  .flip-back { backface-visibility: hidden; -webkit-backface-visibility: hidden; transform: rotateY(180deg); position: absolute; top: 0; left: 0; width: 100%; background: var(--surface); border-radius: 8px; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 14px 10px 12px; }
+  .flip-back { backface-visibility: hidden; -webkit-backface-visibility: hidden; transform: rotateY(180deg); position: absolute; top: 0; left: 0; width: 100%; min-height: 100%; background: var(--surface); border-radius: 8px; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 14px 10px 16px; }
+  .sim-players { width: 100%; margin-top: 12px; padding: 0 12px; }
+  .sim-title { font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: var(--text-dim); letter-spacing: 2px; text-transform: uppercase; border-bottom: 1px solid var(--border); padding-bottom: 4px; margin-bottom: 6px; }
+  .sim-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-bottom: 1px solid rgba(30,45,66,0.4); cursor: pointer; transition: background 0.15s; border-radius: 2px; }
+  .sim-row:hover { background: rgba(0,212,255,0.04); }
+  .sim-row:last-child { border-bottom: none; }
+  .sim-name { font-family: 'IBM Plex Sans', sans-serif; font-size: 12px; font-weight: 600; color: var(--text); }
+  .sim-meta { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text-dim); margin-top: 1px; }
+  .sim-score { font-family: 'Bebas Neue', cursive; font-size: 20px; }
   @keyframes radarGrow { from { opacity:0; transform:scale(0.15); } to { opacity:1; transform:scale(1); } }
   @keyframes radarFade { from { opacity:0; } to { opacity:1; } }
   .r-poly { transform-origin: 250px 250px; animation: radarGrow 0.7s cubic-bezier(0.34,1.56,0.64,1) both; }
@@ -561,6 +569,22 @@ function flipCard() {
   } else {
     setTimeout(() => { dp.style.overflow = ''; }, 500);
   }
+}
+
+function similarPlayers(p, n = 3) {
+  const keys = ['hit','pwr','spd','dis','age_r','wrc_r'];
+  const pool = RAW.filter(q => q.name !== p.name && keys.every(k => q[k] != null && p[k] != null));
+  if (!pool.length) return [];
+  const all = [p, ...pool];
+  const ranges = {};
+  keys.forEach(k => {
+    const vals = all.map(x => x[k]);
+    const min = Math.min(...vals), max = Math.max(...vals);
+    ranges[k] = { min, range: (max - min) || 1 };
+  });
+  const norm = (val, k) => (val - ranges[k].min) / ranges[k].range;
+  const dist = q => Math.sqrt(keys.reduce((sum, k) => { const d = norm(p[k],k) - norm(q[k],k); return sum + d*d; }, 0));
+  return pool.map(q => ({ q, d: dist(q) })).sort((a,b) => a.d - b.d).slice(0, n).map(x => x.q);
 }
 
 function radarSVG(p) {
@@ -1458,6 +1482,20 @@ function showD(idx) {
         </div>
         <div style="display:flex;align-items:center;justify-content:center;width:100%">
           ${radarSVG(p)}
+        </div>
+        <div class="sim-players">
+          <div class="sim-title">Similar Players</div>
+          ${similarPlayers(p).map(s => {
+            const si = RAW.findIndex(q => q.name === s.name && q.team === s.team);
+            const cls = sc(s);
+            return `<div class="sim-row" onclick="event.stopPropagation();showD(${si})">
+              <div>
+                <div class="sim-name">${s.name}</div>
+                <div class="sim-meta">${s.team}${s.pos ? ' · ' + s.pos : ''}${s.level ? ' · ' + s.level : ''}</div>
+              </div>
+              <div class="sim-score ${cls}">${s.prospect_score ?? '—'}</div>
+            </div>`;
+          }).join('')}
         </div>
         <div style="margin-top:10px;font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text-dim);letter-spacing:1px;opacity:0.5">CLICK ⇌ TO FLIP BACK</div>
       </div>
