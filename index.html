@@ -1872,6 +1872,13 @@ async function init() {
       </td></tr>`;
     return;
   }
+  // Recompute sequential prospect ranks among qualified players (ab >= 50)
+  // so ranks are always 1, 2, 3... with no gaps regardless of who's filtered
+  [...RAW]
+    .filter(p => (p.ab || 0) >= 50 && p.prospect_score != null)
+    .sort((a, b) => b.prospect_score - a.prospect_score)
+    .forEach((p, i) => { p.rank = i + 1; });
+
   computeValueScores(RAW);
   filtered = [...RAW];
   sortData();
