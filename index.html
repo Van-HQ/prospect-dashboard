@@ -635,6 +635,8 @@ function histChartSVG(history, statKey) {
   const W = 360, H = 150, PAD = {top:24, right:16, bottom:28, left:44};
   const iW = W - PAD.left - PAD.right, iH = H - PAD.top - PAD.bottom;
   const isRank = statKey === 'rank' || statKey === 'ltw_rank';
+  const _MO = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const prevMo = m => { const i = _MO.indexOf(m); return i > 0 ? _MO[i-1] : _MO[11]; };
 
   const pts = history.map((snap, i) => ({i, m: snap.month, v: snap[statKey]})).filter(d => d.v != null);
   if (pts.length < 2) {
@@ -687,7 +689,7 @@ function histChartSVG(history, statKey) {
 
   history.forEach((snap, i) => {
     const x = xScale(i).toFixed(1);
-    svg += `<text x="${x}" y="${(PAD.top + iH + 18).toFixed(1)}" text-anchor="middle" font-size="8" fill="rgba(255,255,255,0.35)">${snap.month}</text>`;
+    svg += `<text x="${x}" y="${(PAD.top + iH + 18).toFixed(1)}" text-anchor="middle" font-size="8" fill="rgba(255,255,255,0.35)">${prevMo(snap.month)}</text>`;
     const pt = pts.find(d => d.i === i);
     if (pt) {
       const y = yScale(pt.v).toFixed(1);
