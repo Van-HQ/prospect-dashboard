@@ -483,7 +483,7 @@
 <script>
 let RAW = [];
 let filtered = [];
-let sortF = 'ltw', sortD = -1;
+let sortF = 'rank', sortD = -1;
 let activeProfile = null; // 'power' | 'contact' | 'prodigy' | 'surging' | null
 let activeFallers = false;
 let activeValue = false;
@@ -1036,8 +1036,8 @@ function updateFilterBadge() {
 function resetFilters() {
   FILTER_IDS.forEach(id => document.getElementById(id).value = '');
   activeProfile = null; activeFallers = false; activeValue = false;
-  sortF = 'ltw'; sortD = -1;
-  document.getElementById('sb').value = 'ltw';
+  sortF = 'rank'; sortD = -1;
+  document.getElementById('sb').value = 'rank';
   computeValueScores(RAW);
   applyF();
 }
