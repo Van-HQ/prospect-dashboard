@@ -206,6 +206,9 @@
   .hchip { background: none; border: 1px solid var(--border); color: var(--text-dim); font-family: 'IBM Plex Mono', monospace; font-size: 9px; padding: 2px 7px; border-radius: 10px; cursor: pointer; transition: border-color 0.15s, color 0.15s, background 0.15s; white-space: nowrap; line-height: 1.5; }
   .hchip:hover { border-color: rgba(255,255,255,0.3); color: var(--text); }
   .hchip.active { border-color: var(--accent); color: var(--accent); background: rgba(0,212,255,0.08); }
+  .hchip.active2 { border-color: #ffd700; color: #ffd700; background: rgba(255,215,0,0.08); }
+  @keyframes hDrawLine { from { stroke-dashoffset: 1000; } to { stroke-dashoffset: 0; } }
+  @keyframes hFadeIn   { from { opacity: 0; } to { opacity: 1; } }
   #dscore { position: absolute; top: 46px; right: 16px; width: 52px; height: 52px; font-size: 24px; display: none; }
   .star-btn { background: none; border: none; cursor: pointer; color: var(--border); font-size: 15px; padding: 0; line-height: 1; transition: color 0.15s; }
   .star-btn:hover, .star-btn.on { color: var(--gold); }
@@ -489,6 +492,7 @@ let savingView = false;
 let activeColView = 'all'; // 'all' | 'market' | 'stats'
 let historyMode = false;
 let histStat = 'avg';
+let histStat2 = null;
 
 const MARKET_COLS = [
   {k:'#',l:'#'},{k:'name',l:'Player'},{k:'team',l:'Team'},{k:'age',l:'Age'},{k:'pos',l:'Pos'},
@@ -631,71 +635,121 @@ function flipCard() {
   }
 }
 
-function histChartSVG(history, statKey) {
+function histChartSVG(history, statKey, statKey2) {
   const W = 360, H = 150, PAD = {top:24, right:16, bottom:28, left:44};
   const iW = W - PAD.left - PAD.right, iH = H - PAD.top - PAD.bottom;
-  const isRank = statKey === 'rank' || statKey === 'ltw_rank';
   const _MO = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const prevMo = m => { const i = _MO.indexOf(m); return i > 0 ? _MO[i-1] : _MO[11]; };
 
-  const pts = history.map((snap, i) => ({i, m: snap.month, v: snap[statKey]})).filter(d => d.v != null);
-  if (pts.length < 2) {
+  const isRankKey = k => k === 'rank' || k === 'ltw_rank';
+
+  function buildSeries(sk) {
+    if (!sk) return null;
+    const pts = history.map((snap, i) => ({i, v: snap[sk]})).filter(d => d.v != null);
+    if (pts.length < 2) return null;
+    const vals = pts.map(d => d.v);
+    let minV = Math.min(...vals), maxV = Math.max(...vals);
+    if (minV === maxV) { minV -= 1; maxV += 1; }
+    const p = (maxV - minV) * 0.22;
+    minV -= p; maxV += p;
+    const first = pts[0].v, last = pts[pts.length-1].v;
+    const up = isRankKey(sk) ? first > last : last >= first;
+    const color = first === last ? 'var(--accent)' : up ? '#39ff88' : '#ff4444';
+    return { pts, minV, maxV, color };
+  }
+
+  function makeFmt(sk) {
+    const isR = isRankKey(sk);
+    return {
+      y: v => {
+        if (isR) return '#' + Math.round(v);
+        if (['avg','obp','slg','ops','woba','iso'].includes(sk)) return v.toFixed(3);
+        if (['bb','k','ld','hrfb','swstr'].includes(sk)) return v.toFixed(1) + '%';
+        if (['hit','pwr','spd','dis','age_r','wrc_r'].includes(sk)) return Math.round(v * 100);
+        if (sk === 'gbfb') return v.toFixed(2);
+        return Math.round(v);
+      },
+      v: v => {
+        if (isR) return '#' + v;
+        if (['avg','obp','slg','ops','woba','iso'].includes(sk)) return v.toFixed(3);
+        if (['bb','k','ld','hrfb','swstr'].includes(sk)) return v.toFixed(1) + '%';
+        if (['hit','pwr','spd','dis','age_r','wrc_r'].includes(sk)) return Math.round(v * 100);
+        if (sk === 'gbfb') return v.toFixed(2);
+        return v;
+      }
+    };
+  }
+
+  const s1 = buildSeries(statKey);
+  const s2 = buildSeries(statKey2) ? buildSeries(statKey2) : null;
+  const dual = !!s2;
+
+  if (!s1) {
     return `<div style="display:flex;align-items:center;justify-content:center;height:${H}px;color:var(--text-dim);font-family:'IBM Plex Mono',monospace;font-size:10px">Not enough data</div>`;
   }
 
-  const vals = pts.map(d => d.v);
-  let minV = Math.min(...vals), maxV = Math.max(...vals);
-  if (minV === maxV) { minV -= 1; maxV += 1; }
-  const pad = (maxV - minV) * 0.22;
-  minV -= pad; maxV += pad;
-
   const n = history.length;
-  const xScale = i => PAD.left + (n > 1 ? (i / (n - 1)) * iW : iW / 2);
-  const yScale = v => PAD.top + iH - ((v - minV) / (maxV - minV)) * iH;
+  const xScale  = i => PAD.left + (n > 1 ? (i / (n - 1)) * iW : iW / 2);
+  const yScale1 = v => PAD.top + iH - ((v - s1.minV) / (s1.maxV - s1.minV)) * iH;
+  const yScale2 = s2 ? v => PAD.top + iH - ((v - s2.minV) / (s2.maxV - s2.minV)) * iH : null;
 
-  const first = pts[0].v, last = pts[pts.length - 1].v;
-  const trendUp = isRank ? first > last : last >= first;
-  const color = first === last ? 'var(--accent)' : trendUp ? '#39ff88' : '#ff4444';
+  const fmt1 = makeFmt(statKey);
+  const fmt2 = dual ? makeFmt(statKey2) : null;
 
-  const fmtY = v => {
-    if (isRank) return '#' + Math.round(v);
-    if (['avg','obp','slg','ops','woba','iso'].includes(statKey)) return v.toFixed(3);
-    if (['bb','k','ld','hrfb','swstr'].includes(statKey)) return v.toFixed(1) + '%';
-    if (['hit','pwr','spd','dis','age_r','wrc_r'].includes(statKey)) return Math.round(v * 100);
-    if (statKey === 'gbfb') return v.toFixed(2);
-    return Math.round(v);
-  };
-  const fmtV = v => {
-    if (isRank) return '#' + v;
-    if (['avg','obp','slg','ops','woba','iso'].includes(statKey)) return v.toFixed(3);
-    if (['bb','k','ld','hrfb','swstr'].includes(statKey)) return v.toFixed(1) + '%';
-    if (['hit','pwr','spd','dis','age_r','wrc_r'].includes(statKey)) return Math.round(v * 100);
-    if (statKey === 'gbfb') return v.toFixed(2);
-    return v;
-  };
+  // Override s2 color to gold so it always contrasts the primary trend color
+  if (s2) s2.color = '#ffd700';
 
   let svg = `<svg width="100%" viewBox="0 0 ${W} ${H}" style="font-family:'IBM Plex Mono',monospace;overflow:visible">`;
 
+  // Y-axis grid + labels (primary stat only)
   [0, 0.5, 1].forEach(t => {
-    const v = minV + (maxV - minV) * t, y = yScale(v).toFixed(1);
+    const v = s1.minV + (s1.maxV - s1.minV) * t, y = yScale1(v).toFixed(1);
     svg += `<line x1="${PAD.left}" y1="${y}" x2="${PAD.left + iW}" y2="${y}" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>`;
-    svg += `<text x="${PAD.left - 4}" y="${(parseFloat(y) + 3).toFixed(1)}" text-anchor="end" font-size="7" fill="rgba(255,255,255,0.3)">${fmtY(v)}</text>`;
+    if (!dual) svg += `<text x="${PAD.left - 4}" y="${(parseFloat(y) + 3).toFixed(1)}" text-anchor="end" font-size="7" fill="rgba(255,255,255,0.3)">${fmt1.y(v)}</text>`;
   });
 
-  const pathPts = pts.map(d => `${xScale(d.i).toFixed(1)},${yScale(d.v).toFixed(1)}`).join(' L ');
-  const x0 = xScale(pts[0].i).toFixed(1), xl = xScale(pts[pts.length-1].i).toFixed(1), yBot = (PAD.top + iH).toFixed(1);
-  svg += `<path d="M ${x0},${yBot} L ${pathPts} L ${xl},${yBot} Z" fill="${color}" fill-opacity="0.07"/>`;
-  svg += `<path d="M ${pathPts}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`;
+  // Draw series helper
+  function drawSeries(ser, yScaleFn, fmt, animDelay) {
+    const pts = ser.pts;
+    const color = ser.color;
+    const pathPts = pts.map(d => `${xScale(d.i).toFixed(1)},${yScaleFn(d.v).toFixed(1)}`).join(' L ');
+    const x0  = xScale(pts[0].i).toFixed(1);
+    const xl  = xScale(pts[pts.length-1].i).toFixed(1);
+    const yBot = (PAD.top + iH).toFixed(1);
+    const dotDelay = (animDelay + 0.45).toFixed(2);
 
+    // Area fill — fade in
+    svg += `<path d="M ${x0},${yBot} L ${pathPts} L ${xl},${yBot} Z" fill="${color}" fill-opacity="0" style="animation:hFadeIn 0.5s ease-out ${animDelay}s forwards"/>`;
+    // Line — draw left-to-right
+    svg += `<path d="M ${pathPts}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1000" stroke-dashoffset="1000" style="animation:hDrawLine 0.55s ease-out ${animDelay}s forwards"/>`;
+
+    // Dots + value labels — appear after line finishes
+    pts.forEach(pt => {
+      const x = xScale(pt.i).toFixed(1);
+      const y = yScaleFn(pt.v).toFixed(1);
+      svg += `<circle cx="${x}" cy="${y}" r="3" fill="${color}" stroke="#111" stroke-width="1.5" opacity="0" style="animation:hFadeIn 0.25s ease-out ${dotDelay}s forwards"/>`;
+      svg += `<text x="${x}" y="${(yScaleFn(pt.v) - 6).toFixed(1)}" text-anchor="middle" font-size="7.5" fill="${color}" font-weight="600" opacity="0" style="animation:hFadeIn 0.25s ease-out ${dotDelay}s forwards">${fmt.v(pt.v)}</text>`;
+    });
+  }
+
+  drawSeries(s1, yScale1, fmt1, 0);
+  if (s2) drawSeries(s2, yScale2, fmt2, 0.1);
+
+  // Legend when dual mode
+  if (dual) {
+    const l1 = HIST_STATS.flatMap(g => g.stats).find(s => s.k === statKey);
+    const l2 = HIST_STATS.flatMap(g => g.stats).find(s => s.k === statKey2);
+    const lx = PAD.left;
+    svg += `<circle cx="${lx}" cy="10" r="3" fill="${s1.color}"/>`;
+    svg += `<text x="${lx + 6}" y="13" font-size="7" fill="${s1.color}">${l1 ? l1.l : statKey}</text>`;
+    svg += `<circle cx="${lx + 60}" cy="10" r="3" fill="#ffd700"/>`;
+    svg += `<text x="${lx + 66}" y="13" font-size="7" fill="#ffd700">${l2 ? l2.l : statKey2}</text>`;
+  }
+
+  // X-axis month labels
   history.forEach((snap, i) => {
     const x = xScale(i).toFixed(1);
     svg += `<text x="${x}" y="${(PAD.top + iH + 18).toFixed(1)}" text-anchor="middle" font-size="8" fill="rgba(255,255,255,0.35)">${prevMo(snap.month)}</text>`;
-    const pt = pts.find(d => d.i === i);
-    if (pt) {
-      const y = yScale(pt.v).toFixed(1);
-      svg += `<circle cx="${x}" cy="${y}" r="3" fill="${color}" stroke="#111" stroke-width="1.5"/>`;
-      svg += `<text x="${x}" y="${(yScale(pt.v) - 6).toFixed(1)}" text-anchor="middle" font-size="7.5" fill="${color}" font-weight="600">${fmtV(pt.v)}</text>`;
-    }
   });
 
   svg += `</svg>`;
@@ -706,12 +760,21 @@ function updateHistChart() {
   const p = RAW[currentIdx];
   if (!p || !p.history) return;
   const el = document.getElementById('hist-chart');
-  if (el) el.innerHTML = histChartSVG(p.history, histStat);
+  if (el) el.innerHTML = histChartSVG(p.history, histStat, histStat2);
 }
 
-function selectHistStat(key) {
-  histStat = key;
-  document.querySelectorAll('.hchip').forEach(c => c.classList.toggle('active', c.dataset.stat === key));
+function selectHistStat(key, isShift) {
+  if (isShift) {
+    if (key === histStat) return; // can't overlay the same stat
+    histStat2 = (histStat2 === key) ? null : key; // toggle overlay off/on
+  } else {
+    histStat = key;
+    histStat2 = null;
+  }
+  document.querySelectorAll('.hchip').forEach(c => {
+    c.classList.toggle('active',  c.dataset.stat === histStat);
+    c.classList.toggle('active2', c.dataset.stat === histStat2);
+  });
   updateHistChart();
 }
 
@@ -1531,7 +1594,7 @@ function showD(idx) {
   ];
   // Reset flip state whenever a new card opens
   document.getElementById('dp').style.overflow = '';
-  historyMode = false;
+  historyMode = false; histStat2 = null;
   const dhBtn = document.getElementById('dhistory');
   if (dhBtn) {
     dhBtn.classList.remove('active');
@@ -1640,7 +1703,7 @@ function showD(idx) {
         <div id="card-hist-panel" style="display:none;padding:4px 22px 14px">
           <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:2px;color:var(--text-dim);margin-bottom:4px">STAT HISTORY</div>
           <div class="hist-chips" style="flex-direction:row;flex-wrap:wrap;">
-            ${HIST_STATS.flatMap(grp => grp.stats).map(s => `<button class="hchip${s.k===histStat?' active':''}" data-stat="${s.k}" onclick="selectHistStat('${s.k}')">${s.l}</button>`).join('')}
+            ${HIST_STATS.flatMap(grp => grp.stats).map(s => `<button class="hchip${s.k===histStat?' active':''}${s.k===histStat2?' active2':''}" data-stat="${s.k}" onclick="selectHistStat('${s.k}',event.shiftKey)">${s.l}</button>`).join('')}
           </div>
           <div id="hist-chart" style="margin-top:10px"></div>
         </div>
@@ -1684,7 +1747,7 @@ function closeD() {
   document.getElementById('dscore').style.display='none';
   document.getElementById('dstar').style.display='none';
   document.getElementById('dhistory').style.display='none';
-  historyMode = false;
+  historyMode = false; histStat2 = null;
   document.body.style.overflow = '';
 }
 
