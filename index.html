@@ -1435,7 +1435,7 @@ function showD(idx) {
         </div>
         <div class="db">
           <div class="ds">
-            <h3>Rankings</h3>
+            <h3>Rankings <span style="font-weight:400;letter-spacing:0;text-transform:none;color:var(--text-dim);font-size:8px">via <a href="${plink.fg}" target="_blank" onclick="event.stopPropagation()" style="color:var(--text-dim);text-decoration:none;border-bottom:1px solid var(--border)" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-dim)'">FanGraphs ↗</a>${p.data_updated?' · '+p.data_updated.split('-').slice(1).concat(p.data_updated.split('-')[0]).join('/'):''}</span></h3>
             <div class="dg4">
               <div class="dstat"><div class="dl">Prospect Score</div><div class="dv" style="color:${p.prospect_score>=90?'var(--accent)':p.prospect_score>=80?'var(--accent3)':p.prospect_score>=70?'var(--gold)':p.prospect_score>=60?'var(--accent2)':'var(--red)'}">${p.prospect_score}${trend(p.prospect_score_d)}</div></div>
               <div class="dstat"><div class="dl">Prospect Rank</div><div class="dv">#${p.rank}${trend(p.rank_d,true)}</div></div>
