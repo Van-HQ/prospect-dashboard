@@ -1381,7 +1381,7 @@ function renderTable() {
       <td style="color:var(--text-dim)">${p.pos || '—'}</td>
       ${activeValue ? `<td style="${valColor(p._val)?`color:${valColor(p._val)};font-weight:700`:''}">${p._val ?? '—'}</td><td>${p.price_raw!=null?'$'+p.price_raw.toFixed(2):'—'}</td><td style="color:var(--accent)">${p.price_psa10!=null?'$'+p.price_psa10.toFixed(2):'—'}</td>` : ''}
       <td class="${cls}" style="font-weight:600">${p.prospect_score}${sortF==='prospect_score_d'&&p.prospect_score_d!=null?activeFallers?`<span style="color:#ff4444;font-size:9px;margin-left:4px;font-weight:700">${Math.round(p.prospect_score_d)}</span>`:`<span style="color:#39ff88;font-size:9px;margin-left:4px;font-weight:700">+${Math.round(p.prospect_score_d)}</span>`:tbl(p.prospect_score_d)}</td>
-      <td style="color:var(--text-dim)">${p.rank != null ? '#' + p.rank : '—'}</td>
+      <td style="color:var(--text-dim)">${p.rank != null ? '#' + p.rank : 'N/Q'}</td>
       <td>${dltw(p.ltw)}${tbl(p.ltw_d)}</td>
       <td>${p.ab}</td>
       <td style="${avgColor(p.avg)?`color:${avgColor(p.avg)};font-weight:600`:''}">${d3(p.avg)}${tbl(p.avg_d)}</td>
@@ -1502,7 +1502,7 @@ function renderWatch() {
       <td style="color:var(--text-dim)">${p.pos || '—'}</td>
       ${activeValue ? `<td style="${valColor(p._val)?`color:${valColor(p._val)};font-weight:700`:''}">${p._val ?? '—'}</td><td>${p.price_raw!=null?'$'+p.price_raw.toFixed(2):'—'}</td><td style="color:var(--accent)">${p.price_psa10!=null?'$'+p.price_psa10.toFixed(2):'—'}</td>` : ''}
       <td class="${cls}" style="font-weight:600">${p.prospect_score}${sortF==='prospect_score_d'&&p.prospect_score_d!=null?activeFallers?`<span style="color:#ff4444;font-size:9px;margin-left:4px;font-weight:700">${Math.round(p.prospect_score_d)}</span>`:`<span style="color:#39ff88;font-size:9px;margin-left:4px;font-weight:700">+${Math.round(p.prospect_score_d)}</span>`:tbl(p.prospect_score_d)}</td>
-      <td style="color:var(--text-dim)">${p.rank != null ? '#' + p.rank : '—'}</td>
+      <td style="color:var(--text-dim)">${p.rank != null ? '#' + p.rank : 'N/Q'}</td>
       <td>${dltw(p.ltw)}${tbl(p.ltw_d)}</td>
       <td>${p.ab}</td>
       <td style="${avgColor(p.avg)?`color:${avgColor(p.avg)};font-weight:600`:''}">${d3(p.avg)}${tbl(p.avg_d)}</td>
