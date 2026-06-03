@@ -199,6 +199,10 @@
   .dflip:hover { border-color: var(--accent); color: var(--accent); }
   #dstar { position: absolute; top: 12px; right: 80px; background: none; border: 1px solid var(--border); color: var(--text-dim); width: 26px; height: 26px; border-radius: 50%; cursor: pointer; font-size: 15px; display: none; align-items: center; justify-content: center; transition: all 0.2s; z-index: 10; line-height:1; }
   #dstar:hover, #dstar.on { border-color: var(--gold); color: var(--gold); }
+  #dhistory { position: absolute; top: 12px; right: 114px; background: none; border: 1px solid var(--border); color: var(--text-dim); width: 26px; height: 26px; border-radius: 50%; cursor: pointer; font-size: 13px; display: none; align-items: center; justify-content: center; transition: all 0.2s; z-index: 10; font-family:'IBM Plex Mono',monospace; }
+  #dhistory:hover, #dhistory.active { border-color: var(--accent); color: var(--accent); }
+  .hist-sel { background: var(--surface); border: 1px solid var(--border); color: var(--text); font-family: 'IBM Plex Mono', monospace; font-size: 10px; padding: 4px 8px; border-radius: 4px; cursor: pointer; width: 100%; margin-top: 6px; }
+  .hist-sel:focus { outline: none; border-color: var(--accent); }
   #dscore { position: absolute; top: 46px; right: 16px; width: 52px; height: 52px; font-size: 24px; display: none; }
   .star-btn { background: none; border: none; cursor: pointer; color: var(--border); font-size: 15px; padding: 0; line-height: 1; transition: color 0.15s; }
   .star-btn:hover, .star-btn.on { color: var(--gold); }
@@ -464,6 +468,7 @@
     <button class="dclose" onclick="closeD()">✕</button>
     <button class="dflip" onclick="flipCard()" title="Radar Chart (F)">⇌</button>
     <button id="dstar" onclick="toggleWatch(RAW[currentIdx],event)" title="Watchlist (W)">★</button>
+    <button id="dhistory" onclick="toggleHistory()" title="Stat History (S)">≋</button>
     <div id="dscore" class="sc"></div>
     <div id="dc"></div>
   </div>
@@ -479,6 +484,8 @@ let activeValue = false;
 let savedViews = JSON.parse(localStorage.getItem('dash_saved_views') || '[]');
 let savingView = false;
 let activeColView = 'all'; // 'all' | 'market' | 'stats'
+let historyMode = false;
+let histStat = 'avg';
 
 const MARKET_COLS = [
   {k:'#',l:'#'},{k:'name',l:'Player'},{k:'team',l:'Team'},{k:'age',l:'Age'},{k:'pos',l:'Pos'},
@@ -486,6 +493,30 @@ const MARKET_COLS = [
   {k:'price_raw',l:'Raw $'},{k:'price_psa9',l:'PSA 9'},{k:'price_psa10',l:'PSA 10'},
   {k:'d15_raw_pct',l:'15D Δ'},{k:'d30_raw_pct',l:'30D Δ'},
   {k:'price_set',l:'Set'},{k:'price_card',l:'Card'},{k:'scp',l:'SCP ↗'}
+];
+
+const HIST_STATS = [
+  { group: 'Slash Line', stats: [
+    {k:'avg',  l:'AVG'},  {k:'obp', l:'OBP'},  {k:'slg', l:'SLG'},
+    {k:'ops',  l:'OPS'},  {k:'woba',l:'wOBA'}, {k:'iso', l:'ISO'}
+  ]},
+  { group: 'Advanced', stats: [
+    {k:'wrc',  l:'wRC+'}, {k:'bb',  l:'BB%'},  {k:'k',   l:'K%'},
+    {k:'swstr',l:'SwStr%'}
+  ]},
+  { group: 'Production', stats: [
+    {k:'ab', l:'AB'}, {k:'hr', l:'HR'}, {k:'sb', l:'SB'}
+  ]},
+  { group: 'Batted Ball', stats: [
+    {k:'ld', l:'LD%'}, {k:'gbfb', l:'GB/FB'}, {k:'hrfb', l:'HR/FB%'}
+  ]},
+  { group: 'Tool Grades', stats: [
+    {k:'hit', l:'HIT'}, {k:'pwr', l:'PWR'}, {k:'spd', l:'SPD'}, {k:'dis', l:'DIS'}
+  ]},
+  { group: 'Rankings', stats: [
+    {k:'prospect_score', l:'Prospect Score'}, {k:'rank',     l:'Prospect Rank'},
+    {k:'ltw',           l:'LTW Score'},       {k:'ltw_rank', l:'LTW Rank'}
+  ]}
 ];
 
 function setColView(v) { activeColView = v; updateSummary(); renderAll(); }
@@ -594,6 +625,96 @@ function flipCard() {
   } else {
     setTimeout(() => { dp.style.overflow = ''; }, 500);
   }
+}
+
+function histChartSVG(history, statKey) {
+  const W = 360, H = 150, PAD = {top:24, right:16, bottom:28, left:44};
+  const iW = W - PAD.left - PAD.right, iH = H - PAD.top - PAD.bottom;
+  const isRank = statKey === 'rank' || statKey === 'ltw_rank';
+
+  const pts = history.map((snap, i) => ({i, m: snap.month, v: snap[statKey]})).filter(d => d.v != null);
+  if (pts.length < 2) {
+    return `<div style="display:flex;align-items:center;justify-content:center;height:${H}px;color:var(--text-dim);font-family:'IBM Plex Mono',monospace;font-size:10px">Not enough data</div>`;
+  }
+
+  const vals = pts.map(d => d.v);
+  let minV = Math.min(...vals), maxV = Math.max(...vals);
+  if (minV === maxV) { minV -= 1; maxV += 1; }
+  const pad = (maxV - minV) * 0.22;
+  minV -= pad; maxV += pad;
+
+  const n = history.length;
+  const xScale = i => PAD.left + (n > 1 ? (i / (n - 1)) * iW : iW / 2);
+  const yScale = v => PAD.top + iH - ((v - minV) / (maxV - minV)) * iH;
+
+  const first = pts[0].v, last = pts[pts.length - 1].v;
+  const trendUp = isRank ? first > last : last >= first;
+  const color = first === last ? 'var(--accent)' : trendUp ? '#39ff88' : '#ff4444';
+
+  const fmtY = v => {
+    if (isRank) return '#' + Math.round(v);
+    if (['avg','obp','slg','ops','woba','iso'].includes(statKey)) return v.toFixed(3);
+    if (['bb','k','ld','hrfb','swstr'].includes(statKey)) return v.toFixed(1) + '%';
+    if (['hit','pwr','spd','dis'].includes(statKey)) return Math.round(v * 100);
+    if (statKey === 'gbfb') return v.toFixed(2);
+    return Math.round(v);
+  };
+  const fmtV = v => {
+    if (isRank) return '#' + v;
+    if (['avg','obp','slg','ops','woba','iso'].includes(statKey)) return v.toFixed(3);
+    if (['bb','k','ld','hrfb','swstr'].includes(statKey)) return v.toFixed(1) + '%';
+    if (['hit','pwr','spd','dis'].includes(statKey)) return Math.round(v * 100);
+    if (statKey === 'gbfb') return v.toFixed(2);
+    return v;
+  };
+
+  let svg = `<svg width="100%" viewBox="0 0 ${W} ${H}" style="font-family:'IBM Plex Mono',monospace;overflow:visible">`;
+
+  [0, 0.5, 1].forEach(t => {
+    const v = minV + (maxV - minV) * t, y = yScale(v).toFixed(1);
+    svg += `<line x1="${PAD.left}" y1="${y}" x2="${PAD.left + iW}" y2="${y}" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>`;
+    svg += `<text x="${PAD.left - 4}" y="${(parseFloat(y) + 3).toFixed(1)}" text-anchor="end" font-size="7" fill="rgba(255,255,255,0.3)">${fmtY(v)}</text>`;
+  });
+
+  const pathPts = pts.map(d => `${xScale(d.i).toFixed(1)},${yScale(d.v).toFixed(1)}`).join(' L ');
+  const x0 = xScale(pts[0].i).toFixed(1), xl = xScale(pts[pts.length-1].i).toFixed(1), yBot = (PAD.top + iH).toFixed(1);
+  svg += `<path d="M ${x0},${yBot} L ${pathPts} L ${xl},${yBot} Z" fill="${color}" fill-opacity="0.07"/>`;
+  svg += `<path d="M ${pathPts}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`;
+
+  history.forEach((snap, i) => {
+    const x = xScale(i).toFixed(1);
+    svg += `<text x="${x}" y="${(PAD.top + iH + 18).toFixed(1)}" text-anchor="middle" font-size="8" fill="rgba(255,255,255,0.35)">${snap.month}</text>`;
+    const pt = pts.find(d => d.i === i);
+    if (pt) {
+      const y = yScale(pt.v).toFixed(1);
+      svg += `<circle cx="${x}" cy="${y}" r="3" fill="${color}" stroke="#111" stroke-width="1.5"/>`;
+      svg += `<text x="${x}" y="${(yScale(pt.v) - 6).toFixed(1)}" text-anchor="middle" font-size="7.5" fill="${color}" font-weight="600">${fmtV(pt.v)}</text>`;
+    }
+  });
+
+  svg += `</svg>`;
+  return svg;
+}
+
+function updateHistChart() {
+  const p = RAW[currentIdx];
+  if (!p || !p.history) return;
+  const sel = document.getElementById('hist-stat-sel');
+  if (sel) histStat = sel.value;
+  const el = document.getElementById('hist-chart');
+  if (el) el.innerHTML = histChartSVG(p.history, histStat);
+}
+
+function toggleHistory() {
+  const main = document.getElementById('card-stats-main');
+  const hist = document.getElementById('card-hist-panel');
+  const btn  = document.getElementById('dhistory');
+  if (!main || !hist) return;
+  historyMode = !historyMode;
+  main.style.display = historyMode ? 'none' : '';
+  hist.style.display = historyMode ? '' : 'none';
+  if (btn) btn.classList.toggle('active', historyMode);
+  if (historyMode) updateHistChart();
 }
 
 function similarPlayers(p, n = 3) {
@@ -1400,6 +1521,12 @@ function showD(idx) {
   ];
   // Reset flip state whenever a new card opens
   document.getElementById('dp').style.overflow = '';
+  historyMode = false;
+  const dhBtn = document.getElementById('dhistory');
+  if (dhBtn) {
+    dhBtn.classList.remove('active');
+    dhBtn.style.display = (p.history && p.history.length >= 2) ? 'flex' : 'none';
+  }
 
   document.getElementById('dc').innerHTML = `
   <div class="flip-wrap">
@@ -1433,7 +1560,7 @@ function showD(idx) {
               </div>
           </div>
         </div>
-        <div class="db">
+        <div class="db" id="card-stats-main">
           <div class="ds">
             <h3>Rankings <span style="font-weight:400;letter-spacing:0;text-transform:none;color:var(--text-dim);font-size:8px">via <a href="${plink.fg}" target="_blank" onclick="event.stopPropagation()" style="color:var(--text-dim);text-decoration:none;border-bottom:1px solid var(--border)" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-dim)'">FanGraphs ↗</a>${p.data_updated?' · '+p.data_updated.split('-').slice(1).concat(p.data_updated.split('-')[0]).join('/'):''}</span></h3>
             <div class="dg4">
@@ -1500,6 +1627,13 @@ function showD(idx) {
             </div>
           </div>`:''}
         </div>
+        <div id="card-hist-panel" style="display:none;padding:4px 22px 14px">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:2px;color:var(--text-dim);margin-bottom:2px">STAT HISTORY</div>
+          <select class="hist-sel" id="hist-stat-sel" onchange="updateHistChart()">
+            ${HIST_STATS.map(grp => `<optgroup label="${grp.group}">${grp.stats.map(s => `<option value="${s.k}"${s.k===histStat?' selected':''}>${s.l}</option>`).join('')}</optgroup>`).join('')}
+          </select>
+          <div id="hist-chart" style="margin-top:10px"></div>
+        </div>
       </div>
 
       <div class="flip-back">
@@ -1539,6 +1673,8 @@ function closeD() {
   document.getElementById('dov').classList.remove('open');
   document.getElementById('dscore').style.display='none';
   document.getElementById('dstar').style.display='none';
+  document.getElementById('dhistory').style.display='none';
+  historyMode = false;
   document.body.style.overflow = '';
 }
 
@@ -1625,6 +1761,7 @@ document.addEventListener('keydown', e => {
     if (e.key === 'ArrowRight') { e.preventDefault(); navD(1);  }
     if (e.key === 'f' || e.key === 'F') { e.preventDefault(); flipCard(); }
     if (e.key === 'w' || e.key === 'W') { e.preventDefault(); toggleWatch(RAW[currentIdx], e); }
+    if (e.key === 's' || e.key === 'S') { const dh = document.getElementById('dhistory'); if (dh && dh.style.display !== 'none') { e.preventDefault(); toggleHistory(); } }
     return;
   }
   // / to focus search
