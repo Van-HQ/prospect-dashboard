@@ -1636,8 +1636,8 @@ function showD(idx) {
         </div>
         <div id="card-hist-panel" style="display:none;padding:4px 22px 14px">
           <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:2px;color:var(--text-dim);margin-bottom:4px">STAT HISTORY</div>
-          <div class="hist-chips">
-            ${HIST_STATS.map(grp => `<div class="hist-chip-row">${grp.stats.map(s => `<button class="hchip${s.k===histStat?' active':''}" data-stat="${s.k}" onclick="selectHistStat('${s.k}')">${s.l}</button>`).join('')}</div>`).join('')}
+          <div class="hist-chips" style="flex-direction:row;flex-wrap:wrap;">
+            ${HIST_STATS.flatMap(grp => grp.stats).map(s => `<button class="hchip${s.k===histStat?' active':''}" data-stat="${s.k}" onclick="selectHistStat('${s.k}')">${s.l}</button>`).join('')}
           </div>
           <div id="hist-chart" style="margin-top:10px"></div>
         </div>
