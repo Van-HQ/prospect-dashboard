@@ -1879,6 +1879,21 @@ async function init() {
     .sort((a, b) => b.prospect_score - a.prospect_score)
     .forEach((p, i) => { p.rank = i + 1; });
 
+  // Same recomputation for every history snapshot month
+  const monthSnaps = {};
+  RAW.forEach(p => {
+    (p.history || []).forEach(snap => {
+      if (!monthSnaps[snap.month]) monthSnaps[snap.month] = [];
+      monthSnaps[snap.month].push(snap);
+    });
+  });
+  Object.values(monthSnaps).forEach(snaps => {
+    snaps
+      .filter(s => (s.ab || 0) >= 50 && s.prospect_score != null)
+      .sort((a, b) => b.prospect_score - a.prospect_score)
+      .forEach((s, i) => { s.rank = i + 1; });
+  });
+
   computeValueScores(RAW);
   filtered = [...RAW];
   sortData();
