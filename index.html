@@ -514,7 +514,8 @@ const HIST_STATS = [
     {k:'ld', l:'LD%'}, {k:'gbfb', l:'GB/FB'}, {k:'hrfb', l:'HR/FB%'}
   ]},
   { group: 'Tool Grades', stats: [
-    {k:'hit', l:'HIT'}, {k:'pwr', l:'PWR'}, {k:'spd', l:'SPD'}, {k:'dis', l:'DIS'}
+    {k:'hit', l:'HIT'}, {k:'pwr', l:'PWR'}, {k:'spd', l:'SPD'}, {k:'dis', l:'DIS'},
+    {k:'age_r', l:'AGE'}, {k:'wrc_r', l:'wRC+ Gr'}
   ]},
   { group: 'Rankings', stats: [
     {k:'prospect_score', l:'Prospect Score'}, {k:'rank',     l:'Prospect Rank'},
@@ -658,7 +659,7 @@ function histChartSVG(history, statKey) {
     if (isRank) return '#' + Math.round(v);
     if (['avg','obp','slg','ops','woba','iso'].includes(statKey)) return v.toFixed(3);
     if (['bb','k','ld','hrfb','swstr'].includes(statKey)) return v.toFixed(1) + '%';
-    if (['hit','pwr','spd','dis'].includes(statKey)) return Math.round(v * 100);
+    if (['hit','pwr','spd','dis','age_r','wrc_r'].includes(statKey)) return Math.round(v * 100);
     if (statKey === 'gbfb') return v.toFixed(2);
     return Math.round(v);
   };
@@ -666,7 +667,7 @@ function histChartSVG(history, statKey) {
     if (isRank) return '#' + v;
     if (['avg','obp','slg','ops','woba','iso'].includes(statKey)) return v.toFixed(3);
     if (['bb','k','ld','hrfb','swstr'].includes(statKey)) return v.toFixed(1) + '%';
-    if (['hit','pwr','spd','dis'].includes(statKey)) return Math.round(v * 100);
+    if (['hit','pwr','spd','dis','age_r','wrc_r'].includes(statKey)) return Math.round(v * 100);
     if (statKey === 'gbfb') return v.toFixed(2);
     return v;
   };
