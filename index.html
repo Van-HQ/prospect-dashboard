@@ -1894,44 +1894,6 @@ async function init() {
       .forEach((s, i) => { s.rank = i + 1; });
   });
 
-  // Recompute all _d delta fields as true MoM (last month vs second-to-last month)
-  // replacing the cumulative season-to-date values that come from the spreadsheet
-  const MOM_FIELDS = [
-    ['prospect_score', 'prospect_score_d', 1],
-    ['rank',          'rank_d',           0],
-    ['ltw',           'ltw_d',            0],
-    ['ltw_rank',      'ltw_rank_d',       0],
-    ['avg',           'avg_d',            3],
-    ['obp',           'obp_d',            3],
-    ['slg',           'slg_d',            3],
-    ['ops',           'ops_d',            3],
-    ['iso',           'iso_d',            3],
-    ['woba',          'woba_d',           3],
-    ['wrc',           'wrc_d',            1],
-    ['bb',            'bb_d',             2],
-    ['k',             'k_d',              2],
-    ['hr',            'hr_d',             0],
-    ['sb',            'sb_d',             0],
-    ['hit',           'hit_d',            3],
-    ['dis',           'dis_d',            3],
-    ['pwr',           'pwr_d',            3],
-    ['spd',           'spd_d',            3],
-    ['age_r',         'age_r_d',          3],
-    ['wrc_r',         'wrc_r_d',          3],
-  ];
-  RAW.forEach(p => {
-    const hist = p.history || [];
-    MOM_FIELDS.forEach(([snapKey, deltaKey, dec]) => {
-      // Find last two snapshots that have a value for this stat
-      const pts = hist.filter(s => s[snapKey] != null);
-      if (pts.length < 2) { p[deltaKey] = null; return; }
-      const cur  = pts[pts.length - 1][snapKey];
-      const prev = pts[pts.length - 2][snapKey];
-      const d = cur - prev;
-      p[deltaKey] = dec === 0 ? Math.round(d) : parseFloat(d.toFixed(dec));
-    });
-  });
-
   computeValueScores(RAW);
   filtered = [...RAW];
   sortData();
