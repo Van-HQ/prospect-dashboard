@@ -816,7 +816,7 @@ function radarSVG(p) {
     {l:'WRC+', v: p.wrc_r ?? 0}
   ];
   const n = 6, cx = 250, cy = 250, r = 175;
-  const rc = p.prospect_score >= 90 ? '#00d4ff' : p.prospect_score >= 80 ? '#39ff88' : p.prospect_score >= 70 ? '#ffd700' : p.prospect_score >= 60 ? '#ff6b35' : '#ff4444';
+  const rc = p.prospect_score >= 90 ? '#00d4ff' : p.prospect_score >= 70 ? '#39ff88' : p.prospect_score >= 55 ? '#ffd700' : p.prospect_score >= 40 ? '#ff6b35' : '#ff4444';
 
   function pt(i, scale) {
     const a = (Math.PI * 2 * i / n) - Math.PI / 2;
@@ -909,7 +909,7 @@ function toggleWatch(p, e) {
 
 function sc(p) {
   const s = p.prospect_score;
-  return s >= 90 ? 'sm' : s >= 80 ? 'sh' : s >= 70 ? 'sy' : s >= 60 ? 'sl' : 'sr';
+  return s >= 90 ? 'sm' : s >= 70 ? 'sh' : s >= 55 ? 'sy' : s >= 40 ? 'sl' : 'sr';
 }
 function lc(l) {
   const lvl = l.split(',')[0].trim();
@@ -1640,7 +1640,7 @@ function showD(idx) {
           <div class="ds">
             <h3>Rankings <span style="font-weight:400;letter-spacing:0;text-transform:none;color:var(--text-dim);font-size:8px">via <a href="${plink.fg}" target="_blank" onclick="event.stopPropagation()" style="color:var(--text-dim);text-decoration:none;border-bottom:1px solid var(--border)" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-dim)'">FanGraphs ↗</a>${p.data_updated?' · '+p.data_updated.split('-').slice(1).concat(p.data_updated.split('-')[0]).join('/'):''}</span></h3>
             <div class="dg4">
-              <div class="dstat"><div class="dl">Prospect Score</div><div class="dv" style="color:${p.prospect_score>=90?'var(--accent)':p.prospect_score>=80?'var(--accent3)':p.prospect_score>=70?'var(--gold)':p.prospect_score>=60?'var(--accent2)':'var(--red)'}">${p.prospect_score}${trend(p.prospect_score_d)}</div></div>
+              <div class="dstat"><div class="dl">Prospect Score</div><div class="dv" style="color:${p.prospect_score>=90?'var(--accent)':p.prospect_score>=70?'var(--accent3)':p.prospect_score>=55?'var(--gold)':p.prospect_score>=40?'var(--accent2)':'var(--red)'}">${p.prospect_score}${trend(p.prospect_score_d)}</div></div>
               <div class="dstat"><div class="dl">Prospect Rank</div><div class="dv">#${p.rank}${trend(p.rank_d,true)}</div></div>
               <div class="dstat"><div class="dl">LTW Score</div><div class="dv">${dltw(p.ltw)}${trend(p.ltw_d)}</div></div>
               <div class="dstat"><div class="dl">LTW Rank</div><div class="dv">#${p.ltw_rank}${trend(p.ltw_rank_d,true)}</div></div>
