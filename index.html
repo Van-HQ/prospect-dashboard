@@ -1696,15 +1696,7 @@ function showD(idx) {
             <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text-dim);margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.price_card||''}${p.price_set?` · <span style="color:var(--text-dim)">${shortSet(p.price_set)}</span>`:''}</div>
             <div class="dg4" style="grid-template-columns:repeat(4,1fr)">
               <div class="dstat"><div class="dl">Raw</div><div class="dv" style="font-size:17px;color:var(--text)">$${p.price_raw!=null?p.price_raw.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'—'}</div>${cardBadge(p.d30_raw_pct,p.d15_raw_pct)}</div>
-              <div class="dstat"><div class="dl">Value</div><div class="dv" style="font-size:17px;color:${p._val!=null?valColor(p._val):'var(--text)'}">${p._val!=null?p._val.toFixed(2):'—'}</div></div>
-              ${p._val!=null?`<div style="margin-top:6px;padding:8px 10px;background:rgba(255,255,255,0.03);border-radius:6px;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:0.5px">
-                <div style="letter-spacing:2px;color:var(--text-dim);margin-bottom:5px">RATING SCALE</div>
-                <div style="display:flex;justify-content:space-between;margin-bottom:2px"><span style="color:#39ff88">≥ 3.0</span><span style="color:var(--text-dim)">Strong Buy</span></div>
-                <div style="display:flex;justify-content:space-between;margin-bottom:2px"><span style="color:#ffd700">1.5 – 3.0</span><span style="color:var(--text-dim)">Fair Value</span></div>
-                <div style="display:flex;justify-content:space-between;margin-bottom:2px"><span style="color:#ff6b35">0.8 – 1.5</span><span style="color:var(--text-dim)">Slight Overprice</span></div>
-                <div style="display:flex;justify-content:space-between"><span style="color:#ff4444">< 0.8</span><span style="color:var(--text-dim)">Overvalued</span></div>
-              </div>`:''}
-
+              <div class="dstat"><div class="dl">Value</div><div class="dv" style="font-size:17px;color:${p._val!=null?valColor(p._val):'var(--text)'}">${p._val!=null?p._val.toFixed(2):'—'}${p._val!=null?`<span style="font-size:9px;font-family:'IBM Plex Mono',monospace;margin-left:6px;opacity:0.8">${valLabel(p._val)}</span>`:''}</div></div>
               <div class="dstat"><div class="dl">PSA 9</div><div class="dv" style="font-size:17px;color:var(--gold)">$${p.price_psa9!=null?p.price_psa9.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'—'}</div>${cardBadge(p.d30_psa9_pct,p.d15_psa9_pct)}</div>
               <div class="dstat"><div class="dl">PSA 10</div><div class="dv" style="font-size:17px;color:var(--accent)">$${p.price_psa10!=null?p.price_psa10.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'—'}</div>${cardBadge(p.d30_psa10_pct,p.d15_psa10_pct)}</div>
             </div>
