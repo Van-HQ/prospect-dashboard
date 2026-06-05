@@ -449,7 +449,7 @@
       <div class="fp-col">
         <div class="fp-field"><span class="fp-label">Min Score</span><input type="number" id="ff-score" step="1" min="0" max="100" placeholder="65"></div>
         <div class="fp-field"><span class="fp-label">Min LTW</span><input type="number" id="ff-ltw" step="100" min="0" placeholder="5000"></div>
-        <div class="fp-field"><span class="fp-label">Min Value</span><input type="number" id="ff-val" step="1" min="0" max="100" placeholder="50"></div>
+        <div class="fp-field"><span class="fp-label">Min Value</span><input type="number" id="ff-val" step="0.1" min="0" placeholder="1.5"></div>
       </div>
     </div>
 
@@ -561,7 +561,7 @@ function marketRow(p, gi, idx, starOn) {
     <td>${p.age}</td>
     <td style="color:var(--text-dim)">${p.pos||'—'}</td>
     <td class="${cls}" style="font-weight:600">${p.prospect_score??'—'}</td>
-    <td style="${valColor(p._val)?`color:${valColor(p._val)};font-weight:700`:''}">${p._val??'—'}</td>
+    <td style="color:${valColor(p._val)};font-weight:700">${p._val!=null?p._val.toFixed(2):'—'}</td>
     <td>${p.price_raw!=null?'$'+p.price_raw.toFixed(2):'—'}</td>
     <td style="color:var(--gold)">${p.price_psa9!=null?'$'+p.price_psa9.toFixed(2):'—'}</td>
     <td style="color:var(--accent)">${p.price_psa10!=null?'$'+p.price_psa10.toFixed(2):'—'}</td>
@@ -929,7 +929,8 @@ function wobaColor(v) { return v >= 0.425 ? 'var(--accent3)' : v <= 0.290 ? 'var
 function wrcColor(v)  { return v >= 160   ? 'var(--accent3)' : v <= 80    ? 'var(--red)' : ''; }
 function bbColor(v)   { return v >= 15    ? 'var(--accent3)' : ''; }
 function kColor(v)    { return v <= 15    ? 'var(--accent3)' : v >= 28    ? 'var(--red)' : ''; }
-function valColor(v)  { return v >= 70 ? '#39ff88' : v < 40 ? 'var(--red)' : ''; }
+function valColor(v)  { return v >= 3.0 ? '#39ff88' : v >= 1.5 ? '#ffd700' : v >= 0.8 ? '#ff6b35' : '#ff4444'; }
+function valLabel(v)  { return v >= 3.0 ? 'Strong Buy' : v >= 1.5 ? 'Fair Value' : v >= 0.8 ? 'Slight Overprice' : 'Overvalued'; }
 function shortSet(s) {
   if (!s) return '';
   const year  = (s.match(/\b(20\d{2})\b/) || [])[1] || '';
@@ -939,14 +940,13 @@ function shortSet(s) {
 }
 
 function computeValueScores(players) {
-  // Value score: prospect quality per $ of card price (normalized 0-100)
-  // High score = high prospect score relative to price = undervalued
-  const priced = players.filter(p => p.prospect_score != null && p.price_raw != null && p.price_raw > 0);
-  if (!priced.length) return;
-  const raws = priced.map(p => p.prospect_score / Math.log10(p.price_raw + 1));
-  const min = Math.min(...raws), max = Math.max(...raws);
-  const range = max - min || 1;
-  priced.forEach((p, i) => { p._val = Math.round((raws[i] - min) / range * 100); });
+  // Value score: prospect_score / price_raw
+  // Higher = more prospect quality per dollar = undervalued
+  players.forEach(p => {
+    p._val = (p.prospect_score != null && p.price_raw != null && p.price_raw > 0)
+      ? Math.round(p.prospect_score / p.price_raw * 100) / 100
+      : null;
+  });
 }
 
 let showTrends = false;
@@ -1180,7 +1180,6 @@ function applyF() {
   // Value: undervalued prospects — min score 65, min AGE grade 40, min raw price $3, sort by value score
   if (activeValue) {
     filtered = filtered.filter(p => p._val != null && (p.prospect_score ?? 0) >= 65 && (p.age_r ?? 0) >= 0.40 && (p.price_raw ?? 0) >= 3);
-    computeValueScores(filtered); // re-normalize relative to current filtered set
   }
   // Surging: production outrunning scouting grades — score 45–99, wRC+ ≥ 120, age ≥ 40, delta ≥ +2, 50 AB min
   if (activeProfile === 'surging') {
@@ -1697,7 +1696,15 @@ function showD(idx) {
             <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text-dim);margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.price_card||''}${p.price_set?` · <span style="color:var(--text-dim)">${shortSet(p.price_set)}</span>`:''}</div>
             <div class="dg4" style="grid-template-columns:repeat(4,1fr)">
               <div class="dstat"><div class="dl">Raw</div><div class="dv" style="font-size:17px;color:var(--text)">$${p.price_raw!=null?p.price_raw.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'—'}</div>${cardBadge(p.d30_raw_pct,p.d15_raw_pct)}</div>
-              <div class="dstat"><div class="dl">Value</div><div class="dv" style="font-size:17px;color:${valColor(p._val)||'var(--text)'}">${p._val ?? '—'}</div></div>
+              <div class="dstat"><div class="dl">Value</div><div class="dv" style="font-size:17px;color:${p._val!=null?valColor(p._val):'var(--text)'}">${p._val!=null?p._val.toFixed(2):'—'}</div></div>
+              ${p._val!=null?`<div style="margin-top:6px;padding:8px 10px;background:rgba(255,255,255,0.03);border-radius:6px;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:0.5px">
+                <div style="letter-spacing:2px;color:var(--text-dim);margin-bottom:5px">RATING SCALE</div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:2px"><span style="color:#39ff88">≥ 3.0</span><span style="color:var(--text-dim)">Strong Buy</span></div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:2px"><span style="color:#ffd700">1.5 – 3.0</span><span style="color:var(--text-dim)">Fair Value</span></div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:2px"><span style="color:#ff6b35">0.8 – 1.5</span><span style="color:var(--text-dim)">Slight Overprice</span></div>
+                <div style="display:flex;justify-content:space-between"><span style="color:#ff4444">< 0.8</span><span style="color:var(--text-dim)">Overvalued</span></div>
+              </div>`:''}
+
               <div class="dstat"><div class="dl">PSA 9</div><div class="dv" style="font-size:17px;color:var(--gold)">$${p.price_psa9!=null?p.price_psa9.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'—'}</div>${cardBadge(p.d30_psa9_pct,p.d15_psa9_pct)}</div>
               <div class="dstat"><div class="dl">PSA 10</div><div class="dv" style="font-size:17px;color:var(--accent)">$${p.price_psa10!=null?p.price_psa10.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'—'}</div>${cardBadge(p.d30_psa10_pct,p.d15_psa10_pct)}</div>
             </div>
