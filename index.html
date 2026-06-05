@@ -967,7 +967,7 @@ const CHIP_PANEL_MAP = {
   contact: { 'fab':'50', 'ff-avg':'0.270', 'ff-kmax':'18', 'ff-ld':'20', 'ff-wrc':'120' },
   prodigy: { 'ff-score':'60', 'fab':'50' },
   surging: { 'fab':'50', 'ff-score':'45', 'ff-wrc':'120' },
-  value:   { 'ff-score':'65' },
+  value:   { 'ff-score':'60' },
 };
 function syncChipToPanel(profile) {
   CHIP_COL_INPUTS.forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
@@ -1179,7 +1179,7 @@ function applyF() {
   }
   // Value: undervalued prospects — min score 65, min AGE grade 40, min raw price $3, sort by value score
   if (activeValue) {
-    filtered = filtered.filter(p => p._val != null && (p.prospect_score ?? 0) >= 65 && (p.age_r ?? 0) >= 0.40 && (p.price_raw ?? 0) >= 3);
+    filtered = filtered.filter(p => p._val != null && (p.prospect_score ?? 0) >= 60 && (p.age_r ?? 0) >= 0.40 && (p.price_raw ?? 0) >= 3);
   }
   // Surging: production outrunning scouting grades — score 45–99, wRC+ ≥ 120, age ≥ 40, delta ≥ +2, 50 AB min
   if (activeProfile === 'surging') {
