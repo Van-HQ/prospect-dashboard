@@ -965,7 +965,7 @@ const CHIP_COL_INPUTS = ['fab','ff-avg','ff-hrfb','ff-kmax','ff-ld','ff-wrc','ff
 const CHIP_PANEL_MAP = {
   power:   { 'fab':'50', 'ff-hrfb':'12', 'ff-kmax':'28', 'ff-ld':'20', 'ff-wrc':'120' },
   contact: { 'fab':'50', 'ff-avg':'0.270', 'ff-kmax':'18', 'ff-ld':'20', 'ff-wrc':'120' },
-  prodigy: { 'ff-score':'60' },
+  prodigy: { 'ff-score':'60', 'fab':'50' },
   surging: { 'fab':'50', 'ff-score':'45', 'ff-wrc':'120' },
   value:   { 'ff-score':'65' },
 };
@@ -1165,7 +1165,8 @@ function applyF() {
   } else if (activeProfile === 'prodigy') {
     filtered = filtered.filter(p =>
       (p.age_r          ?? 0) >= 0.70 &&
-      (p.prospect_score ?? 0) >= 60
+      (p.prospect_score ?? 0) >= 60   &&
+      (p.ab             ?? 0) >= 50
     );
   }
   // Risers: only players with a positive MoM score delta and min 50 AB
