@@ -1711,7 +1711,7 @@ function showD(idx) {
               <div class="dstat"><div class="dl">wOBA</div><div class="dv" style="color:${wobaColor(p.woba)}">${d3(p.woba)}${trend(p.woba_d)}</div></div>
               <div class="dstat"><div class="dl">ISO</div><div class="dv" style="color:${isoColor(p.iso)}">${d3(p.iso)}${trend(p.iso_d)}</div></div>
               <div class="dstat"><div class="dl">wRC+</div><div class="dv" style="color:${wrcColor(p.wrc)}">${p.wrc ?? '—'}${trend(p.wrc_d)}</div></div>
-              <div class="dstat"><div class="dl">SwStr%</div><div class="dv">${p.swstr!=null?p.swstr.toFixed(1)+'%':'—'}</div></div>
+              <div class="dstat"><div class="dl">SwStr%</div><div class="dv" style="color:${p.swstr!=null?(p.swstr>14?'var(--red)':p.swstr<7?'#39ff88':''):''};">${p.swstr!=null?p.swstr.toFixed(1)+'%':'—'}</div></div>
             </div>
           </div>
           <div class="ds">
