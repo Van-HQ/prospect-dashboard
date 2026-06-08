@@ -1351,7 +1351,7 @@ function updateSummary() {
     const svCount = filtered.filter(p => p._val != null && p._val >= 3 && p._val <= 6).length;
     pills = [
       pill('Players', n),
-      avgVal != null ? pill('Avg Val Score', avgVal.toFixed(1), 'var(--gold)') : '',
+      avgVal != null ? pill('Avg Val Score', avgVal.toFixed(1), valColor(avgVal)) : '',
       svCount > 0    ? pill('Strong Value', svCount, '#39ff88') : '',
     ];
   } else if (sortF === 'prospect_score_d' && !activeFallers) {
