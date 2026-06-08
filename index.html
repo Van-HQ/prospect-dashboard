@@ -1326,19 +1326,56 @@ function quickFilter(type) {
 }
 
 function updateSummary() {
-  // ── Market snapshot → header-right ───────────────────────────────────────
-  const priced   = RAW.filter(p => p.price_raw  != null);
-  const psa10d   = RAW.filter(p => p.price_psa10 != null);
-  const wlPriced = RAW.filter(p => inWatch(p) && p.price_raw != null);
-  const avgRaw   = priced.length   ? priced.reduce((s,p)=>s+p.price_raw,0)   / priced.length   : null;
-  const avgPsa10 = psa10d.length   ? psa10d.reduce((s,p)=>s+p.price_psa10,0) / psa10d.length   : null;
-  const wlVal    = wlPriced.reduce((s,p)=>s+p.price_raw, 0);
-  const fmt = v => '$' + v.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0});
-  document.getElementById('header-right').innerHTML = [
-    avgRaw   != null ? `<div class="stat-pill">Avg Raw <span>${fmt(avgRaw)}</span></div>`   : '',
-    avgPsa10 != null ? `<div class="stat-pill">Avg PSA10 <span style="color:var(--accent)">${fmt(avgPsa10)}</span></div>` : '',
-    wlPriced.length  ? `<div class="stat-pill">★ Est. Value <span style="color:var(--gold)">${fmt(wlVal)}</span></div>` : '',
-  ].join('');
+  // ── Context-aware summary → header-right ─────────────────────────────────
+  const fmtDollar = v => '$' + v.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0});
+  const pill = (label, val, color) => `<div class="stat-pill">${label} <span${color?` style="color:${color}"`:''}">${val}</span></div>`;
+  const avg = (arr, key) => arr.length ? arr.reduce((s,p)=>s+(p[key]??0),0)/arr.length : null;
+
+  let pills = [];
+  const n = filtered.length;
+
+  if (activeColView === 'market') {
+    const priced  = filtered.filter(p => p.price_raw  != null);
+    const psa10d  = filtered.filter(p => p.price_psa10 != null);
+    const avgRaw  = avg(priced,  'price_raw');
+    const avgP10  = avg(psa10d,  'price_psa10');
+    const svCount = priced.filter(p => p._val != null && p._val >= 3 && p._val <= 6).length;
+    pills = [
+      pill('Players', n),
+      avgRaw != null ? pill('Avg Raw', fmtDollar(avgRaw)) : '',
+      avgP10 != null ? pill('Avg PSA 10', fmtDollar(avgP10), 'var(--accent)') : '',
+      svCount > 0    ? pill('Strong Value', svCount, '#39ff88') : '',
+    ];
+  } else if (activeValue) {
+    const avgVal = avg(filtered.filter(p=>p._val!=null), '_val');
+    const svCount = filtered.filter(p => p._val != null && p._val >= 3 && p._val <= 6).length;
+    pills = [
+      pill('Players', n),
+      avgVal != null ? pill('Avg Val Score', avgVal.toFixed(1), 'var(--gold)') : '',
+      svCount > 0    ? pill('Strong Value', svCount, '#39ff88') : '',
+    ];
+  } else if (sortF === 'prospect_score_d' && !activeFallers) {
+    const avgD = avg(filtered.filter(p=>p.prospect_score_d!=null), 'prospect_score_d');
+    pills = [
+      pill('Risers', n),
+      avgD != null ? pill('Avg Δ', (avgD >= 0 ? '+' : '') + avgD.toFixed(1), '#39ff88') : '',
+    ];
+  } else if (activeFallers) {
+    const avgD = avg(filtered.filter(p=>p.prospect_score_d!=null), 'prospect_score_d');
+    pills = [
+      pill('Fallers', n),
+      avgD != null ? pill('Avg Δ', avgD.toFixed(1), '#ff4444') : '',
+    ];
+  } else {
+    const avgScore = avg(filtered.filter(p=>p.prospect_score!=null), 'prospect_score');
+    const label = activeProfile ? activeProfile.charAt(0).toUpperCase() + activeProfile.slice(1) : 'Players';
+    pills = [
+      pill(label, n),
+      avgScore != null ? pill('Avg Score', Math.round(avgScore), 'var(--accent)') : '',
+    ];
+  }
+
+  document.getElementById('header-right').innerHTML = pills.join('');
 
   // ── Quick filter chips → sumbar ───────────────────────────────────────────
   const lvl = document.getElementById('fl').value;
