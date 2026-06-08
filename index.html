@@ -493,6 +493,7 @@ let activeColView = 'all'; // 'all' | 'market' | 'stats'
 let historyMode = false;
 let histStat = 'avg';
 let histStat2 = null;
+let priceStat = 'raw';
 
 const MARKET_COLS = [
   {k:'#',l:'#'},{k:'name',l:'Player'},{k:'team',l:'Team'},{k:'age',l:'Age'},{k:'pos',l:'Pos'},
@@ -763,6 +764,56 @@ function updateHistChart() {
   if (el) el.innerHTML = histChartSVG(p.history, histStat, histStat2);
 }
 
+function priceChartSVG(priceHistory, key) {
+  const W = 360, H = 150, PAD = {top:24, right:16, bottom:28, left:44};
+  const iW = W - PAD.left - PAD.right, iH = H - PAD.top - PAD.bottom;
+  const pts = priceHistory.map((snap, i) => ({i, v: snap[key]})).filter(d => d.v != null);
+  if (pts.length < 2) return `<div style="display:flex;align-items:center;justify-content:center;height:${H}px;color:var(--text-dim);font-family:'IBM Plex Mono',monospace;font-size:10px">Not enough data</div>`;
+  const vals = pts.map(d => d.v);
+  let minV = Math.min(...vals), maxV = Math.max(...vals);
+  if (minV === maxV) { minV -= 1; maxV += 1; }
+  const pad = (maxV - minV) * 0.22; minV -= pad; maxV += pad;
+  const first = pts[0].v, last = pts[pts.length-1].v;
+  const color = first === last ? 'var(--accent)' : last >= first ? '#39ff88' : '#ff4444';
+  const n = priceHistory.length;
+  const xScale = i => PAD.left + (n > 1 ? (i / (n - 1)) * iW : iW / 2);
+  const yScale = v => PAD.top + iH - ((v - minV) / (maxV - minV)) * iH;
+  let svg = `<svg width="100%" viewBox="0 0 ${W} ${H}" style="font-family:'IBM Plex Mono',monospace;overflow:visible">`;
+  [0, 0.5, 1].forEach(t => {
+    const v = minV + (maxV - minV) * t, y = yScale(v).toFixed(1);
+    svg += `<line x1="${PAD.left}" y1="${y}" x2="${PAD.left+iW}" y2="${y}" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>`;
+    svg += `<text x="${PAD.left-4}" y="${(parseFloat(y)+3).toFixed(1)}" text-anchor="end" font-size="7" fill="rgba(255,255,255,0.3)">$${v.toFixed(0)}</text>`;
+  });
+  const pathPts = pts.map(d => `${xScale(d.i).toFixed(1)},${yScale(d.v).toFixed(1)}`).join(' L ');
+  const x0 = xScale(pts[0].i).toFixed(1), xl = xScale(pts[pts.length-1].i).toFixed(1), yBot = (PAD.top+iH).toFixed(1);
+  svg += `<path d="M ${x0},${yBot} L ${pathPts} L ${xl},${yBot} Z" fill="${color}" fill-opacity="0" style="animation:hFadeIn 0.5s ease-out 0s forwards"/>`;
+  svg += `<path d="M ${pathPts}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1000" stroke-dashoffset="1000" style="animation:hDrawLine 0.55s ease-out 0s forwards"/>`;
+  pts.forEach(pt => {
+    const x = xScale(pt.i).toFixed(1), y = yScale(pt.v).toFixed(1);
+    svg += `<circle cx="${x}" cy="${y}" r="3" fill="${color}" stroke="#111" stroke-width="1.5" opacity="0" style="animation:hFadeIn 0.25s ease-out 0.45s forwards"/>`;
+    svg += `<text x="${x}" y="${(yScale(pt.v)-6).toFixed(1)}" text-anchor="middle" font-size="7.5" fill="${color}" font-weight="600" opacity="0" style="animation:hFadeIn 0.25s ease-out 0.45s forwards">$${pt.v.toFixed(2)}</text>`;
+  });
+  priceHistory.forEach((snap, i) => {
+    const x = xScale(i).toFixed(1), parts = snap.date.split('-');
+    svg += `<text x="${x}" y="${(PAD.top+iH+18).toFixed(1)}" text-anchor="middle" font-size="8" fill="rgba(255,255,255,0.35)">${parts[1]}/${parts[2]}</text>`;
+  });
+  svg += `</svg>`;
+  return svg;
+}
+
+function updatePriceChart() {
+  const p = RAW[currentIdx];
+  if (!p || !p.price_history) return;
+  const el = document.getElementById('price-hist-chart');
+  if (el) el.innerHTML = priceChartSVG(p.price_history, priceStat);
+}
+
+function selectPriceStat(key) {
+  priceStat = key;
+  document.querySelectorAll('.pchip').forEach(c => c.classList.toggle('active', c.dataset.stat === key));
+  updatePriceChart();
+}
+
 function selectHistStat(key, isShift) {
   if (isShift) {
     if (key === histStat) return; // can't overlay the same stat
@@ -787,7 +838,7 @@ function toggleHistory() {
   main.style.display = historyMode ? 'none' : '';
   hist.style.display = historyMode ? '' : 'none';
   if (btn) btn.classList.toggle('active', historyMode);
-  if (historyMode) updateHistChart();
+  if (historyMode) { updateHistChart(); updatePriceChart(); }
 }
 
 function similarPlayers(p, n = 3) {
@@ -1600,7 +1651,7 @@ function showD(idx) {
   const dhBtn = document.getElementById('dhistory');
   if (dhBtn) {
     dhBtn.classList.remove('active');
-    dhBtn.style.display = (p.history && p.history.length >= 2) ? 'flex' : 'none';
+    dhBtn.style.display = ((p.history && p.history.length >= 2) || (p.price_history && p.price_history.length >= 2)) ? 'flex' : 'none';
   }
 
   document.getElementById('dc').innerHTML = `
@@ -1708,6 +1759,16 @@ function showD(idx) {
             ${HIST_STATS.flatMap(grp => grp.stats).map(s => `<button class="hchip${s.k===histStat?' active':''}${s.k===histStat2?' active2':''}" data-stat="${s.k}" onclick="selectHistStat('${s.k}',event.shiftKey)">${s.l}</button>`).join('')}
           </div>
           <div id="hist-chart" style="margin-top:10px"></div>
+          ${p.price_history && p.price_history.length >= 2 ? `
+          <div style="margin-top:14px;border-top:1px solid var(--border);padding-top:10px">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:2px;color:var(--text-dim);margin-bottom:6px">PRICE HISTORY</div>
+            <div style="display:flex;flex-wrap:wrap;gap:4px;">
+              <button class="hchip pchip${priceStat==='raw'?' active':''}" data-stat="raw" onclick="selectPriceStat('raw')">RAW $</button>
+              <button class="hchip pchip${priceStat==='psa9'?' active':''}" data-stat="psa9" onclick="selectPriceStat('psa9')">PSA 9</button>
+              <button class="hchip pchip${priceStat==='psa10'?' active':''}" data-stat="psa10" onclick="selectPriceStat('psa10')">PSA 10</button>
+            </div>
+            <div id="price-hist-chart" style="margin-top:10px"></div>
+          </div>` : ''}
         </div>
       </div>
 
