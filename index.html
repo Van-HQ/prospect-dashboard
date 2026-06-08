@@ -527,7 +527,7 @@ const HIST_STATS = [
   ]}
 ];
 
-function setColView(v) { activeColView = v; if (v === 'market') { sortF = 'val'; sortD = -1; } updateSummary(); renderAll(); }
+function setColView(v) { activeColView = v; if (v === 'market') { sortF = 'val'; sortD = -1; document.getElementById('sb').value = 'val'; } updateSummary(); renderAll(); }
 
 function fmtDelta(dval, dpct) {
   if (dpct == null) return '<span style="color:var(--text-dim)">—</span>';
