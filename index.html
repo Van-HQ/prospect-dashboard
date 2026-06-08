@@ -720,7 +720,7 @@ function histChartSVG(history, statKey, statKey2) {
     const dotDelay = (animDelay + 0.45).toFixed(2);
 
     // Area fill — fade in
-    svg += `<path d="M ${x0},${yBot} L ${pathPts} L ${xl},${yBot} Z" fill="${color}" fill-opacity="0" style="animation:hFadeIn 0.5s ease-out ${animDelay}s forwards"/>`;
+    svg += `<path d="M ${x0},${yBot} L ${pathPts} L ${xl},${yBot} Z" fill="${color}" fill-opacity="0.12" opacity="0" style="animation:hFadeIn 0.5s ease-out ${animDelay}s forwards"/>`;
     // Line — draw left-to-right
     svg += `<path d="M ${pathPts}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1000" stroke-dashoffset="1000" style="animation:hDrawLine 0.55s ease-out ${animDelay}s forwards"/>`;
 
@@ -786,7 +786,7 @@ function priceChartSVG(priceHistory, key) {
   });
   const pathPts = pts.map(d => `${xScale(d.i).toFixed(1)},${yScale(d.v).toFixed(1)}`).join(' L ');
   const x0 = xScale(pts[0].i).toFixed(1), xl = xScale(pts[pts.length-1].i).toFixed(1), yBot = (PAD.top+iH).toFixed(1);
-  svg += `<path d="M ${x0},${yBot} L ${pathPts} L ${xl},${yBot} Z" fill="${color}" fill-opacity="0" style="animation:hFadeIn 0.5s ease-out 0s forwards"/>`;
+  svg += `<path d="M ${x0},${yBot} L ${pathPts} L ${xl},${yBot} Z" fill="${color}" fill-opacity="0.12" opacity="0" style="animation:hFadeIn 0.5s ease-out 0s forwards"/>`;
   svg += `<path d="M ${pathPts}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1000" stroke-dashoffset="1000" style="animation:hDrawLine 0.55s ease-out 0s forwards"/>`;
   pts.forEach(pt => {
     const x = xScale(pt.i).toFixed(1), y = yScale(pt.v).toFixed(1);
