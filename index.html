@@ -45,6 +45,8 @@
     --shadow-lg:0 8px 24px rgba(30,25,15,.12), 0 24px 60px rgba(30,25,15,.14);
 
     --r-sm:4px; --r-md:7px; --r-lg:11px;
+    /* one control geometry, shared by both viewports */
+    --h-ctl:32px; --r-ctl:5px;
     --font-ui:'Inter', system-ui, -apple-system, sans-serif;
     --font-mono:'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
 
@@ -449,6 +451,95 @@
   @media (prefers-reduced-motion:reduce) {
     *, *::before, *::after { animation-duration:.01ms !important; transition-duration:.01ms !important; }
   }
+
+  /* ══ Chrome v2 ═══════════════════════════════════════════════════════
+     Two bands on desktop, three on mobile. Every control shares one height
+     and one radius; mobile only scales those two values up for touch.
+     ══════════════════════════════════════════════════════════════════ */
+  .header { gap:14px; }
+  .header-left { flex:1; min-width:0; gap:14px; }
+  .header-right { gap:7px; flex-shrink:0; }
+  .hdr-pills { display:flex; gap:6px; }
+  .hdr-ctx { display:flex; align-items:center; gap:9px; min-width:0; overflow:hidden;
+    font-family:var(--font-mono); font-size:10.5px; color:var(--dim); white-space:nowrap; }
+  .hdr-ctx b { color:var(--ink); font-weight:700; }
+  .ctx-chip { background:var(--accent-soft); border:1px solid var(--accent-line); color:var(--accent);
+    padding:3px 9px; border-radius:999px; font-weight:700; font-size:9.5px; letter-spacing:.6px;
+    text-transform:uppercase; flex-shrink:0; }
+  .ctx-dot { color:var(--faint); }
+  .ctx-txt { overflow:hidden; text-overflow:ellipsis; }
+  .ctx-short { display:none; }
+
+  /* one geometry for every control */
+  select, .fp-btn, .trend-tog, .theme-btn, .search-wrap input {
+    height:var(--h-ctl); padding-top:0; padding-bottom:0; border-radius:var(--r-ctl);
+  }
+  select, .fp-btn, .trend-tog, .theme-btn { display:inline-flex; align-items:center; gap:6px; }
+  /* stretch, not centre — otherwise the buttons collapse to text height and the
+     tappable area is far smaller than the control looks */
+  .view-toggle { height:var(--h-ctl); border-radius:var(--r-ctl); align-items:stretch; }
+  .view-btn { border-radius:calc(var(--r-ctl) - 2px); display:flex; align-items:center; }
+  .chip { height:calc(var(--h-ctl) - 4px); padding-top:0; padding-bottom:0;
+    display:inline-flex; align-items:center; }
+  .sv-input, .sv-btn { height:calc(var(--h-ctl) - 4px); }
+  .theme-btn .tb-i { font-size:12px; line-height:1; }
+  .ctl-group { display:inline-flex; align-items:center; gap:7px; }
+  .quickchips { display:inline-flex; align-items:center; gap:7px; flex-wrap:wrap; }
+  #sumbar { display:none; }
+  .fp-mobile-slot { display:none; }
+  .fp-mobile-slot.on { display:flex; flex-wrap:wrap; gap:9px; align-items:center;
+    padding-bottom:14px; margin-bottom:14px; border-bottom:1px solid var(--line); }
+
+  /* ── Mobile: same system, touch sizing, three bands ── */
+  @media (max-width:760px) {
+    :root { --h-ctl:44px; --r-ctl:9px; }
+
+    .header { min-height:56px; padding:0 13px; flex-wrap:nowrap; gap:10px; }
+    .header h1 { font-size:13.5px; }
+    .header-left { gap:10px; }
+    /* the context line collapses to a bare count — "showing 906 of 906" only
+       truncates at this width, which reads as a bug rather than as data */
+    .hdr-ctx .ctx-chip, .hdr-ctx .ctx-asof, .hdr-ctx .ctx-dot, .hdr-ctx .ctx-word { display:none; }
+    .hdr-ctx .ctx-short { display:inline; }
+    .hdr-ctx { font-size:10.5px; flex-shrink:0; }
+    .hdr-pills { display:none; }
+    .hide-sm { display:none; }
+    /* preferences become icon buttons */
+    .theme-btn { width:var(--h-ctl); padding:0; justify-content:center; }
+    .theme-btn .tb-t { display:none; }
+    .theme-btn .tb-i { font-size:15px; }
+
+    /* band 1 — search + the single configure entry point */
+    .controls { padding:9px 13px; gap:8px; row-gap:8px; }
+    .search-wrap { flex:1 1 auto; max-width:none; min-width:0; }
+    .fp-btn { width:var(--h-ctl); padding:0; justify-content:center; font-size:0; }
+    .fp-btn::before { content:'⚙'; font-size:16px; }
+    .fp-badge { position:absolute; margin:0; transform:translate(14px,-13px); }
+    .controls .toolbar-sep { display:none; }
+
+    /* band 2 — view switcher, full width. The container adds 2px inset padding
+       and 1px borders on each side, so it runs 6px taller to leave each button
+       a full 44px of tappable height. */
+    .view-toggle { width:100%; order:5; height:calc(var(--h-ctl) + 6px); }
+    .view-btn { flex:1; justify-content:center; font-size:10.5px; }
+    /* chips are the primary browse control on a phone — full target height */
+    .chip { height:var(--h-ctl); }
+
+    /* band 3 — quick filters as one swipeable strip, never three wrapped rows */
+    .quickchips { order:6; width:100%; flex-wrap:nowrap; overflow-x:auto;
+      -webkit-overflow-scrolling:touch; scrollbar-width:none;
+      margin:0 -13px; padding:0 13px; }
+    .quickchips::-webkit-scrollbar { display:none; }
+    .quickchips .chip { flex-shrink:0; }
+
+    /* relocated settings sit in the Filters sheet */
+    .fp-mobile-slot.on .ctl-group { flex-wrap:wrap; gap:9px; }
+    .fp-mobile-slot.on select { flex:1 1 140px; }
+    .fp-mobile-slot.on .view-toggle { flex:1 1 100%; }
+    .fp-mobile-slot.on .sort-label { display:none; }
+
+    .main { padding:12px 13px 24px; }
+  }
 </style>
 </head>
 <body>
@@ -456,8 +547,16 @@
 <div class="header">
   <div class="header-left">
     <h1>Prospect<i> Dashboard</i></h1>
+    <div class="hdr-ctx" id="hdr-ctx"></div>
   </div>
-  <div class="header-right" id="header-right"></div>
+  <div class="header-right">
+    <div class="hdr-pills" id="header-right"></div>
+    <div class="toolbar-sep hide-sm"></div>
+    <button class="theme-btn" id="btn-heat" onclick="toggleHeat()"
+            title="Colour stat cells by percentile within level"><span class="tb-i">◍</span><span class="tb-t">Heat</span></button>
+    <button class="theme-btn" id="btn-theme" onclick="toggleTheme()"
+            title="Switch between Daylight and Night"><span class="tb-i">◐</span><span class="tb-t">Night</span></button>
+  </div>
 </div>
 
 <div class="controls">
@@ -469,6 +568,7 @@
   </div>
   <button class="fp-btn" id="fp-btn" onclick="toggleFilters()">Filters<span class="fp-badge" id="fp-badge" style="display:none">0</span></button>
   <div class="toolbar-sep"></div>
+  <span id="arrange-group" class="ctl-group">
   <span class="sort-label">Sort</span>
   <select id="sb">
     <optgroup label="── Rankings ──">
@@ -508,19 +608,21 @@
       <option value="age">Age</option>
     </optgroup>
   </select>
-  <div class="toolbar-sep"></div>
+  <span class="view-toggle" id="colseg"></span>
+  </span>
+  <div class="toolbar-sep" id="sep-view"></div>
   <div class="view-toggle">
     <button class="view-btn active" id="btn-table" onclick="setView('table')">Table</button>
     <button class="view-btn" id="btn-cards" onclick="setView('cards')">Cards</button>
     <button class="view-btn" id="btn-watch" onclick="setView('watch')">★ Watch</button>
   </div>
   <button class="trend-tog" id="btn-trends" onclick="toggleTrends()" title="Toggle MoM trend arrows">Trends</button>
-  <div class="toolbar-sep"></div>
-  <button class="theme-btn" id="btn-heat" onclick="toggleHeat()" title="Colour stat cells by percentile within level">Heat</button>
-  <button class="theme-btn" id="btn-theme" onclick="toggleTheme()" title="Switch between Daylight and Night">◐ Night</button>
+  <div class="toolbar-sep" id="chip-sep"></div>
+  <span class="quickchips" id="quickchips"></span>
 </div>
 
 <div class="filter-panel" id="filter-panel">
+  <div class="fp-mobile-slot" id="fp-mobile-slot"></div>
   <div class="fp-grid">
 
     <!-- GENERAL -->
@@ -676,10 +778,58 @@ let HEAT  = (function(){ try { return localStorage.getItem('dash_heat') !== '0';
 /* read a CSS custom property — SVG needs literal colours, not var() */
 function TOK(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
 
+/* Below the breakpoint, Sort / Cols / Trends stop being toolbar controls and
+   become settings inside the Filters sheet. The nodes are MOVED, not cloned —
+   any duplicate would be a second source of truth for the same state. */
+const MOBILE_Q = window.matchMedia('(max-width: 760px)');
+function reflowChrome(){
+  const grp = document.getElementById('arrange-group');
+  const trends = document.getElementById('btn-trends');
+  const slot = document.getElementById('fp-mobile-slot');
+  const sep = document.getElementById('chip-sep');
+  if (!grp || !slot) return;
+  if (MOBILE_Q.matches) {
+    if (grp.parentElement !== slot) { slot.appendChild(grp); slot.appendChild(trends); }
+    slot.classList.add('on');
+    if (sep) sep.style.display = 'none';
+  } else {
+    if (grp.parentElement === slot) {
+      // restore against explicit anchors — positional guesses leave the
+      // separators doubled up and the groups out of order
+      const sepView = document.getElementById('sep-view');
+      const sepChip = document.getElementById('chip-sep');
+      sepView.parentElement.insertBefore(grp, sepView);
+      sepChip.parentElement.insertBefore(trends, sepChip);
+    }
+    slot.classList.remove('on');
+    if (sep) sep.style.display = '';
+  }
+}
+/* Three signals, deliberately redundant. If none fires, Sort/Cols/Trends are
+   stranded inside the closed Filters panel with no way to reach them on
+   desktop — a broken app, not a cosmetic slip. ResizeObserver is the primary
+   because it watches the box itself rather than trusting an event to be
+   dispatched; the other two cost nothing since reflowChrome is idempotent. */
+MOBILE_Q.addEventListener('change', reflowChrome);
+let _reflowT;
+function scheduleReflow(){ clearTimeout(_reflowT); _reflowT = setTimeout(reflowChrome, 100); }
+window.addEventListener('resize', scheduleReflow);
+window.addEventListener('orientationchange', scheduleReflow);
+if (window.ResizeObserver) {
+  // rAF-wrapped so the observer never mutates layout inside its own callback
+  new ResizeObserver(() => requestAnimationFrame(reflowChrome))
+    .observe(document.documentElement);
+}
+
 function applyTheme(){
   document.documentElement.setAttribute('data-theme', THEME);
+  // update the parts, not the whole button — textContent would destroy the
+  // icon/label spans that the mobile layout collapses down to an icon
   const b = document.getElementById('btn-theme');
-  if (b) b.textContent = THEME === 'night' ? '☀ Daylight' : '◐ Night';
+  if (b) {
+    b.querySelector('.tb-i').textContent = THEME === 'night' ? '☀' : '◐';
+    b.querySelector('.tb-t').textContent = THEME === 'night' ? 'Daylight' : 'Night';
+  }
   const h = document.getElementById('btn-heat');
   if (h) h.classList.toggle('heat-on', HEAT);
 }
@@ -1694,22 +1844,33 @@ function updateSummary() {
     { l:'Market', v:'market' },
     { l:'Stats',  v:'stats' },
   ];
-  document.getElementById('sumbar').innerHTML =
-    `<div class="toolbar">
-      <span class="toolbar-label">Filter</span>
-      ${chips.map(c=>`<button class="chip${c.on?' on':''}" onclick="quickFilter('${c.type}')">${c.l}</button>`).join('')}
-      ${savedChips}
-      ${saveControl}
-    </div>
-    <div class="toolbar">
-      <span class="toolbar-label">Cols</span>
-      ${colViews.map(v=>`<button class="chip col-chip${activeColView===v.v?' col-on':''}" onclick="setColView('${v.v}')">${v.l}</button>`).join('')}
-    </div>`;
+  // quick filters live in the working strip; columns become a segmented
+  // control so they read as one choice rather than three loose chips
+  document.getElementById('quickchips').innerHTML =
+    chips.map(c=>`<button class="chip${c.on?' on':''}" onclick="quickFilter('${c.type}')">${c.l}</button>`).join('')
+    + savedChips + saveControl;
+  document.getElementById('colseg').innerHTML =
+    colViews.map(v=>`<button class="view-btn${activeColView===v.v?' active':''}" onclick="setColView('${v.v}')">${v.l}</button>`).join('');
+
+  // the header's dead space carries what you'd otherwise open a panel to learn
+  const active = chips.find(c => c.on);
+  const asOf = (RAW.find(p => p.data_updated) || {}).data_updated;
+  const asOfTxt = asOf ? asOf.split('-').slice(1).concat(asOf.split('-')[0].slice(2)).join('/') : null;
+  document.getElementById('hdr-ctx').innerHTML =
+    (active ? `<span class="ctx-chip">${active.l}</span>` : '')
+    + `<span class="ctx-txt"><span class="ctx-word">showing </span><b>${n.toLocaleString()}</b>`
+    + `<span class="ctx-word"> of ${RAW.length.toLocaleString()}</span>`
+    + `<span class="ctx-short"> / ${RAW.length.toLocaleString()}</span></span>`
+    + (asOfTxt ? `<span class="ctx-dot">·</span><span class="ctx-txt ctx-asof">data as of <b>${asOfTxt}</b></span>` : '');
 }
 
 function getPage() { return filtered.slice((page-1)*PS, page*PS); }
 
 function renderAll() {
+  // Self-heal: renderAll runs on every filter/sort/view change, so even if all
+  // three resize signals were missed the chrome corrects itself within one
+  // interaction rather than leaving controls stranded in a closed panel.
+  if (typeof reflowChrome === 'function') reflowChrome();
   if (view === 'table') renderTable();
   else if (view === 'cards') renderCards();
   else renderWatch();
@@ -2306,6 +2467,7 @@ async function init() {
   computeValueScores(RAW);
   buildHeatAnchors(RAW);
   applyTheme();
+  reflowChrome();
   filtered = [...RAW];
   sortData();
   updateSummary();
