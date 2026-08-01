@@ -1791,6 +1791,16 @@ function renderTable() {
   }).join('');
 }
 
+/* a detail-panel stat; the heat chip wraps the value only, so the MoM trend
+   arrow keeps its own colour */
+function dstat(p, label, k, txt, trailing, fallbackStyle){
+  const t = HEAT ? heatPct(p, k) : null;
+  const val = t == null
+    ? `<span style="${fallbackStyle||''}">${txt}</span>`
+    : `<span class="hv" style="background:${heatFill(t)};color:${heatInk(t)}">${txt}</span>`;
+  return `<div class="dstat"><div class="dl">${label}</div><div class="dv">${val}${trailing||''}</div></div>`;
+}
+
 function ccell(p, k, txt, label, fallbackStyle){
   const t = HEAT ? heatPct(p, k) : null;
   if (t == null) return `<div class="cs"><div class="sv2" style="${fallbackStyle||''}">${txt}</div><div class="sl2">${label}</div></div>`;
@@ -2037,37 +2047,37 @@ function showD(idx) {
           <div class="ds">
             <h3>Slash Line</h3>
             <div class="dg4">
-              <div class="dstat"><div class="dl">AVG</div><div class="dv" style="color:${avgColor(p.avg)}">${d3(p.avg)}${trend(p.avg_d)}</div></div>
-              <div class="dstat"><div class="dl">OBP</div><div class="dv" style="color:${obpColor(p.obp)}">${d3(p.obp)}${trend(p.obp_d)}</div></div>
-              <div class="dstat"><div class="dl">SLG</div><div class="dv" style="color:${slgColor(p.slg)}">${d3(p.slg)}${trend(p.slg_d)}</div></div>
-              <div class="dstat"><div class="dl">OPS</div><div class="dv" style="color:${opsColor(p.ops)}">${d3(p.ops)}${trend(p.ops_d)}</div></div>
+              ${dstat(p,'AVG','avg',d3(p.avg),trend(p.avg_d),`color:${avgColor(p.avg)}`)}
+              ${dstat(p,'OBP','obp',d3(p.obp),trend(p.obp_d),`color:${obpColor(p.obp)}`)}
+              ${dstat(p,'SLG','slg',d3(p.slg),trend(p.slg_d),`color:${slgColor(p.slg)}`)}
+              ${dstat(p,'OPS','ops',d3(p.ops),trend(p.ops_d),`color:${opsColor(p.ops)}`)}
             </div>
           </div>
           <div class="ds">
             <h3>Advanced</h3>
             <div class="dg4">
-              <div class="dstat"><div class="dl">wOBA</div><div class="dv" style="color:${wobaColor(p.woba)}">${d3(p.woba)}${trend(p.woba_d)}</div></div>
-              <div class="dstat"><div class="dl">ISO</div><div class="dv" style="color:${isoColor(p.iso)}">${d3(p.iso)}${trend(p.iso_d)}</div></div>
-              <div class="dstat"><div class="dl">wRC+</div><div class="dv" style="color:${wrcColor(p.wrc)}">${p.wrc ?? '—'}${trend(p.wrc_d)}</div></div>
-              <div class="dstat"><div class="dl">SwStr%</div><div class="dv" style="color:${p.swstr!=null?(p.swstr>14?'var(--red)':p.swstr<7?'var(--good)':''):''};">${p.swstr!=null?p.swstr.toFixed(1)+'%':'—'}</div></div>
+              ${dstat(p,'wOBA','woba',d3(p.woba),trend(p.woba_d),`color:${wobaColor(p.woba)}`)}
+              ${dstat(p,'ISO','iso',d3(p.iso),trend(p.iso_d),`color:${isoColor(p.iso)}`)}
+              ${dstat(p,'wRC+','wrc',p.wrc ?? '—',trend(p.wrc_d),`color:${wrcColor(p.wrc)}`)}
+              ${dstat(p,'SwStr%','swstr',p.swstr!=null?p.swstr.toFixed(1)+'%':'—','',p.swstr!=null?(p.swstr>14?'color:var(--red)':p.swstr<7?'color:var(--good)':''):'')}
             </div>
           </div>
           <div class="ds">
             <h3>Production</h3>
             <div class="dg4">
               <div class="dstat"><div class="dl">AB</div><div class="dv">${p.ab}</div></div>
-              <div class="dstat"><div class="dl">HR</div><div class="dv">${p.hr ?? '—'}${trend(p.hr_d)}</div></div>
-              <div class="dstat"><div class="dl">SB</div><div class="dv">${p.sb ?? '—'}${trend(p.sb_d)}</div></div>
-              <div class="dstat"><div class="dl">BB%</div><div class="dv" style="color:${bbColor(p.bb)}">${d1p(p.bb)}${trend(p.bb_d)}</div></div>
+              ${dstat(p,'HR','hr',p.hr ?? '—',trend(p.hr_d),'')}
+              ${dstat(p,'SB','sb',p.sb ?? '—',trend(p.sb_d),'')}
+              ${dstat(p,'BB%','bb',d1p(p.bb),trend(p.bb_d),`color:${bbColor(p.bb)}`)}
             </div>
           </div>
           <div class="ds">
             <h3>Batted Ball</h3>
             <div class="dg4">
-              <div class="dstat"><div class="dl">LD%</div><div class="dv" style="color:${p.ld!=null?(p.ld>=25?'var(--good)':p.ld<15?'var(--red)':''):''};">${d0p(p.ld)}</div></div>
-              <div class="dstat"><div class="dl">GB/FB</div><div class="dv" style="color:${p.gbfb!=null?(p.gbfb>=1.75?'var(--red)':p.gbfb<=1?'var(--good)':''):''};">${d2(p.gbfb)}</div></div>
-              <div class="dstat"><div class="dl">HR/FB%</div><div class="dv">${d1p(p.hrfb)}</div></div>
-              <div class="dstat"><div class="dl">K%</div><div class="dv" style="color:${kColor(p.k)}">${d1p(p.k)}${trend(p.k_d,true)}</div></div>
+              ${dstat(p,'LD%','ld',d0p(p.ld),'',p.ld!=null?(p.ld>=25?'color:var(--good)':p.ld<15?'color:var(--red)':''):'')}
+              ${dstat(p,'GB/FB','gbfb',d2(p.gbfb),'',p.gbfb!=null?(p.gbfb>=1.75?'color:var(--red)':p.gbfb<=1?'color:var(--good)':''):'')}
+              ${dstat(p,'HR/FB%','hrfb',d1p(p.hrfb),'','')}
+              ${dstat(p,'K%','k',d1p(p.k),trend(p.k_d,true),`color:${kColor(p.k)}`)}
             </div>
           </div>
           <div class="ds">
