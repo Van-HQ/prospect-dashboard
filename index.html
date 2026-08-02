@@ -599,6 +599,20 @@
        drops them to static position and the name runs underneath. */
     .dh-score { padding-right:152px; }
   }
+
+  /* ══ Stat-history view fills the fixed card ══════════════════════════
+     The charts used to hold a 360x150 aspect, so on a wide panel they drew
+     short and left the bottom third of the card empty. They now take the real
+     pixel box of their container and the panel distributes the height.
+     ══════════════════════════════════════════════════════════════════ */
+  .flip-front { display:flex; flex-direction:column; }
+  .flip-front > .dh, .flip-front > .db { flex:0 0 auto; }
+  #card-hist-panel { flex:1 1 auto; min-height:0; display:flex; flex-direction:column; }
+  #hist-chart { flex:1 1 auto; min-height:150px; }
+  #hist-chart > svg, #price-hist-chart > svg { width:100%; height:100%; display:block; }
+  #price-hist-block { flex:1 1 auto; min-height:0; display:flex; flex-direction:column; }
+  #price-hist-chart { flex:1 1 auto; min-height:130px; }
+  @media (max-width:640px) { #hist-chart { min-height:170px; } #price-hist-chart { min-height:150px; } }
 </style>
 </head>
 <body>
@@ -1128,8 +1142,8 @@ function flipCard() {
   }
 }
 
-function histChartSVG(history, statKey, statKey2) {
-  const W = 360, H = 150, PAD = {top:24, right:16, bottom:28, left:44};
+function histChartSVG(history, statKey, statKey2, W = 360, H = 150) {
+  const PAD = {top:24, right:16, bottom:28, left:44};
   const iW = W - PAD.left - PAD.right, iH = H - PAD.top - PAD.bottom;
   const _MO = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const prevMo = m => { const i = _MO.indexOf(m); return i > 0 ? _MO[i-1] : _MO[11]; };
@@ -1259,11 +1273,14 @@ function updateHistChart() {
   const p = RAW[currentIdx];
   if (!p || !p.history) return;
   const el = document.getElementById('hist-chart');
-  if (el) el.innerHTML = histChartSVG(p.history, histStat, histStat2);
+  if (!el) return;
+  const W = Math.max(300, Math.round(el.clientWidth)  || 360);
+  const H = Math.max(150, Math.round(el.clientHeight) || 150);
+  el.innerHTML = histChartSVG(p.history, histStat, histStat2, W, H);
 }
 
-function priceChartSVG(priceHistory, key) {
-  const W = 360, H = 150, PAD = {top:24, right:16, bottom:28, left:44};
+function priceChartSVG(priceHistory, key, W = 360, H = 150) {
+  const PAD = {top:24, right:16, bottom:28, left:44};
   const iW = W - PAD.left - PAD.right, iH = H - PAD.top - PAD.bottom;
   const pts = priceHistory.map((snap, i) => ({i, v: snap[key]})).filter(d => d.v != null);
   if (pts.length < 2) return `<div style="display:flex;align-items:center;justify-content:center;height:${H}px;color:var(--text-dim);font-family:'IBM Plex Mono',monospace;font-size:10px">Not enough data</div>`;
@@ -1303,7 +1320,10 @@ function updatePriceChart() {
   const p = RAW[currentIdx];
   if (!p || !p.price_history) return;
   const el = document.getElementById('price-hist-chart');
-  if (el) el.innerHTML = priceChartSVG(p.price_history, priceStat);
+  if (!el) return;
+  const W = Math.max(300, Math.round(el.clientWidth)  || 360);
+  const H = Math.max(130, Math.round(el.clientHeight) || 150);
+  el.innerHTML = priceChartSVG(p.price_history, priceStat, W, H);
 }
 
 function selectPriceStat(key) {
@@ -2321,7 +2341,7 @@ function showD(idx) {
           </div>
           <div id="hist-chart" style="margin-top:10px"></div>
           ${p.price_history && p.price_history.length >= 2 ? `
-          <div style="margin-top:14px;border-top:1px solid var(--border);padding-top:10px">
+          <div id="price-hist-block" style="margin-top:14px;border-top:1px solid var(--border);padding-top:10px">
             <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:2px;color:var(--text-dim);margin-bottom:6px">PRICE HISTORY</div>
             <div style="display:flex;flex-wrap:wrap;gap:4px;">
               <button class="hchip pchip${priceStat==='raw'?' active':''}" data-stat="raw" onclick="selectPriceStat('raw')">RAW $</button>
