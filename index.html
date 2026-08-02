@@ -649,6 +649,38 @@
   #price-hist-block { flex:1 1 auto; min-height:0; display:flex; flex-direction:column; }
   #price-hist-chart { flex:1 1 auto; min-height:130px; }
   @media (max-width:640px) { #hist-chart { min-height:170px; } #price-hist-chart { min-height:150px; } }
+
+  /* ══ Mobile card: scroll outside the 3D context ══════════════════════
+     The flip card builds a 3D rendering context (perspective on .flip-wrap,
+     preserve-3d on .flip-inner, backface-visibility on both faces). iOS Safari
+     does not reliably scroll an overflow:auto element inside one — the content
+     renders but will not move, which is why this looked fine in a desktop
+     browser and dead on an actual phone.
+
+     Below the breakpoint the panel itself scrolls (it sits outside the 3D
+     context) and the faces fall back to natural height. Declared last so it
+     wins over the desktop fixed-height rules above.
+     ══════════════════════════════════════════════════════════════════ */
+  @media (max-width:640px) {
+    .dpanel { overflow-y:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain;
+      display:block; }
+    #dc          { display:block; flex:none; min-height:0; }
+    .flip-wrap   { flex:none; min-height:0; height:auto; }
+    .flip-inner  { height:auto; }
+    .flip-front  { display:block; height:auto; overflow:visible; }
+    .flip-front > .db { flex:none; }
+    /* the flip face is absolutely positioned against .flip-inner, which is now
+       auto-height, so give it room rather than collapsing to zero */
+    .flip-back   { min-height:100%; }
+    /* swipe replaces them — the arrows sat in the corners phones crop anyway */
+    .dnav { display:none; }
+    /* a taller chart now that the panel scrolls instead of squeezing */
+    #hist-chart { min-height:250px; }
+    #price-hist-chart { min-height:210px; }
+    /* once the rotation settles, the hidden face stops padding the scroll area */
+    .flip-inner.face-collapsed .flip-front { display:none; }
+    .flip-inner.face-collapsed .flip-back  { position:relative; min-height:0; }
+  }
 </style>
 </head>
 <body>
@@ -1171,11 +1203,26 @@ function flipCard() {
   const fi = document.getElementById('fi');
   const dp = document.getElementById('dp');
   fi.classList.toggle('flipped');
-  if (fi.classList.contains('flipped')) {
+  const flipped = fi.classList.contains('flipped');
+  if (flipped) {
     dp.style.overflow = 'hidden';
   } else {
     setTimeout(() => { dp.style.overflow = ''; }, 500);
   }
+  /* Both faces stack, and the taller one sets the height. On mobile the panel
+     scrolls, so a short radar behind a long stat list left ~500px of empty
+     scroll. Once the rotation has finished, collapse whichever face is hidden
+     so the scrollable area matches what's actually on screen. Waiting for the
+     animation matters — removing a face mid-rotation kills the effect. */
+  clearTimeout(fi._collapseTimer);
+  if (flipped) {
+    fi._collapseTimer = setTimeout(() => {
+      if (fi.classList.contains('flipped')) fi.classList.add('face-collapsed');
+    }, 640);
+  } else {
+    fi.classList.remove('face-collapsed');
+  }
+  dp.scrollTop = 0;
 }
 
 function histChartSVG(history, statKey, statKey2, W = 360, H = 150) {
