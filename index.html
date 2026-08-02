@@ -331,7 +331,10 @@
      radar or switch to stat history. The panel itself never scrolls — each face
      scrolls its own overflow instead. */
   .dpanel { background:var(--panel); border:1px solid var(--line); border-radius:var(--r-lg);
-    width:100%; max-width:680px; height:min(86vh, 720px); overflow:hidden; position:relative;
+    /* 720px holds the tallest card (one with Market Value) without scrolling;
+       90vh keeps that true on shorter laptop screens instead of shrinking the
+       card below the content and reintroducing a scrollbar */
+    width:100%; max-width:680px; height:min(90vh, 720px); overflow:hidden; position:relative;
     display:flex; flex-direction:column;
     animation:su .22s cubic-bezier(.2,.8,.2,1); box-shadow:var(--shadow-lg); }
   /* Flex rather than a height:100% chain — the percentage never resolved through
@@ -369,10 +372,12 @@
     color:var(--dim); border:1px solid var(--line); background:var(--panel); padding:3px 9px;
     border-radius:var(--r-sm); text-decoration:none; transition:color .15s, border-color .15s; }
   .dlink:hover { color:var(--accent); border-color:var(--accent); }
-  .db { padding:14px 22px 18px; }
-  .ds { margin-bottom:16px; }
+  .db { padding:12px 22px 12px; }
+  /* spacing lives on the container's gap so the sections can distribute any
+     leftover height instead of stacking at the top over a void */
+  .ds { margin-bottom:0; }
   .ds h3 { font-family:var(--font-mono); font-size:9px; color:var(--accent); letter-spacing:1.4px;
-    text-transform:uppercase; font-weight:700; margin-bottom:9px; border-bottom:1px solid var(--line); padding-bottom:5px; }
+    text-transform:uppercase; font-weight:700; margin-bottom:7px; border-bottom:1px solid var(--line); padding-bottom:4px; }
   .dg4 { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
   .dg5 { display:grid; grid-template-columns:repeat(3,1fr); gap:10px 12px; }
   .dstat .dl { font-family:var(--font-mono); font-size:9px; color:var(--dim); letter-spacing:.8px;
@@ -620,7 +625,12 @@
      pixel box of their container and the panel distributes the height.
      ══════════════════════════════════════════════════════════════════ */
   .flip-front { display:flex; flex-direction:column; }
-  .flip-front > .dh, .flip-front > .db { flex:0 0 auto; }
+  .flip-front > .dh { flex:0 0 auto; }
+  /* The stats panel claims the rest of the card and spreads its sections, so a
+     player with no Market Value section fills the same card as one with it —
+     same size either way, and neither scrolls. */
+  .flip-front > .db { flex:1 1 auto; min-height:0; display:flex; flex-direction:column;
+    gap:10px; justify-content:space-between; }
   #card-hist-panel { flex:1 1 auto; min-height:0; display:flex; flex-direction:column; }
   #hist-chart { flex:1 1 auto; min-height:150px; }
   /* centre the capped chart in the space the panel gives it */
