@@ -65,10 +65,10 @@
 
     --accent:#4ec49f; --accent-soft:rgba(78,196,159,.13); --accent-line:rgba(78,196,159,.32);
     --accent-ink:#08211a;
-    --good:#5bc98a; --bad:#e0705d; --gold:#e0a93c; --warm:#e8874a; --purple:var(--purple); --pink:#e87aa8;
+    --good:#5bc98a; --bad:#e0705d; --gold:#e0a93c; --warm:#e8874a; --purple:#a78bfa; --pink:#e87aa8;
 
     --t-hit:#5aa9e6; --t-pwr:#e0a93c; --t-spd:#5bc98a;
-    --t-dis:#e8874a; --t-age:#e87aa8; --t-wrc:var(--purple);
+    --t-dis:#e8874a; --t-age:#e87aa8; --t-wrc:#a78bfa;
 
     /* midpoint sinks into the panel so only genuine outliers carry colour */
     --h-lo:#3a6fa8; --h-mid:#221e1b; --h-hi:#a83a2c;
@@ -342,15 +342,15 @@
     color:var(--dim); width:27px; height:27px; border-radius:50%; cursor:pointer; font-size:13px;
     align-items:center; justify-content:center; transition:all .15s; z-index:10; line-height:1;
   }
+  /* left -> right: history, flip, star, close */
   .dclose { right:13px; display:flex; }
-  .dflip  { right:47px; display:flex; }
-  #dstar    { right:81px;  display:none; font-size:14px; }
+  #dstar    { right:47px;  display:none; font-size:14px; }
+  .dflip  { right:81px; display:flex; }
   #dhistory { right:115px; display:none; font-family:var(--font-mono); }
   .dclose:hover { border-color:var(--bad); color:var(--bad); }
   .dflip:hover  { border-color:var(--accent); color:var(--accent); }
   #dstar:hover, #dstar.on { border-color:var(--gold); color:var(--gold); }
   #dhistory:hover, #dhistory.active { border-color:var(--accent); color:var(--accent); }
-  #dscore { position:absolute; top:48px; right:16px; width:50px; height:50px; font-size:19px; display:none; }
 
   .dh { padding:16px 22px 13px; border-bottom:1px solid var(--line); background:var(--sunk); min-height:100px; }
   .dname { font-family:var(--font-ui); font-size:21px; font-weight:700; letter-spacing:-.3px; line-height:1.2; }
@@ -539,6 +539,48 @@
     .fp-mobile-slot.on .sort-label { display:none; }
 
     .main { padding:12px 13px 24px; }
+  }
+
+  /* ══ Card header — "Broadcast" ═══════════════════════════════════════
+     The score anchors the card as a solid accent block carrying its rank;
+     metadata collapses from four ragged rows to one line with the values
+     emphasised, so it scans without needing a grid.
+     ══════════════════════════════════════════════════════════════════ */
+  .dh { display:flex; align-items:stretch; padding:0; min-height:0; }
+  .dh-score {
+    flex-shrink:0; width:104px; background:var(--accent); color:var(--accent-ink);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    padding:16px 8px; gap:1px;
+  }
+  /* the score band takes the tier colour, same scale as the table's score cell */
+  .dh-score.sc-sm { background:var(--t-hit); }
+  .dh-score.sc-sh { background:var(--good); }
+  .dh-score.sc-sy { background:var(--gold); }
+  .dh-score.sc-sl { background:var(--warm); }
+  .dh-score.sc-sr { background:var(--bad); }
+  .dh-score-v { font-family:var(--font-mono); font-size:34px; font-weight:700; line-height:1; letter-spacing:-1.5px; }
+  .dh-score-l { font-family:var(--font-mono); font-size:7.5px; letter-spacing:1.4px; text-transform:uppercase; opacity:.85; }
+  .dh-score-r { font-family:var(--font-mono); font-size:9px; letter-spacing:.4px; opacity:.9; margin-top:5px;
+    padding-top:5px; border-top:1px solid rgba(255,255,255,.28); white-space:nowrap; }
+  html[data-theme="night"] .dh-score-r { border-top-color:rgba(0,0,0,.22); }
+  .dh-body { flex:1; min-width:0; padding:14px 18px 13px; padding-right:150px; }
+  .dh-meta { display:flex; align-items:center; gap:7px; flex-wrap:wrap; margin-top:8px;
+    font-family:var(--font-mono); font-size:11px; color:var(--dim); }
+  .dh-meta b { color:var(--ink); font-weight:700; }
+  .dh-dot { color:var(--faint); }
+  .dh .dlinks { margin-top:10px; }
+
+  @media (max-width:640px) {
+    .dh { flex-direction:column; }
+    .dh-score { width:100%; flex-direction:row; justify-content:flex-start; gap:12px; padding:10px 15px; }
+    .dh-score-v { font-size:26px; }
+    .dh-score-l { align-self:center; }
+    .dh-score-r { margin-top:0; padding-top:0; border-top:none; margin-left:auto; align-self:center; }
+    .dh-body { padding:13px 15px; padding-right:15px; }
+    /* The actions stay pinned top-right; the score band now sits beneath them,
+       so reserve room inside the band instead of moving the buttons — `top:auto`
+       drops them to static position and the name runs underneath. */
+    .dh-score { padding-right:152px; }
   }
 </style>
 </head>
@@ -759,7 +801,6 @@
     <button class="dflip" onclick="flipCard()" title="Radar Chart (F)">⇌</button>
     <button id="dstar" onclick="toggleWatch(RAW[currentIdx],event)" title="Watchlist (W)">★</button>
     <button id="dhistory" onclick="toggleHistory()" title="Stat History (S)">≋</button>
-    <div id="dscore" class="sc"></div>
     <div id="dc"></div>
   </div>
 </div>
@@ -2139,11 +2180,6 @@ function showD(idx) {
     scp:  `https://www.sportscardspro.com/search-products?type=prices&q=${_n}&sort=popularity&sport=baseball-cards&rookies-only=false&exclude-variants=false&show-images=true`
   };
   const cls = sc(p);
-  // Update the static score circle (positioned below the flip/close buttons)
-  const scoreEl = document.getElementById('dscore');
-  scoreEl.className = `sc ${cls}`;
-  scoreEl.textContent = p.prospect_score;
-  scoreEl.style.display = 'flex';
   // Update the star button
   const dstar = document.getElementById('dstar');
   dstar.style.display = 'flex';
@@ -2152,7 +2188,7 @@ function showD(idx) {
   const tools = [
     {l:'HIT',v:p.hit,c:'var(--t-hit)',d:p.hit_d},{l:'POWER',v:p.pwr,c:'var(--gold)',d:p.pwr_d},
     {l:'SPEED',v:p.spd,c:'var(--good)',d:p.spd_d},{l:'DISC',v:p.dis,c:'var(--warm)',d:p.dis_d},
-    {l:'AGE',v:p.age_r,c:'var(--pink)',d:p.age_r_d},{l:'wRC+',v:p.wrc_r,c:'var(--purple)',d:p.wrc_r_d}
+    {l:'AGE GRADE',v:p.age_r,c:'var(--pink)',d:p.age_r_d},{l:'wRC+ GRADE',v:p.wrc_r,c:'var(--purple)',d:p.wrc_r_d}
   ];
   // Reset flip state whenever a new card opens
   document.getElementById('dp').style.overflow = '';
@@ -2169,24 +2205,23 @@ function showD(idx) {
 
       <div class="flip-front">
         <div class="dh">
-          <div style="padding-right:76px">
+          <div class="dh-score sc-${cls}">
+            <div class="dh-score-v">${p.prospect_score ?? '—'}</div>
+            <div class="dh-score-l">Score</div>
+            ${p.rank!=null?`<div class="dh-score-r">#${p.rank} overall</div>`:''}
+          </div>
+          <div class="dh-body">
               <div class="dname">${p.name}</div>
-              <div class="dmeta" style="gap:8px">
+              <div class="dh-meta">
                 <span class="tbadge">${p.team}</span>
                 <span class="lvl ${lc(p.level)}">${p.level}</span>
-                <span class="dmeta-dot">Age ${p.age}</span>
-                ${p.pos?`<span class="dmeta-dot">${p.pos}</span>`:''}
+                <span>Age <b>${p.age}</b></span>
+                ${p.pos?`<span class="dh-dot">·</span><span><b>${p.pos}</b></span>`:''}
+                ${p.eta?`<span class="dh-dot">·</span><span>ETA <b>${p.eta.replace(/\.0$/,'')}</b></span>`:''}
+                ${p.size?`<span class="dh-dot">·</span><span><b>${p.size}</b></span>`:''}
+                ${p.mlb_rank?`<span class="dh-dot">·</span><span style="color:var(--gold)">MLB <b style="color:var(--gold)">#${p.mlb_rank}</b></span>`:''}
+                ${p.org_rank?`<span class="dh-dot">·</span><span>Org <b>#${p.org_rank}</b></span>`:''}
               </div>
-              ${p.eta||p.size?`<div class="dmeta" style="gap:10px;margin-top:3px">
-                ${p.eta?`<span class="dmeta-sub">ETA ${p.eta.replace(/\.0$/,'')}</span>`:''}
-                ${p.eta&&p.size?`<span style="color:var(--border);font-size:10px">|</span>`:''}
-                ${p.size?`<span class="dmeta-sub">${p.size}</span>`:''}
-              </div>`:''}
-              ${p.mlb_rank||p.org_rank?`<div class="dmeta" style="gap:10px;margin-top:3px">
-                ${p.mlb_rank?`<span class="dmeta-sub" style="color:var(--gold)">MLB Rank #${p.mlb_rank}</span>`:''}
-                ${p.mlb_rank&&p.org_rank?`<span style="color:var(--border);font-size:10px">|</span>`:''}
-                ${p.org_rank?`<span class="dmeta-sub">Org Rank #${p.org_rank}</span>`:''}
-              </div>`:''}
               <div class="dlinks">
                 <a href="${plink.bin}" target="_blank" class="dlink">BIN ↗</a>
                 <a href="${plink.sn}" target="_blank" class="dlink">S/N ↗</a>
@@ -2316,7 +2351,6 @@ function showD(idx) {
 function closeDov(e) { if(e.target===document.getElementById('dov')) closeD(); }
 function closeD() {
   document.getElementById('dov').classList.remove('open');
-  document.getElementById('dscore').style.display='none';
   document.getElementById('dstar').style.display='none';
   document.getElementById('dhistory').style.display='none';
   historyMode = false; histStat2 = null;
