@@ -609,7 +609,9 @@
   .flip-front > .dh, .flip-front > .db { flex:0 0 auto; }
   #card-hist-panel { flex:1 1 auto; min-height:0; display:flex; flex-direction:column; }
   #hist-chart { flex:1 1 auto; min-height:150px; }
-  #hist-chart > svg, #price-hist-chart > svg { width:100%; height:100%; display:block; }
+  /* centre the capped chart in the space the panel gives it */
+  #hist-chart, #price-hist-chart { display:flex; align-items:center; }
+  #hist-chart > svg, #price-hist-chart > svg { width:100%; height:auto; display:block; }
   #price-hist-block { flex:1 1 auto; min-height:0; display:flex; flex-direction:column; }
   #price-hist-chart { flex:1 1 auto; min-height:130px; }
   @media (max-width:640px) { #hist-chart { min-height:170px; } #price-hist-chart { min-height:150px; } }
@@ -1269,13 +1271,27 @@ function histChartSVG(history, statKey, statKey2, W = 360, H = 150) {
   return svg;
 }
 
+/* A time series wants to be wider than it is tall. Filling a tall narrow
+   container edge to edge produced a portrait chart that exaggerated the swing,
+   so height is capped against width and the chart is centred in whatever space
+   is left — deliberate composition rather than a chart that ran out. */
+/* Height allowance as a fraction of width. A wide chart should stay landscape
+   (~4:3); a phone-width one can run close to square without reading as wrong,
+   and allowing that leaves far less dead space to strand. */
+const chartRatio = W => W < 420 ? 0.95 : 0.72;
+function chartBox(el, floorH) {
+  const W = Math.max(300, Math.round(el.clientWidth) || 360);
+  const avail = Math.round(el.clientHeight) || floorH;
+  const H = Math.max(floorH, Math.min(avail, Math.round(W * chartRatio(W))));
+  return [W, H];
+}
+
 function updateHistChart() {
   const p = RAW[currentIdx];
   if (!p || !p.history) return;
   const el = document.getElementById('hist-chart');
   if (!el) return;
-  const W = Math.max(300, Math.round(el.clientWidth)  || 360);
-  const H = Math.max(150, Math.round(el.clientHeight) || 150);
+  const [W, H] = chartBox(el, 150);
   el.innerHTML = histChartSVG(p.history, histStat, histStat2, W, H);
 }
 
@@ -1321,8 +1337,7 @@ function updatePriceChart() {
   if (!p || !p.price_history) return;
   const el = document.getElementById('price-hist-chart');
   if (!el) return;
-  const W = Math.max(300, Math.round(el.clientWidth)  || 360);
-  const H = Math.max(130, Math.round(el.clientHeight) || 150);
+  const [W, H] = chartBox(el, 130);
   el.innerHTML = priceChartSVG(p.price_history, priceStat, W, H);
 }
 
