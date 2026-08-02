@@ -462,20 +462,24 @@
        than the visible area — the browser chrome overlaps the bottom, which
        left the last section unreachable and read as "can't scroll". dvh tracks
        the real viewport; vh stays as a fallback for older engines. */
-    .detail-overlay { padding:14px 11px; }
-    /* 84dvh leaves ~50px of scrim below the card for the nav buttons to sit in */
-    .dpanel { height:84vh; height:84dvh; border-radius:var(--r-lg);
+    /* the bottom inset keeps the card clear of the home indicator */
+    .detail-overlay { padding:14px 11px calc(14px + env(safe-area-inset-bottom, 0px)); }
+    /* 80dvh leaves room below the card for the nav buttons, above the safe area */
+    .dpanel { height:80vh; height:80dvh; border-radius:var(--r-lg);
       border:1px solid var(--line); max-width:none; }
     .db, .dh-body { padding-left:15px; padding-right:15px; }
     /* prev/next stay reachable on a phone — pinned to the bottom corners so
        they clear the header actions and sit under the thumb */
-    .dnav { top:auto; bottom:8px; transform:none; font-size:21px; line-height:1;
-      width:36px; height:36px; padding:0; border-radius:50%;
+    /* lifted clear of the home indicator and pulled inboard — phones crop the
+       very bottom corners, which is where these previously sat */
+    .dnav { top:auto; bottom:calc(12px + env(safe-area-inset-bottom, 0px));
+      transform:none; font-size:21px; line-height:1;
+      width:38px; height:38px; padding:0; border-radius:50%;
       background:var(--sunk); border:1px solid var(--line); color:var(--ink-mid);
       opacity:1; text-shadow:none; box-shadow:var(--shadow-md);
       display:flex; align-items:center; justify-content:center; }
-    #dnav-prev { left:10px; }
-    #dnav-next { right:10px; }
+    #dnav-prev { left:24px; }
+    #dnav-next { right:24px; }
   }
   @media (prefers-reduced-motion:reduce) {
     *, *::before, *::after { animation-duration:.01ms !important; transition-duration:.01ms !important; }
@@ -626,11 +630,17 @@
      ══════════════════════════════════════════════════════════════════ */
   .flip-front { display:flex; flex-direction:column; }
   .flip-front > .dh { flex:0 0 auto; }
-  /* The stats panel claims the rest of the card and spreads its sections, so a
-     player with no Market Value section fills the same card as one with it —
-     same size either way, and neither scrolls. */
-  .flip-front > .db { flex:1 1 auto; min-height:0; display:flex; flex-direction:column;
-    gap:10px; justify-content:space-between; }
+  .flip-front > .db { flex:0 0 auto; display:flex; flex-direction:column; gap:10px; }
+  /* Desktop only. The stats panel claims the rest of the card and spreads its
+     sections so a player with no Market Value fills the same card as one with
+     it. Applying this on a phone is actively harmful: the grids drop to two
+     columns, the content no longer fits, and a flex:1 panel clamps itself while
+     its children spill out of it — unreachable, because the scroll container
+     sees a panel that "fits". Below the breakpoint the panel keeps its natural
+     height and .flip-front simply scrolls. */
+  @media (min-width:641px) {
+    .flip-front > .db { flex:1 1 auto; min-height:0; justify-content:space-between; }
+  }
   #card-hist-panel { flex:1 1 auto; min-height:0; display:flex; flex-direction:column; }
   #hist-chart { flex:1 1 auto; min-height:150px; }
   /* centre the capped chart in the space the panel gives it */
@@ -2393,7 +2403,9 @@ function showD(idx) {
           ${p.price_raw!=null?`<div class="ds">
             <h3>Market Value <span style="font-weight:400;letter-spacing:0;text-transform:none;color:var(--text-dim);font-size:8px">via ${p.price_url?`<a href="${p.price_url}" target="_blank" style="color:var(--text-dim);text-decoration:none;border-bottom:1px solid var(--border)" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-dim)'">SCP ↗</a>`:'SCP'} · ${p.price_updated?p.price_updated.split('-').slice(1).concat(p.price_updated.split('-')[0]).join('/'):''}</span></h3>
             <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text-dim);margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.price_card||''}${p.price_set?` · <span style="color:var(--text-dim)">${shortSet(p.price_set)}</span>`:''}</div>
-            <div class="dg4" style="grid-template-columns:repeat(4,1fr)">
+            <!-- .dg4 is already 4-up; the inline override only served to beat
+                 the mobile 2-column rule, which cropped PSA 10 off-screen -->
+            <div class="dg4">
               <div class="dstat"><div class="dl">Raw</div><div style="display:flex;align-items:baseline;gap:5px"><span class="dv" style="color:var(--text)">$${p.price_raw!=null?p.price_raw.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'—'}</span>${cardBadge(p.d30_raw_pct,p.d15_raw_pct)}</div></div>
               <div class="dstat"><div class="dl">Value</div><div style="display:flex;align-items:baseline;gap:5px;color:${p._val!=null?valColor(p._val):'var(--text)'}"><span class="dv">${p._val!=null?p._val.toFixed(2):'—'}</span>${p._val!=null?`<span style="font-size:9px;font-family:'IBM Plex Mono',monospace;opacity:0.85">${valLabel(p._val)}</span>`:''}</div></div>
               <div class="dstat"><div class="dl">PSA 9</div><div style="display:flex;align-items:baseline;gap:5px"><span class="dv" style="color:var(--gold)">$${p.price_psa9!=null?p.price_psa9.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'—'}</span>${cardBadge(p.d30_psa9_pct,p.d15_psa9_pct)}</div></div>
