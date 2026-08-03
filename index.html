@@ -681,6 +681,28 @@
     .flip-inner.face-collapsed .flip-front { display:none; }
     .flip-inner.face-collapsed .flip-back  { position:relative; min-height:0; }
   }
+
+  /* ══ Watchlist portability ═══════════════════════════════════════════
+     No backend to sync to, so the list travels as a link instead.
+     ══════════════════════════════════════════════════════════════════ */
+  .wl-sync { margin-bottom:12px; }
+  .wl-sync .wl-sync-body { display:none; margin-top:9px; padding:12px;
+    background:var(--sunk); border:1px solid var(--line); border-radius:var(--r-md); max-width:620px; }
+  .wl-sync.open .wl-sync-body { display:block; }
+  .wl-row { display:flex; gap:7px; align-items:center; }
+  .wl-row + .wl-row { margin-top:10px; }
+  .wl-input { flex:1; min-width:0; height:var(--h-ctl); background:var(--panel);
+    border:1px solid var(--line); color:var(--ink); font-family:var(--font-mono);
+    font-size:11px; padding:0 10px; border-radius:var(--r-ctl); outline:none; }
+  .wl-input:focus { border-color:var(--accent); }
+  .wl-hint { font-family:var(--font-mono); font-size:10px; color:var(--dim);
+    margin-top:7px; line-height:1.5; }
+  @media (max-width:640px) {
+    .wl-row { flex-wrap:wrap; }
+    .wl-input { flex-basis:100%; }
+    /* match the 44px touch target used everywhere else on mobile */
+    .wl-sync .sv-btn { height:var(--h-ctl); padding:0 16px; }
+  }
 </style>
 </head>
 <body>
@@ -888,7 +910,7 @@
   <div id="sumbar"></div>
   <div id="tv"><div class="table-container"><table><thead id="th"></thead><tbody id="tb"></tbody></table></div></div>
   <div id="cv" style="display:none"><div class="cards-grid" id="cg"></div></div>
-  <div id="wv" style="display:none"><div class="table-container"><table><thead id="wh"></thead><tbody id="wt"></tbody></table></div></div>
+  <div id="wv" style="display:none"><div id="watch-bar"></div><div class="table-container"><table><thead id="wh"></thead><tbody id="wt"></tbody></table></div></div>
   <div class="pagination" id="pg"></div>
 </div>
 
@@ -1564,6 +1586,85 @@ let currentIdx = -1;
 // ── Watchlist (persisted in localStorage) ────────────────────────────────────
 let watchlist = new Set(JSON.parse(localStorage.getItem('wl') || '[]'));
 function pkey(p) { return p.name + '||' + p.team; }
+
+/* The watchlist lives in localStorage, which a cache clear wipes and which
+   never leaves the device it was set on. This is a static site with no backend,
+   so there is nothing to sync *to* — instead the list encodes into a link you
+   can send yourself, and imports from one. Same effect for one person on two
+   devices, without standing up a service or holding a credential. */
+function encodeWatchlist() {
+  try { return btoa(unescape(encodeURIComponent(JSON.stringify([...watchlist])))); }
+  catch (e) { return ''; }
+}
+function decodeWatchlist(code) {
+  try {
+    const list = JSON.parse(decodeURIComponent(escape(atob(String(code).trim()))));
+    return Array.isArray(list) ? list.filter(x => typeof x === 'string') : null;
+  } catch (e) { return null; }
+}
+function watchlistLink() {
+  return location.origin + location.pathname + '#w=' + encodeWatchlist();
+}
+function importWatchlist(raw, mode) {
+  const code = String(raw || '').trim().replace(/^.*#w=/, '');
+  const list = decodeWatchlist(code);
+  if (!list) return { ok: false, added: 0 };
+  const before = watchlist.size;
+  if (mode === 'replace') watchlist = new Set(list);
+  else list.forEach(k => watchlist.add(k));          // merge is the safe default
+  localStorage.setItem('wl', JSON.stringify([...watchlist]));
+  return { ok: true, added: watchlist.size - before, total: watchlist.size };
+}
+/* a link opened on the other device applies itself, then cleans the URL so a
+   later refresh can't silently re-add players you have since removed */
+let WATCH_NOTE = '';
+function applyWatchlistFromURL() {
+  const m = location.hash.match(/#w=(.+)$/);
+  if (!m) return;
+  const r = importWatchlist(m[1], 'merge');
+  history.replaceState(null, '', location.pathname + location.search);
+  if (r.ok) WATCH_NOTE = `Imported from link — ${r.added} added, ${r.total} on your watchlist.`;
+}
+
+function watchSyncMarkup() {
+  return `<div class="wl-sync" id="watch-sync">
+    <button class="chip" onclick="toggleWatchSync()">⇅ Move to another device</button>
+    <div class="wl-sync-body">
+      <div class="wl-row">
+        <input id="wl-link" class="wl-input" readonly value="${watchlistLink()}">
+        <button class="sv-btn sv-ok" id="wl-copy" onclick="copyWatchLink()">Copy link</button>
+      </div>
+      <div class="wl-hint">Open that link on your phone and the list merges in. Keep it somewhere
+        and it survives clearing your browser.</div>
+      <div class="wl-row">
+        <input id="wl-paste" class="wl-input" placeholder="Paste a watchlist link here…">
+        <button class="sv-btn sv-ok" onclick="doImportWatchlist()">Import</button>
+      </div>
+      <div class="wl-hint" id="wl-msg">${WATCH_NOTE}</div>
+    </div>
+  </div>`;
+}
+function toggleWatchSync() {
+  const el = document.getElementById('watch-sync');
+  if (el) el.classList.toggle('open');
+}
+function copyWatchLink() {
+  const inp = document.getElementById('wl-link');
+  inp.select(); inp.setSelectionRange(0, 99999);
+  const done = () => { const b = document.getElementById('wl-copy');
+    b.textContent = 'Copied'; setTimeout(() => { b.textContent = 'Copy link'; }, 1600); };
+  if (navigator.clipboard) navigator.clipboard.writeText(inp.value).then(done, () => { document.execCommand('copy'); done(); });
+  else { document.execCommand('copy'); done(); }
+}
+function doImportWatchlist() {
+  const box = document.getElementById('wl-paste');
+  const r = importWatchlist(box.value, 'merge');
+  const msg = document.getElementById('wl-msg');
+  msg.textContent = r.ok ? `Imported — ${r.added} added, ${r.total} total.`
+                         : 'That does not look like a watchlist link or code.';
+  msg.style.color = r.ok ? 'var(--good)' : 'var(--bad)';
+  if (r.ok) { box.value = ''; renderAll(); updateSummary(); }
+}
 function inWatch(p) { return watchlist.has(pkey(p)); }
 function toggleWatch(p, e) {
   e.stopPropagation();
@@ -2186,10 +2287,14 @@ function renderCards() {
 function renderWatch() {
   const wh = document.getElementById('wh');
   const wt = document.getElementById('wt');
+  // NB: not `bar` — that's the global tool-grade bar renderer used below
+  const syncBar = document.getElementById('watch-bar');
+  if (syncBar) syncBar.innerHTML = watchSyncMarkup();
   const allWatched = RAW.filter(inWatch);
   if (!allWatched.length) {
     wh.innerHTML = '';
-    wt.innerHTML = `<tr><td colspan="26" class="watch-empty">★ Your watchlist is empty — click the star on any player to add them</td></tr>`;
+    wt.innerHTML = `<tr><td colspan="26" class="watch-empty">★ Your watchlist is empty — click the star on any player to add them`
+      + `<div style="margin-top:16px">${watchSyncMarkup()}</div></td></tr>`;
     return;
   }
   // Use filtered (already sorted by sortData) so all active chips apply here too
@@ -2663,6 +2768,7 @@ async function init() {
 
   computeValueScores(RAW);
   buildHeatAnchors(RAW);
+  applyWatchlistFromURL();
   applyTheme();
   reflowChrome();
   filtered = [...RAW];
