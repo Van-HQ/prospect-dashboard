@@ -1250,8 +1250,14 @@ function flipCard() {
 function histChartSVG(history, statKey, statKey2, W = 360, H = 150) {
   const PAD = {top:24, right:16, bottom:28, left:44};
   const iW = W - PAD.left - PAD.right, iH = H - PAD.top - PAD.bottom;
-  const _MO = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  const prevMo = m => { const i = _MO.indexOf(m); return i > 0 ? _MO[i-1] : _MO[11]; };
+  /* The x-axis used to render prevMo(snap.month), shifting every label back a
+     month. That compensated for the old cadence: pulling on the 1st produced an
+     export covering the month just finished, while the tab took the name of the
+     month you pulled in — so an "Aug" tab held July and had to be drawn as
+     "Jul". Pulling on the last day instead means the tab name already is the
+     coverage month, and the shift became a lie. Labels are drawn as stored.
+     Note this relabels the five months built under the old cadence one month
+     later than they strictly cover; they age out as new months come in. */
 
   const isRankKey = k => k === 'rank' || k === 'ltw_rank';
 
@@ -1367,7 +1373,7 @@ function histChartSVG(history, statKey, statKey2, W = 360, H = 150) {
   // X-axis month labels
   history.forEach((snap, i) => {
     const x = xScale(i).toFixed(1);
-    svg += `<text x="${x}" y="${(PAD.top + iH + 18).toFixed(1)}" text-anchor="middle" font-size="8" fill="${TOK('--dim')}">${prevMo(snap.month)}</text>`;
+    svg += `<text x="${x}" y="${(PAD.top + iH + 18).toFixed(1)}" text-anchor="middle" font-size="8" fill="${TOK('--dim')}">${snap.month}</text>`;
   });
 
   svg += `</svg>`;
