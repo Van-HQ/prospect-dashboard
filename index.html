@@ -219,6 +219,38 @@
   .fp-field input[type=number]:focus, .fp-field select:focus { border-color:var(--accent); }
   .fp-field input[type=number]::placeholder { color:var(--faint); }
   .fp-field select { cursor:pointer; color:var(--ink-mid); }
+
+  /* ── Multi-select filter ──────────────────────────────────────────────────
+     A native <select multiple> renders as a permanently-expanded list box and
+     needs cmd-click to add a second value, which reads as broken. This is a
+     button + popup that keeps its value in a hidden input, so saved views, the
+     filter-count badge and Reset all keep addressing it as an ordinary field. */
+  .ms { position:relative; min-width:0; }
+  .ms-btn { width:100%; background:var(--panel); border:1px solid var(--line); color:var(--ink-mid);
+    font-family:var(--font-mono); font-size:11px; padding:6px 8px; border-radius:var(--r-sm);
+    cursor:pointer; outline:none; transition:border-color .15s; text-align:left;
+    display:flex; align-items:center; gap:6px; }
+  .ms-btn:hover { border-color:var(--line-strong); }
+  .ms.open .ms-btn, .ms-btn:focus-visible { border-color:var(--accent); }
+  .ms-btn.on { color:var(--ink); }
+  .ms-lbl { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .ms-car { font-size:8px; color:var(--faint); flex:none; }
+  .ms-pop { display:none; position:absolute; z-index:60; top:calc(100% + 4px); left:0;
+    min-width:100%; max-height:236px; overflow-y:auto; overscroll-behavior:contain;
+    background:var(--panel); border:1px solid var(--line-strong); border-radius:var(--r-sm);
+    box-shadow:0 10px 28px rgba(0,0,0,.20); padding:4px; }
+  .ms.open .ms-pop { display:block; }
+  .ms-opt { display:flex; align-items:center; gap:7px; padding:5px 7px; border-radius:3px;
+    font-family:var(--font-mono); font-size:11px; color:var(--ink-mid);
+    cursor:pointer; white-space:nowrap; user-select:none; }
+  .ms-opt:hover { background:var(--sunk); }
+  .ms-opt.sel { color:var(--ink); }
+  .ms-box { width:12px; height:12px; flex:none; border:1px solid var(--line-strong);
+    border-radius:2px; display:flex; align-items:center; justify-content:center;
+    font-size:9px; line-height:1; color:var(--paper); }
+  .ms-opt.sel .ms-box { background:var(--accent); border-color:var(--accent); }
+  .ms-clr { border-top:1px solid var(--line); margin:4px 0 0; padding-top:6px;
+    color:var(--dim); justify-content:center; }
   .fp-footer { margin-top:14px; padding-top:12px; border-top:1px solid var(--line); display:flex; justify-content:flex-end; }
   .fp-reset { background:var(--panel); border:1px solid var(--line); color:var(--dim);
     font-family:var(--font-mono); font-size:10px; letter-spacing:1px; text-transform:uppercase;
@@ -792,49 +824,29 @@
     <div>
       <div class="fp-section-title">General</div>
       <div class="fp-col">
+        <!-- Team / Level / Position / ETA are multi-select. Their options are
+             built from the loaded data at init (see buildMultis) rather than
+             hardcoded here — a hardcoded list silently goes stale, which is how
+             DSL ended up unfilterable and ETA stopped at 2029. -->
         <div class="fp-field"><span class="fp-label">Team</span>
-          <select id="ft">
-            <option value="">All Teams</option>
-            <option>ARI</option><option>ATL</option><option>BAL</option><option>BOS</option>
-            <option>CHC</option><option>CHW</option><option>CIN</option><option>CLE</option>
-            <option>COL</option><option>DET</option><option>HOU</option><option>KCR</option>
-            <option>LAA</option><option>LAD</option><option>MIA</option><option>MIL</option>
-            <option>MIN</option><option>NYM</option><option>NYY</option><option>OAK</option>
-            <option>PHI</option><option>PIT</option><option>SDP</option><option>SEA</option>
-            <option>SFG</option><option>STL</option><option>TBR</option><option>TEX</option>
-            <option>TOR</option><option>WSN</option>
-          </select>
+          <div class="ms" id="ms-ft" data-for="ft"></div><input type="hidden" id="ft" value="">
         </div>
         <div class="fp-field"><span class="fp-label">Level</span>
-          <select id="fl">
-            <option value="">All Levels</option>
-            <option value="AAA">AAA</option><option value="AA">AA</option>
-            <option value="A+">A+</option><option value="A">A</option>
-            <option value="CPX">CPX/ROK</option>
-          </select>
+          <div class="ms" id="ms-fl" data-for="fl"></div><input type="hidden" id="fl" value="">
         </div>
         <div class="fp-field"><span class="fp-label">Age ≤</span>
           <select id="fa">
             <option value="">Any</option>
-            <option value="18">18</option><option value="19">19</option><option value="20">20</option>
-            <option value="21">21</option><option value="22">22</option><option value="23">23</option>
-            <option value="24">24</option><option value="25">25</option>
+            <option value="17">17</option><option value="18">18</option><option value="19">19</option>
+            <option value="20">20</option><option value="21">21</option><option value="22">22</option>
+            <option value="23">23</option><option value="24">24</option><option value="25">25</option>
           </select>
         </div>
         <div class="fp-field"><span class="fp-label">Position</span>
-          <select id="fpos">
-            <option value="">All</option>
-            <option value="C">C</option><option value="1B">1B</option><option value="2B">2B</option>
-            <option value="3B">3B</option><option value="SS">SS</option>
-            <option value="OF">OF</option><option value="INF">INF</option>
-          </select>
+          <div class="ms" id="ms-fpos" data-for="fpos"></div><input type="hidden" id="fpos" value="">
         </div>
         <div class="fp-field"><span class="fp-label">ETA</span>
-          <select id="feta">
-            <option value="">Any</option>
-            <option>2025</option><option>2026</option><option>2027</option>
-            <option>2028</option><option>2029</option>
-          </select>
+          <div class="ms" id="ms-feta" data-for="feta"></div><input type="hidden" id="feta" value="">
         </div>
         <div class="fp-field"><span class="fp-label">Max MLB Rank</span><input type="number" id="ff-mlbrank" step="1" min="1" placeholder="50"></div>
         <div class="fp-field"><span class="fp-label">Max Org Rank</span><input type="number" id="ff-orgrank" step="1" min="1" placeholder="5"></div>
@@ -1779,6 +1791,7 @@ function openFilterPanel() {
 function loadView(idx) {
   const { state } = savedViews[idx];
   FILTER_IDS.forEach(id => { document.getElementById(id).value = state[id] || ''; });
+  msSyncAll();   // hidden inputs were set directly — repaint the buttons
   document.getElementById('search').value = state.search || '';
   sortF = state.sortF || 'ltw';
   sortD = state.sortD ?? -1;
@@ -1811,6 +1824,7 @@ function updateFilterBadge() {
 }
 function resetFilters() {
   FILTER_IDS.forEach(id => document.getElementById(id).value = '');
+  msSyncAll();
   activeProfile = null; activeFallers = false; activeValue = false;
   sortF = 'rank'; sortD = -1;
   document.getElementById('sb').value = 'rank';
@@ -1844,12 +1858,114 @@ function dltw(v){ return v != null ? v.toLocaleString() : '—'; }
 function pf(id) { const v = document.getElementById(id).value; return v ? parseFloat(v) : null; }
 function pi(id) { const v = document.getElementById(id).value; return v ? parseInt(v)   : null; }
 
+// ── Multi-select filters ─────────────────────────────────────────────────────
+// Value lives in the hidden input as a comma-joined string, so every existing
+// consumer (FILTER_IDS, saved views, the badge count, resetFilters) keeps
+// working without knowing this control is anything other than a normal field.
+const MS_CFG = {
+  ft:   { all:'All Teams',     one:t => t,           order:v => v.slice().sort() },
+  fl:   { all:'All Levels',    one:l => l,
+          order:v => { const L=['AAA','AA','A+','A','CPX','ROK','DSL'];
+                       return v.slice().sort((a,b)=>(L.indexOf(a)+1||99)-(L.indexOf(b)+1||99)); } },
+  fpos: { all:'All Positions', one:p => p,
+          order:v => { const P=['C','1B','2B','3B','SS','INF','OF','UTIL','DH'];
+                       return v.slice().sort((a,b)=>(P.indexOf(a)+1||99)-(P.indexOf(b)+1||99)); } },
+  feta: { all:'Any ETA',       one:e => e,           order:v => v.slice().sort() },
+};
+const MS_IDS = Object.keys(MS_CFG);
+
+function msVals(id) {
+  const v = document.getElementById(id).value;
+  return v ? v.split(',') : [];
+}
+// One player row can carry several tokens ("A,A+", "OF/1B"). Split so a token
+// is matched whole: substring matching made "AA" also select every AAA player.
+function msTokens(id, p) {
+  if (id === 'ft')   return [p.team];
+  if (id === 'fl')   return String(p.level || '').split(',').map(s => s.trim()).filter(Boolean);
+  if (id === 'fpos') return String(p.pos   || '').split('/').map(s => s.trim()).filter(Boolean);
+  if (id === 'feta') return [String(p.eta ?? '')];
+  return [];
+}
+function msMatch(id, p) {
+  const sel = msVals(id);
+  if (!sel.length) return true;
+  const toks = msTokens(id, p);
+  return sel.some(s => toks.includes(s));
+}
+
+function buildMultis(rows) {
+  MS_IDS.forEach(id => {
+    const seen = new Set();
+    rows.forEach(p => msTokens(id, p).forEach(t => { if (t && t !== '-') seen.add(t); }));
+    const opts = MS_CFG[id].order([...seen]);
+    const box  = document.getElementById('ms-' + id);
+    if (!box) return;
+    box.innerHTML =
+      `<button type="button" class="ms-btn" aria-haspopup="true" aria-expanded="false"
+               onclick="msOpen('${id}',event)"><span class="ms-lbl"></span><span class="ms-car">▼</span></button>
+       <div class="ms-pop" role="listbox" aria-multiselectable="true">
+         ${opts.map(o => `<div class="ms-opt" role="option" data-v="${o}" onclick="msPick('${id}','${o}',event)">
+              <span class="ms-box">✓</span><span>${MS_CFG[id].one(o)}</span></div>`).join('')}
+         <div class="ms-opt ms-clr" onclick="msClear('${id}',event)">Clear</div>
+       </div>`;
+    msSync(id);
+  });
+}
+
+function msSync(id) {
+  const box = document.getElementById('ms-' + id);
+  if (!box) return;
+  const sel = msVals(id), cfg = MS_CFG[id];
+  box.querySelectorAll('.ms-opt[data-v]').forEach(el =>
+    el.classList.toggle('sel', sel.includes(el.dataset.v)));
+  const btn = box.querySelector('.ms-btn');
+  const lbl = box.querySelector('.ms-lbl');
+  // The filter columns are ~60px, so "2 selected" clips to "2 select…".
+  // Show the actual picks whenever they fit — more useful than a bare count.
+  const joined = sel.join(',');
+  lbl.textContent = sel.length === 0 ? cfg.all
+                  : sel.length === 1 ? cfg.one(sel[0])
+                  : joined.length <= 11 ? joined
+                  : `${sel.length} sel`;
+  btn.classList.toggle('on', sel.length > 0);
+}
+function msSyncAll() { MS_IDS.forEach(msSync); }
+
+function msOpen(id, e) {
+  if (e) e.stopPropagation();
+  const box = document.getElementById('ms-' + id);
+  const wasOpen = box.classList.contains('open');
+  msCloseAll();
+  if (!wasOpen) {
+    box.classList.add('open');
+    box.querySelector('.ms-btn').setAttribute('aria-expanded', 'true');
+  }
+}
+function msCloseAll() {
+  document.querySelectorAll('.ms.open').forEach(b => {
+    b.classList.remove('open');
+    b.querySelector('.ms-btn').setAttribute('aria-expanded', 'false');
+  });
+}
+function msPick(id, val, e) {
+  if (e) e.stopPropagation();          // keep the popup open for a second pick
+  const sel = msVals(id);
+  const i = sel.indexOf(val);
+  if (i >= 0) sel.splice(i, 1); else sel.push(val);
+  document.getElementById(id).value = MS_CFG[id].order(sel).join(',');
+  msSync(id); updateFilterBadge(); applyF();
+}
+function msClear(id, e) {
+  if (e) e.stopPropagation();
+  document.getElementById(id).value = '';
+  msSync(id); updateFilterBadge(); applyF();
+}
+document.addEventListener('click', e => { if (!e.target.closest('.ms')) msCloseAll(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') msCloseAll(); });
+
 function applyF() {
   const q        = document.getElementById('search').value.toLowerCase();
-  const team     = document.getElementById('ft').value;
-  const lvl      = document.getElementById('fl').value;
-  const fpos     = document.getElementById('fpos').value;
-  const feta     = document.getElementById('feta').value;
   const maxAge   = pi('fa');
   const minAB    = pi('fab');
   const ffMlbRnk = pi('ff-mlbrank');
@@ -1882,14 +1998,10 @@ function applyF() {
     if (q && !p.name.toLowerCase().includes(q) && !p.team.toLowerCase().includes(q)
            && !(p.pos||'').toLowerCase().includes(q)
            && !(p.eta||'').toString().includes(q)) return false;
-    if (team && p.team !== team) return false;
-    if (lvl) {
-      if (lvl === 'CPX' && !p.level.includes('CPX') && !p.level.includes('ROK')) return false;
-      else if (lvl !== 'CPX' && lvl === 'A' && p.level !== 'A') return false;
-      else if (lvl !== 'CPX' && lvl !== 'A' && !p.level.includes(lvl)) return false;
-    }
-    if (fpos    && (p.pos || '').split('/')[0] !== fpos) return false;
-    if (feta    && (p.eta || '') !== feta) return false;
+    if (!msMatch('ft',   p)) return false;
+    if (!msMatch('fl',   p)) return false;
+    if (!msMatch('fpos', p)) return false;
+    if (!msMatch('feta', p)) return false;
     if (maxAge  && p.age > maxAge) return false;
     if (minAB   && (p.ab  ?? 0) < minAB) return false;
     if (ffMlbRnk != null && (p.mlb_rank ?? 9999) > ffMlbRnk) return false;
@@ -2724,11 +2836,10 @@ document.addEventListener('keydown', e => {
     searchEl.select();
   }
 });
-document.getElementById('ft').addEventListener('change', applyF);
-document.getElementById('fl').addEventListener('change', applyF);
+// ft / fl / fpos / feta are multi-selects now — msPick calls applyF itself, and
+// a hidden input never fires 'change', so listening on them would be dead code.
 document.getElementById('fa').addEventListener('change', applyF);
 document.getElementById('fab').addEventListener('change', applyF);
-document.getElementById('fpos').addEventListener('change', applyF);
 document.getElementById('sb').addEventListener('change', e => { sortF=e.target.value; applyF(); });
 ['ff-avg','ff-obp','ff-slg','ff-ops',
  'ff-hr','ff-sb','ff-bb','ff-kmax',
@@ -2736,7 +2847,6 @@ document.getElementById('sb').addEventListener('change', e => { sortF=e.target.v
  'ff-hit','ff-pwr','ff-spd','ff-dis','ff-age-r','ff-wrc-r',
  'ff-score','ff-ltw','ff-val','ff-mlbrank','ff-orgrank','fab']
   .forEach(id => document.getElementById(id).addEventListener('input', applyF));
-document.getElementById('feta').addEventListener('change', applyF);
 
 async function init() {
   try {
@@ -2774,6 +2884,7 @@ async function init() {
 
   computeValueScores(RAW);
   buildHeatAnchors(RAW);
+  buildMultis(RAW);
   applyWatchlistFromURL();
   applyTheme();
   reflowChrome();
