@@ -1607,30 +1607,34 @@ let page = 1;
 const PS = 30;
 let currentIdx = -1;
 
-// ── Watchlist (persisted in localStorage, mirrored to jsonbin.io) ────────────
+// ── Watchlist (persisted in localStorage, mirrored to Supabase) ──────────────
 let watchlist = new Set(JSON.parse(localStorage.getItem('wl') || '[]'));
 function pkey(p) { return p.name + '||' + p.team; }
 
 /* This is a static site with no backend, so "cloud sync" means talking
-   directly to a free key-value store from the browser. jsonbin.io holds one
-   JSON blob (a player-key array + a timestamp) at a fixed bin ID.
+   directly to Supabase's auto-generated REST API (PostgREST) from the browser
+   — no server of our own, no client library, just fetch. One row in one table
+   holds the whole watchlist as jsonb plus a timestamp.
 
-   The access key below is deliberately narrow: create it scoped to ONLY this
-   bin with read+update (no delete, no create, no access to other bins), never
-   the account's master key. It still has to live in this public HTML — there
-   is no server to hide it behind — so scoping it is what keeps a leak of this
-   key from being able to touch anything beyond one watchlist blob.
+   The anon key below is meant to be public — unlike a typical API key, it
+   carries no privilege by itself. Row Level Security policies on the table
+   are what decide what the anon role can do, and the setup notes below create
+   exactly two: public read, public update, on this one table only. A leak of
+   this key can't reach any other table or do anything the policies don't
+   already allow.
 
    Sync strategy is last-write-wins, not a merge: every write sends the full
    list with a fresh timestamp; every load compares timestamps and the newer
    one wins outright. For a personal watchlist edited from 2-3 known devices,
    occasionally overwriting a same-second edit on another device is a fully
    acceptable tradeoff against the complexity a real merge would add. */
-const SYNC_BIN_ID   = 'REPLACE_ME';   // jsonbin.io bin id
-const SYNC_KEY_NAME = 'X-Master-Key'; // 'X-Access-Key' if you created a scoped key instead
-const SYNC_KEY      = 'REPLACE_ME';
-const SYNC_ENABLED  = SYNC_BIN_ID !== 'REPLACE_ME' && SYNC_KEY !== 'REPLACE_ME';
-const SYNC_URL      = `https://api.jsonbin.io/v3/b/${SYNC_BIN_ID}`;
+const SUPABASE_URL      = 'REPLACE_ME';   // e.g. https://xxxx.supabase.co
+const SUPABASE_ANON_KEY = 'REPLACE_ME';
+const SYNC_TABLE  = 'watchlist_sync';
+const SYNC_ROW_ID = 'main';
+const SYNC_ENABLED = SUPABASE_URL !== 'REPLACE_ME' && SUPABASE_ANON_KEY !== 'REPLACE_ME';
+const SYNC_ENDPOINT = `${SUPABASE_URL}/rest/v1/${SYNC_TABLE}?id=eq.${SYNC_ROW_ID}`;
+const SYNC_HEADERS   = { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` };
 
 let wlSyncedAt  = parseInt(localStorage.getItem('wl_synced_at') || '0', 10);
 let wlSyncState = 'off';   // off | ok | syncing | error — drives the status dot
@@ -1652,12 +1656,12 @@ async function syncWatchlistPull(isStartup) {
   if (!SYNC_ENABLED) return;
   setSyncState('syncing');
   try {
-    const res = await fetch(SYNC_URL + '/latest', { headers: { [SYNC_KEY_NAME]: SYNC_KEY } });
+    const res = await fetch(SYNC_ENDPOINT + '&select=items,updated_at', { headers: SYNC_HEADERS });
     if (!res.ok) throw new Error(res.status);
-    const data = await res.json();
-    const remote = (data && data.record) || {};
-    const remoteList = Array.isArray(remote.watchlist) ? remote.watchlist : [];
-    const remoteTs = Number(remote.updatedAt) || 0;
+    const rows = await res.json();
+    const remote = rows[0] || {};
+    const remoteList = Array.isArray(remote.items) ? remote.items : [];
+    const remoteTs = Number(remote.updated_at) || 0;
     if (remoteTs > wlSyncedAt) {
       watchlist = new Set(remoteList);
       wlSyncedAt = remoteTs;
@@ -1682,10 +1686,10 @@ function syncWatchlistPush() {
   wlPushTimer = setTimeout(async () => {
     const ts = Date.now();
     try {
-      const res = await fetch(SYNC_URL, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', [SYNC_KEY_NAME]: SYNC_KEY },
-        body: JSON.stringify({ watchlist: [...watchlist], updatedAt: ts }),
+      const res = await fetch(SYNC_ENDPOINT, {
+        method: 'PATCH',
+        headers: { ...SYNC_HEADERS, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+        body: JSON.stringify({ items: [...watchlist], updated_at: ts }),
       });
       if (!res.ok) throw new Error(res.status);
       wlSyncedAt = ts;
@@ -1700,7 +1704,7 @@ function syncWatchlistPush() {
 /* The watchlist lives in localStorage, which a cache clear wipes and which
    never leaves the device it was set on. Cloud sync (above) is the automatic
    path; this link stays as a manual fallback for a first run on a new device,
-   for when SYNC_ENABLED is off, or if jsonbin.io is ever unreachable. */
+   for when SYNC_ENABLED is off, or if Supabase is ever unreachable. */
 function encodeWatchlist() {
   try { return btoa(unescape(encodeURIComponent(JSON.stringify([...watchlist])))); }
   catch (e) { return ''; }
