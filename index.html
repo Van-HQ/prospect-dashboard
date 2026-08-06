@@ -729,6 +729,12 @@
   .wl-input:focus { border-color:var(--accent); }
   .wl-hint { font-family:var(--font-mono); font-size:10px; color:var(--dim);
     margin-top:7px; line-height:1.5; }
+  .wl-cloud { display:flex; align-items:center; gap:7px; margin-top:0; margin-bottom:10px; }
+  .wl-sync-dot { width:7px; height:7px; border-radius:50%; flex:none; background:var(--faint); }
+  .wl-sync-dot.ok { background:var(--accent3,var(--accent)); }
+  .wl-sync-dot.error { background:var(--red); }
+  .wl-sync-dot.syncing { background:var(--gold); animation:wlpulse 1s ease-in-out infinite; }
+  @keyframes wlpulse { 0%,100%{opacity:1} 50%{opacity:.35} }
   @media (max-width:640px) {
     .wl-row { flex-wrap:wrap; }
     .wl-input { flex-basis:100%; }
@@ -1601,15 +1607,100 @@ let page = 1;
 const PS = 30;
 let currentIdx = -1;
 
-// ── Watchlist (persisted in localStorage) ────────────────────────────────────
+// ── Watchlist (persisted in localStorage, mirrored to jsonbin.io) ────────────
 let watchlist = new Set(JSON.parse(localStorage.getItem('wl') || '[]'));
 function pkey(p) { return p.name + '||' + p.team; }
 
+/* This is a static site with no backend, so "cloud sync" means talking
+   directly to a free key-value store from the browser. jsonbin.io holds one
+   JSON blob (a player-key array + a timestamp) at a fixed bin ID.
+
+   The access key below is deliberately narrow: create it scoped to ONLY this
+   bin with read+update (no delete, no create, no access to other bins), never
+   the account's master key. It still has to live in this public HTML — there
+   is no server to hide it behind — so scoping it is what keeps a leak of this
+   key from being able to touch anything beyond one watchlist blob.
+
+   Sync strategy is last-write-wins, not a merge: every write sends the full
+   list with a fresh timestamp; every load compares timestamps and the newer
+   one wins outright. For a personal watchlist edited from 2-3 known devices,
+   occasionally overwriting a same-second edit on another device is a fully
+   acceptable tradeoff against the complexity a real merge would add. */
+const SYNC_BIN_ID   = 'REPLACE_ME';   // jsonbin.io bin id
+const SYNC_KEY_NAME = 'X-Master-Key'; // 'X-Access-Key' if you created a scoped key instead
+const SYNC_KEY      = 'REPLACE_ME';
+const SYNC_ENABLED  = SYNC_BIN_ID !== 'REPLACE_ME' && SYNC_KEY !== 'REPLACE_ME';
+const SYNC_URL      = `https://api.jsonbin.io/v3/b/${SYNC_BIN_ID}`;
+
+let wlSyncedAt  = parseInt(localStorage.getItem('wl_synced_at') || '0', 10);
+let wlSyncState = 'off';   // off | ok | syncing | error — drives the status dot
+
+function saveWatchlistLocal() {
+  localStorage.setItem('wl', JSON.stringify([...watchlist]));
+}
+
+function setSyncState(s) {
+  wlSyncState = s;
+  const el = document.getElementById('wl-sync-dot');
+  if (el) { el.className = 'wl-sync-dot ' + s; el.title = SYNC_STATE_LABEL[s] || ''; }
+}
+const SYNC_STATE_LABEL = {
+  off: 'Cloud sync not configured', ok: 'Synced', syncing: 'Syncing…', error: 'Sync failed — using local copy',
+};
+
+async function syncWatchlistPull(isStartup) {
+  if (!SYNC_ENABLED) return;
+  setSyncState('syncing');
+  try {
+    const res = await fetch(SYNC_URL + '/latest', { headers: { [SYNC_KEY_NAME]: SYNC_KEY } });
+    if (!res.ok) throw new Error(res.status);
+    const data = await res.json();
+    const remote = (data && data.record) || {};
+    const remoteList = Array.isArray(remote.watchlist) ? remote.watchlist : [];
+    const remoteTs = Number(remote.updatedAt) || 0;
+    if (remoteTs > wlSyncedAt) {
+      watchlist = new Set(remoteList);
+      wlSyncedAt = remoteTs;
+      saveWatchlistLocal();
+      localStorage.setItem('wl_synced_at', String(wlSyncedAt));
+      // At startup, init()'s own renderAll() below reflects this once `filtered`
+      // is populated — rendering here too would run against the empty default.
+      if (!isStartup) { renderAll(); updateSummary(); }
+    }
+    setSyncState('ok');
+  } catch (e) {
+    setSyncState('error');   // offline or misconfigured — local copy stays authoritative
+  }
+}
+
+let wlPushTimer = null;
+function syncWatchlistPush() {
+  if (!SYNC_ENABLED) return;
+  clearTimeout(wlPushTimer);
+  setSyncState('syncing');
+  // Debounced so a burst of star clicks sends one request, not one per click.
+  wlPushTimer = setTimeout(async () => {
+    const ts = Date.now();
+    try {
+      const res = await fetch(SYNC_URL, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', [SYNC_KEY_NAME]: SYNC_KEY },
+        body: JSON.stringify({ watchlist: [...watchlist], updatedAt: ts }),
+      });
+      if (!res.ok) throw new Error(res.status);
+      wlSyncedAt = ts;
+      localStorage.setItem('wl_synced_at', String(ts));
+      setSyncState('ok');
+    } catch (e) {
+      setSyncState('error');   // stays queued locally; next successful pull/push reconciles
+    }
+  }, 600);
+}
+
 /* The watchlist lives in localStorage, which a cache clear wipes and which
-   never leaves the device it was set on. This is a static site with no backend,
-   so there is nothing to sync *to* — instead the list encodes into a link you
-   can send yourself, and imports from one. Same effect for one person on two
-   devices, without standing up a service or holding a credential. */
+   never leaves the device it was set on. Cloud sync (above) is the automatic
+   path; this link stays as a manual fallback for a first run on a new device,
+   for when SYNC_ENABLED is off, or if jsonbin.io is ever unreachable. */
 function encodeWatchlist() {
   try { return btoa(unescape(encodeURIComponent(JSON.stringify([...watchlist])))); }
   catch (e) { return ''; }
@@ -1630,7 +1721,8 @@ function importWatchlist(raw, mode) {
   const before = watchlist.size;
   if (mode === 'replace') watchlist = new Set(list);
   else list.forEach(k => watchlist.add(k));          // merge is the safe default
-  localStorage.setItem('wl', JSON.stringify([...watchlist]));
+  saveWatchlistLocal();
+  syncWatchlistPush();
   return { ok: true, added: watchlist.size - before, total: watchlist.size };
 }
 /* a link opened on the other device applies itself, then cleans the URL so a
@@ -1645,9 +1737,14 @@ function applyWatchlistFromURL() {
 }
 
 function watchSyncMarkup() {
+  const syncRow = SYNC_ENABLED
+    ? `<div class="wl-hint wl-cloud"><span id="wl-sync-dot" class="wl-sync-dot ${wlSyncState}"></span>
+         <span>${SYNC_STATE_LABEL[wlSyncState]} — stars added here appear on your other devices automatically.</span></div>`
+    : `<div class="wl-hint">Cloud sync isn't set up — use the link below to move your list to another device.</div>`;
   return `<div class="wl-sync" id="watch-sync">
     <button class="chip" onclick="toggleWatchSync()">⇅ Move to another device</button>
     <div class="wl-sync-body">
+      ${syncRow}
       <div class="wl-row">
         <input id="wl-link" class="wl-input" readonly value="${watchlistLink()}">
         <button class="sv-btn sv-ok" id="wl-copy" onclick="copyWatchLink()">Copy link</button>
@@ -1687,7 +1784,8 @@ function inWatch(p) { return watchlist.has(pkey(p)); }
 function toggleWatch(p, e) {
   e.stopPropagation();
   if (inWatch(p)) watchlist.delete(pkey(p)); else watchlist.add(pkey(p));
-  localStorage.setItem('wl', JSON.stringify([...watchlist]));
+  saveWatchlistLocal();
+  syncWatchlistPush();
   // refresh whatever view is showing
   renderAll();
   // sync detail-panel star if open
@@ -2885,6 +2983,10 @@ async function init() {
   computeValueScores(RAW);
   buildHeatAnchors(RAW);
   buildMultis(RAW);
+  // Pull cloud state before applying a device-transfer link, so the link's
+  // merge lands on top of the latest remote list rather than being clobbered
+  // when the pull resolves a moment later.
+  await syncWatchlistPull(true);
   applyWatchlistFromURL();
   applyTheme();
   reflowChrome();
