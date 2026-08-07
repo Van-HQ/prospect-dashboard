@@ -159,14 +159,8 @@
      it governs — smaller and quieter since it's a modifier, not a primary choice */
   #colseg.view-toggle { padding:2px; gap:1px; }
   #colseg .view-btn { font-size:9px; padding:5px 9px; }
-  .trend-tog { background:none; border:none; color:var(--dim); font-family:var(--font-mono);
-    font-size:10px; letter-spacing:.5px; text-transform:uppercase; padding:7px 10px;
-    cursor:pointer; border-radius:999px; white-space:nowrap; transition:background .15s, color .15s; }
-  .trend-tog:hover { color:var(--ink); background:var(--sunk); }
-  .trend-tog.active { background:var(--accent-soft); color:var(--accent); font-weight:600; }
-
-  /* Heat / Night are on/off state, not actions — real toggle switches,
-     each carrying the app's existing glyph (◍ heat, ◐ night) in the knob. */
+  /* Heat / Night / Trends are all on/off state, not actions — real toggle switches,
+     each carrying its own glyph (◍ heat, ◐ night, ↗ trends) in the knob. */
   .rtoggle { display:flex; flex-direction:column; align-items:center; gap:2px; background:none;
     border:none; cursor:pointer; padding:2px 4px; flex:none; }
   .rt-track { width:30px; height:17px; border-radius:99px; background:var(--sunk);
@@ -179,7 +173,10 @@
   .rt-lbl { font-family:var(--font-mono); font-size:8px; letter-spacing:.5px; text-transform:uppercase; color:var(--faint); }
 
   /* ══ Quick filters — underline tag rail ═════════════════════════════ */
-  .tags-row { max-width:1160px; margin:0 auto; padding:10px 30px 0; }
+  /* left-aligned with the rail-mark above it, not just centered independently —
+     .controls is 1180px with a 1px border + 6px padding before its first child,
+     so 7px here lands the first chip directly under the mark's left edge. */
+  .tags-row { max-width:1180px; margin:0 auto; padding:10px 7px 0; }
   .quickchips { display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
   .chip {
     font-family:var(--font-mono); font-size:11px; color:var(--dim); cursor:pointer;
@@ -567,7 +564,8 @@
     .view-btn { flex:1; justify-content:center; font-size:10.5px; }
 
     /* quick filters as one swipeable strip below the rail, never wrapped */
-    .tags-row { padding:8px 13px 0; }
+    /* mobile .controls padding is 5px + 1px border = 6px to its first child */
+    .tags-row { padding:8px 6px 0; }
     .quickchips { flex-wrap:nowrap; overflow-x:auto;
       -webkit-overflow-scrolling:touch; scrollbar-width:none;
       margin:0 -13px; padding:0 13px; }
@@ -761,7 +759,9 @@
     <button class="view-btn" id="btn-cards" onclick="setView('cards')">Cards</button>
     <button class="view-btn" id="btn-watch" onclick="setView('watch')">★ Watch</button>
   </div>
-  <button class="trend-tog" id="btn-trends" onclick="toggleTrends()" title="Toggle MoM trend arrows">Trends</button>
+  <button class="rtoggle" id="btn-trends" onclick="toggleTrends()" title="Toggle MoM trend arrows">
+    <span class="rt-track"><span class="rt-knob">↗</span></span><span class="rt-lbl">Trends</span>
+  </button>
   <div class="toolbar-sep" id="chip-sep"></div>
   <button class="rtoggle" id="btn-heat" onclick="toggleHeat()" title="Colour stat cells by percentile within level">
     <span class="rt-track"><span class="rt-knob">◍</span></span><span class="rt-lbl">Heat</span>
@@ -1802,7 +1802,7 @@ function resetFilters() {
 }
 function toggleTrends() {
   showTrends = !showTrends;
-  document.getElementById('btn-trends').classList.toggle('active', showTrends);
+  document.getElementById('btn-trends').classList.toggle('on', showTrends);
   renderAll();
 }
 
