@@ -139,9 +139,13 @@
   .fp-btn:hover { color:var(--ink); background:var(--sunk); }
   .fp-btn.active { color:var(--accent); background:var(--accent-soft); }
   .fp-i { font-size:14px; }
+  /* flex centering, not line-height — a monospace digit's glyph doesn't sit
+     dead-center in its own line box, so line-height:14px on a 14px circle
+     reads as visibly off-center even though the numbers match */
   .fp-badge { position:absolute; top:-2px; right:-2px; background:var(--accent); color:var(--accent-ink);
     font-family:var(--font-mono); font-size:9px; font-weight:700; min-width:14px; height:14px;
-    line-height:14px; text-align:center; border-radius:8px; padding:0 3px; border:1.5px solid var(--panel); }
+    display:flex; align-items:center; justify-content:center;
+    border-radius:8px; padding:0 3px; border:1.5px solid var(--panel); }
 
   select { background:none; border:none; color:var(--ink-mid); font-family:var(--font-mono); font-size:11px;
     padding:7px 4px; cursor:pointer; outline:none; }
@@ -155,6 +159,10 @@
     cursor:pointer; border-radius:999px; transition:background .15s, color .15s, box-shadow .15s; white-space:nowrap; }
   .view-btn:hover { color:var(--ink); }
   .view-btn.active { background:var(--panel); color:var(--ink); font-weight:600; box-shadow:0 1px 3px rgba(0,0,0,.1); }
+  /* Watch loses the ★ prefix, so its active state carries the distinction
+     instead — the existing warm/orange token, not a new color, standing in
+     for "this is your list" the way the star used to. */
+  #btn-watch.active { background:var(--warm); color:var(--accent-ink); }
   /* the column preset (All/Market/Stats) pairs visually with the view switcher
      it governs — smaller and quieter since it's a modifier, not a primary choice */
   #colseg.view-toggle { padding:2px; gap:1px; }
@@ -757,17 +765,17 @@
   <div class="view-toggle">
     <button class="view-btn active" id="btn-table" onclick="setView('table')">Table</button>
     <button class="view-btn" id="btn-cards" onclick="setView('cards')">Cards</button>
-    <button class="view-btn" id="btn-watch" onclick="setView('watch')">★ Watch</button>
+    <button class="view-btn" id="btn-watch" onclick="setView('watch')">Watch</button>
   </div>
-  <button class="rtoggle" id="btn-trends" onclick="toggleTrends()" title="Toggle MoM trend arrows">
-    <span class="rt-track"><span class="rt-knob">↗</span></span><span class="rt-lbl">Trends</span>
-  </button>
   <div class="toolbar-sep" id="chip-sep"></div>
   <button class="rtoggle" id="btn-heat" onclick="toggleHeat()" title="Colour stat cells by percentile within level">
     <span class="rt-track"><span class="rt-knob">◍</span></span><span class="rt-lbl">Heat</span>
   </button>
   <button class="rtoggle" id="btn-theme" onclick="toggleTheme()" title="Switch between Daylight and Night">
     <span class="rt-track"><span class="rt-knob">◐</span></span><span class="rt-lbl">Night</span>
+  </button>
+  <button class="rtoggle" id="btn-trends" onclick="toggleTrends()" title="Toggle MoM trend arrows">
+    <span class="rt-track"><span class="rt-knob">↗</span></span><span class="rt-lbl">Trends</span>
   </button>
 </div>
 <div class="tags-row"><span class="quickchips" id="quickchips"></span></div>
@@ -925,12 +933,13 @@ function reflowChrome(){
     if (sep) sep.style.display = 'none';
   } else {
     if (grp.parentElement === slot) {
-      // restore against explicit anchors — positional guesses leave the
-      // separators doubled up and the groups out of order
+      // restore against an explicit anchor — a positional guess leaves the
+      // separator doubled up and the group out of order
       const sepView = document.getElementById('sep-view');
-      const sepChip = document.getElementById('chip-sep');
       sepView.parentElement.insertBefore(grp, sepView);
-      sepChip.parentElement.insertBefore(trends, sepChip);
+      // Trends sits last in the rail (after Night), so it just goes back to
+      // being the final child rather than anchored against a sibling.
+      document.querySelector('.controls').appendChild(trends);
     }
     slot.classList.remove('on');
     if (sep) sep.style.display = '';
@@ -1789,7 +1798,7 @@ function updateFilterBadge() {
   const n = FILTER_IDS.filter(id => document.getElementById(id).value).length;
   const badge = document.getElementById('fp-badge');
   badge.textContent = n;
-  badge.style.display = n > 0 ? 'inline-block' : 'none';
+  badge.style.display = n > 0 ? 'flex' : 'none';
 }
 function resetFilters() {
   FILTER_IDS.forEach(id => document.getElementById(id).value = '');
