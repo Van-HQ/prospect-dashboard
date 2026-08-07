@@ -111,11 +111,11 @@
   .search-wrap { position:relative; flex:1 1 160px; min-width:90px; max-width:340px; }
   .search-wrap input {
     width:100%; background:none; border:none; color:var(--ink);
-    font-family:var(--font-ui); font-size:13px; padding:8px 26px 8px 33px;
+    font-family:var(--font-ui); font-size:13px; padding:8px 26px 8px 36px;
     outline:none;
   }
   .search-wrap input::placeholder { color:var(--faint); }
-  .search-wrap .ico { position:absolute; left:10px; top:50%; transform:translateY(-50%); color:var(--faint); font-size:17px; pointer-events:none; }
+  .search-wrap .ico { position:absolute; left:10px; top:50%; transform:translateY(-50%); color:var(--faint); font-size:20px; pointer-events:none; }
   .search-clear { position:absolute; right:6px; top:50%; transform:translateY(-50%); background:none; border:none;
     color:var(--dim); cursor:pointer; font-size:12px; padding:2px; line-height:1; display:none; border-radius:var(--r-sm); }
   .search-clear:hover { color:var(--ink); }
@@ -571,7 +571,10 @@
        once the view switcher forces a second row, this needs to look like a
        rounded card holding two bands, not one continuous 999px shape. */
     .controls { padding:5px 8px 5px 5px; gap:6px; border-radius:var(--r-lg); }
-    .rail-mark { width:26px; height:26px; font-size:9.5px; }
+    /* rides along on the view-toggle's row instead of sitting alone in the
+       search row above it — order pairs it right before the toggle, and the
+       toggle gives up exactly the width (+gap) the mark needs. */
+    .rail-mark { width:26px; height:26px; font-size:9.5px; order:4; }
     .hide-sm { display:none; }
     .controls .toolbar-sep { display:none; }
 
@@ -591,7 +594,7 @@
     /* was +6px, which made this row noticeably taller than the mark/search/
        toggle row above it — trimmed closer to that row's own height, still
        comfortably touch-sized without the visual mismatch. */
-    .view-toggle { width:100%; order:5; height:calc(var(--h-ctl) + 3px); }
+    .view-toggle { width:calc(100% - 32px); order:5; height:calc(var(--h-ctl) + 3px); }
     .view-btn { flex:1; justify-content:center; font-size:10px; }
 
     /* quick filters as one swipeable strip below the rail, never wrapped */
@@ -1236,7 +1239,16 @@ function flipCard() {
   clearTimeout(fi._collapseTimer);
   if (flipped) {
     fi._collapseTimer = setTimeout(() => {
-      if (fi.classList.contains('flipped')) fi.classList.add('face-collapsed');
+      if (fi.classList.contains('flipped')) {
+        fi.classList.add('face-collapsed');
+        // dp.style.overflow was set to 'hidden' above to mask the rotation —
+        // that was only ever cleared on the way back to the front face, so
+        // landing on and staying on the back face left mobile's *only* scroll
+        // mechanism (.dpanel{overflow-y:auto}) permanently switched off.
+        // Desktop never noticed because its card doesn't depend on that
+        // overflow to fit its content in the first place.
+        dp.style.overflow = '';
+      }
     }, 640);
   } else {
     fi.classList.remove('face-collapsed');
