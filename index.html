@@ -111,11 +111,11 @@
   .search-wrap { position:relative; flex:1 1 160px; min-width:90px; max-width:340px; }
   .search-wrap input {
     width:100%; background:none; border:none; color:var(--ink);
-    font-family:var(--font-ui); font-size:13px; padding:8px 26px 8px 30px;
+    font-family:var(--font-ui); font-size:13px; padding:8px 26px 8px 33px;
     outline:none;
   }
   .search-wrap input::placeholder { color:var(--faint); }
-  .search-wrap .ico { position:absolute; left:10px; top:50%; transform:translateY(-50%); color:var(--faint); font-size:13px; pointer-events:none; }
+  .search-wrap .ico { position:absolute; left:10px; top:50%; transform:translateY(-50%); color:var(--faint); font-size:17px; pointer-events:none; }
   .search-clear { position:absolute; right:6px; top:50%; transform:translateY(-50%); background:none; border:none;
     color:var(--dim); cursor:pointer; font-size:12px; padding:2px; line-height:1; display:none; border-radius:var(--r-sm); }
   .search-clear:hover { color:var(--ink); }
@@ -462,6 +462,26 @@
   .sim-name { font-family:var(--font-ui); font-size:12px; font-weight:600; color:var(--ink); }
   .sim-meta { font-family:var(--font-mono); font-size:10px; color:var(--dim); margin-top:2px; }
   .sim-score { font-family:var(--font-mono); font-size:16px; font-weight:700; }
+  /* ── Score breakdown — how each tool grade adds up to the score above ── */
+  .sb-wrap { width:100%; margin-top:14px; padding:0 12px; }
+  .sb-title { font-family:var(--font-mono); font-size:9px; color:var(--accent); letter-spacing:1.4px;
+    text-transform:uppercase; font-weight:700; border-bottom:1px solid var(--line); padding-bottom:5px; margin-bottom:9px; }
+  .sb-row { display:grid; grid-template-columns:52px 1fr 46px; align-items:center; gap:10px; padding:4px 0; }
+  .sb-lbl { display:flex; flex-direction:column; gap:0; }
+  .sb-lbl b { font-family:var(--font-mono); font-size:10.5px; font-weight:700; }
+  .sb-lbl span { font-family:var(--font-mono); font-size:8px; color:var(--faint); }
+  .sb-track { position:relative; height:16px; background:var(--sunk); border-radius:4px; overflow:hidden; }
+  .sb-fill { position:absolute; top:0; left:0; bottom:0; border-radius:4px 0 0 4px;
+    display:flex; align-items:center; justify-content:flex-end; padding-right:5px;
+    transition:width .5s cubic-bezier(.34,1.2,.64,1); }
+  .sb-fill span { font-family:var(--font-mono); font-size:8.5px; font-weight:700; color:rgba(255,255,255,.92); }
+  .sb-pts { text-align:right; font-family:var(--font-mono); }
+  .sb-pts b { font-size:12px; font-weight:700; color:var(--ink); }
+  .sb-pts span { display:block; font-size:7px; color:var(--faint); letter-spacing:.4px; }
+  .sb-total { display:grid; grid-template-columns:52px 1fr 46px; align-items:center; gap:10px;
+    margin-top:8px; padding-top:9px; border-top:1.5px solid var(--line); }
+  .sb-total b { font-family:var(--font-mono); font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; }
+  .sb-total .n { text-align:right; font-family:var(--font-mono); font-size:16px; font-weight:700; color:var(--accent); }
   @keyframes radarGrow { from { opacity:0; transform:scale(.15); } to { opacity:1; transform:scale(1); } }
   @keyframes radarFade { from { opacity:0; } to { opacity:1; } }
   .r-poly { transform-origin:250px 250px; animation:radarGrow .7s cubic-bezier(.34,1.56,.64,1) both; }
@@ -568,8 +588,11 @@
     /* band 2 — view switcher, full width, forced onto its own row. +6px
        accounts for the toggle's own inset padding + border so each button
        still gets a full 44px of tappable height. */
-    .view-toggle { width:100%; order:5; height:calc(var(--h-ctl) + 6px); }
-    .view-btn { flex:1; justify-content:center; font-size:10.5px; }
+    /* was +6px, which made this row noticeably taller than the mark/search/
+       toggle row above it — trimmed closer to that row's own height, still
+       comfortably touch-sized without the visual mismatch. */
+    .view-toggle { width:100%; order:5; height:calc(var(--h-ctl) + 3px); }
+    .view-btn { flex:1; justify-content:center; font-size:10px; }
 
     /* quick filters as one swipeable strip below the rail, never wrapped */
     /* mobile .controls padding is 5px + 1px border = 6px to its first child */
@@ -713,7 +736,7 @@
   <div class="rail-mark" title="Prospect Dashboard">PD</div>
   <div class="search-wrap">
     <span class="ico">⌕</span>
-    <input type="text" id="search" placeholder="Player, team, pos, ETA…" autocomplete="off">
+    <input type="text" id="search" placeholder="Search" autocomplete="off">
     <button class="search-clear" id="search-clear" title="Clear search">✕</button>
     <div class="search-ac" id="search-ac"></div>
   </div>
@@ -771,11 +794,11 @@
   <button class="rtoggle" id="btn-heat" onclick="toggleHeat()" title="Colour stat cells by percentile within level">
     <span class="rt-track"><span class="rt-knob">◍</span></span><span class="rt-lbl">Heat</span>
   </button>
-  <button class="rtoggle" id="btn-theme" onclick="toggleTheme()" title="Switch between Daylight and Night">
-    <span class="rt-track"><span class="rt-knob">◐</span></span><span class="rt-lbl">Night</span>
-  </button>
   <button class="rtoggle" id="btn-trends" onclick="toggleTrends()" title="Toggle MoM trend arrows">
     <span class="rt-track"><span class="rt-knob">↗</span></span><span class="rt-lbl">Trends</span>
+  </button>
+  <button class="rtoggle" id="btn-theme" onclick="toggleTheme()" title="Switch between Daylight and Night">
+    <span class="rt-track"><span class="rt-knob">◐</span></span><span class="rt-lbl">Night</span>
   </button>
 </div>
 <div class="tags-row"><span class="quickchips" id="quickchips"></span></div>
@@ -1557,6 +1580,37 @@ function radarSVG(p) {
     <polygon class="r-poly" points="${dataPts}" fill="url(#rFill)" stroke="${rc}" stroke-width="2.5" stroke-linejoin="round"/>
     ${dots}${labels}${scoreCenter}
   </svg>`;
+}
+
+// Prospect Score is a plain weighted sum of the same six grades the radar
+// shows — HIT/DIS/PWR carry 2-2.5x the weight of SPD/wRC+, which is why a
+// strong PWR grade moves the score much more than a strong SPD grade does.
+// Mirrors the weights in Prospect Score Aug: (C*25)+(D*20)+(E*20)+(F*10)+(G*15)+(H*10).
+const SCORE_WEIGHTS = [
+  {k:'hit',   l:'HIT',  w:25, c:'var(--t-hit)'},
+  {k:'pwr',   l:'PWR',  w:20, c:'var(--t-pwr)'},
+  {k:'dis',   l:'DIS',  w:20, c:'var(--t-dis)'},
+  {k:'wrc_r', l:'WRC+', w:10, c:'var(--t-wrc)'},
+  {k:'age_r', l:'AGE',  w:15, c:'var(--t-age)'},
+  {k:'spd',   l:'SPD',  w:10, c:'var(--t-spd)'},
+];
+function scoreBreakdown(p) {
+  if (p.prospect_score == null) return '';
+  const rows = SCORE_WEIGHTS.map(s => {
+    const grade = p[s.k] ?? 0;
+    const val = Math.round(grade * 100);
+    const pts = grade * s.w;
+    return `<div class="sb-row">
+      <div class="sb-lbl"><b style="color:${s.c}">${s.l}</b><span>×${s.w} max</span></div>
+      <div class="sb-track"><div class="sb-fill" style="width:${val}%;background:${s.c}"><span>${val}</span></div></div>
+      <div class="sb-pts"><b>${pts.toFixed(1)}</b><span>PTS</span></div>
+    </div>`;
+  }).join('');
+  return `<div class="sb-wrap">
+    <div class="sb-title">Score Breakdown</div>
+    ${rows}
+    <div class="sb-total"><b>Score</b><span></span><div class="n">${p.prospect_score}</div></div>
+  </div>`;
 }
 let view = 'table';
 let page = 1;
@@ -2621,6 +2675,7 @@ function showD(idx) {
         <div style="display:flex;align-items:center;justify-content:center;width:100%">
           ${radarSVG(p)}
         </div>
+        ${scoreBreakdown(p)}
         <div class="sim-players">
           <div class="sim-title">Similar Players</div>
           ${similarPlayers(p).map(s => {
