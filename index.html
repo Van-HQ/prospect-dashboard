@@ -158,11 +158,11 @@
     font-size:10px; letter-spacing:.5px; text-transform:uppercase; padding:6px 12px;
     cursor:pointer; border-radius:999px; transition:background .15s, color .15s, box-shadow .15s; white-space:nowrap; }
   .view-btn:hover { color:var(--ink); }
-  .view-btn.active { background:var(--panel); color:var(--ink); font-weight:600; box-shadow:0 1px 3px rgba(0,0,0,.1); }
-  /* Watch loses the ★ prefix, so its active state carries the distinction
-     instead — filled with the accent (now the same crimson used everywhere
-     else selection/interaction shows up), where Table/Cards stay neutral. */
-  #btn-watch.active { background:var(--accent); color:var(--accent-ink); }
+  /* All three views read the same way now — filled with the accent, an
+     inset shadow along the top edge so the fill reads as a pressed-in
+     surface rather than a flat sticker, plus a slight outer lift. */
+  .view-btn.active { background:var(--accent); color:var(--accent-ink); font-weight:600;
+    box-shadow:inset 0 1px 3px rgba(0,0,0,.28), 0 1px 2px rgba(0,0,0,.1); }
   /* the column preset (All/Market/Stats) pairs visually with the view switcher
      it governs — smaller and quieter since it's a modifier, not a primary choice */
   #colseg.view-toggle { padding:2px; gap:1px; }
@@ -923,12 +923,14 @@ function TOK(name){ return getComputedStyle(document.documentElement).getPropert
 const MOBILE_Q = window.matchMedia('(max-width: 760px)');
 function reflowChrome(){
   const grp = document.getElementById('arrange-group');
-  const trends = document.getElementById('btn-trends');
   const slot = document.getElementById('fp-mobile-slot');
   const sep = document.getElementById('chip-sep');
   if (!grp || !slot) return;
+  // Trends stays in the main rail at every width now — it's a .rtoggle
+  // like Heat/Night, and the mobile stylesheet already floats all three
+  // (order:2) up next to search/Filters, so there's nothing to relocate.
   if (MOBILE_Q.matches) {
-    if (grp.parentElement !== slot) { slot.appendChild(grp); slot.appendChild(trends); }
+    if (grp.parentElement !== slot) { slot.appendChild(grp); }
     slot.classList.add('on');
     if (sep) sep.style.display = 'none';
   } else {
@@ -937,9 +939,6 @@ function reflowChrome(){
       // separator doubled up and the group out of order
       const sepView = document.getElementById('sep-view');
       sepView.parentElement.insertBefore(grp, sepView);
-      // Trends sits last in the rail (after Night), so it just goes back to
-      // being the final child rather than anchored against a sibling.
-      document.querySelector('.controls').appendChild(trends);
     }
     slot.classList.remove('on');
     if (sep) sep.style.display = '';
