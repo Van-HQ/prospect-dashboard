@@ -27,7 +27,7 @@
     --ink:#1a1815; --ink-mid:#4a443c; --dim:#787064; --faint:#a89f92;
 
     /* ── accent + semantics ── */
-    --accent:#1d5c4f; --accent-soft:rgba(29,92,79,.10); --accent-line:rgba(29,92,79,.30);
+    --accent:#c2622d; --accent-soft:rgba(194,98,45,.10); --accent-line:rgba(194,98,45,.30);
     --accent-ink:#ffffff;
     --good:#1a7a4a; --bad:#b3402f; --gold:#a8760f; --warm:#c2622d; --purple:#6d4bb8; --pink:#b03f6a;
 
@@ -63,7 +63,7 @@
 
     --ink:#f0ebe4; --ink-mid:#c4bcb1; --dim:#9a9086; --faint:#6b6258;
 
-    --accent:#4ec49f; --accent-soft:rgba(78,196,159,.13); --accent-line:rgba(78,196,159,.32);
+    --accent:#e8874a; --accent-soft:rgba(232,135,74,.13); --accent-line:rgba(232,135,74,.32);
     --accent-ink:#08211a;
     --good:#5bc98a; --bad:#e0705d; --gold:#e0a93c; --warm:#e8874a; --purple:#a78bfa; --pink:#e87aa8;
 
@@ -160,9 +160,9 @@
   .view-btn:hover { color:var(--ink); }
   .view-btn.active { background:var(--panel); color:var(--ink); font-weight:600; box-shadow:0 1px 3px rgba(0,0,0,.1); }
   /* Watch loses the ★ prefix, so its active state carries the distinction
-     instead — the existing warm/orange token, not a new color, standing in
-     for "this is your list" the way the star used to. */
-  #btn-watch.active { background:var(--warm); color:var(--accent-ink); }
+     instead — filled with the accent (now the same crimson used everywhere
+     else selection/interaction shows up), where Table/Cards stay neutral. */
+  #btn-watch.active { background:var(--accent); color:var(--accent-ink); }
   /* the column preset (All/Market/Stats) pairs visually with the view switcher
      it governs — smaller and quieter since it's a modifier, not a primary choice */
   #colseg.view-toggle { padding:2px; gap:1px; }
