@@ -787,16 +787,10 @@
   .sc-expand:hover { color:var(--accent); border-color:var(--accent-line); }
 
   .sc-top { display:flex; align-items:center; gap:12px; padding:18px 16px 12px; }
-  /* score ring — an SVG donut, not a flat fill, so 100 reads as a complete
-     ring and 50 as a literal half. Text sits on top as normal HTML rather
-     than SVG <text> so the mono font renders identically to the rest of
-     the card. */
-  .sc-badge { position:relative; flex:none; width:54px; height:54px; }
-  .sc-badge svg { display:block; }
-  .sc-badge-txt { position:absolute; inset:0; display:flex; flex-direction:column;
-    align-items:center; justify-content:center; color:#fff; pointer-events:none; }
-  .sc-badge-txt b { font-size:17px; line-height:1; font-family:var(--font-mono); }
-  .sc-badge-txt span { font-family:var(--font-mono); font-size:6px; letter-spacing:.4px;
+  .sc-badge { flex:none; width:54px; height:54px; border-radius:50%; display:flex;
+    flex-direction:column; align-items:center; justify-content:center; color:#fff; }
+  .sc-badge b { font-size:17px; line-height:1; font-family:var(--font-mono); }
+  .sc-badge span { font-family:var(--font-mono); font-size:6px; letter-spacing:.4px;
     text-transform:uppercase; opacity:.85; margin-top:1px; }
   .sc-id { min-width:0; }
   .sc-name { font-size:16.5px; font-weight:700; letter-spacing:-.2px; }
@@ -825,8 +819,10 @@
 
   .sc-rings { display:flex; justify-content:space-between; gap:4px; }
   .sc-g { display:flex; flex-direction:column; align-items:center; gap:4px; flex:1; }
-  .sc-g .ring { width:34px; height:34px; border-radius:50%; display:flex; align-items:center;
-    justify-content:center; font-family:var(--font-mono); font-weight:700; font-size:11px; color:#fff; }
+  .sc-g .ring { position:relative; width:34px; height:34px; }
+  .sc-g .ring svg { display:block; }
+  .sc-g .ring b { position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    font-family:var(--font-mono); font-weight:700; font-size:10px; }
   .sc-g span { font-family:var(--font-mono); font-size:7px; color:var(--faint); letter-spacing:.3px; }
 
   .sc-mkt { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; }
@@ -845,9 +841,6 @@
   .tier-btn:active .tier-circle { transform:scale(.94); }
   .tier-btn span { font-family:var(--font-mono); font-size:8.5px; letter-spacing:.4px;
     text-transform:uppercase; color:var(--dim); }
-  .sort-hints { display:flex; justify-content:space-between; margin-top:12px; padding:0 4px;
-    font-family:var(--font-mono); font-size:9px; color:var(--faint); }
-
   .sort-done { text-align:center; padding:60px 20px; }
   .sort-done .big { font-size:34px; margin-bottom:12px; }
   .sort-done h3 { font-size:17px; margin-bottom:6px; }
@@ -1906,10 +1899,10 @@ function toggleWatch(p, e) {
    ══════════════════════════════════════════════════════════════════════ */
 const TIERS = [
   { id:'pass',   label:'Pass',   icon:'✕', color:'var(--bad)'   },
-  { id:'watch',  label:'Watch',  icon:'◎', color:'var(--t-hit)' },
+  { id:'watch',  label:'Watch',  icon:'🏪', color:'var(--t-hit)' },
   { id:'rising', label:'Rising', icon:'↗', color:'var(--good)'  },
-  { id:'good',   label:'Good',   icon:'✓', color:'var(--gold)'  },
-  { id:'elite',  label:'Elite',  icon:'★', color:'var(--accent)'},
+  { id:'good',   label:'Value',  icon:'$', color:'var(--gold)'  },
+  { id:'elite',  label:'Elite',  icon:'🔥', color:'var(--accent)'},
 ];
 const TIER_BY_ID = Object.fromEntries(TIERS.map(t => [t.id, t]));
 
@@ -2019,19 +2012,17 @@ function sortExpand() {
   if (idx >= 0) showD(idx);
 }
 
-/* SVG donut — 100 is a complete ring, 50 a literal half, matching the
-   score's own colour thresholds (scoreFill). Text is normal HTML on top,
-   not SVG <text>, so it renders in the same mono font as everything else. */
-function scoreRing(score) {
-  const r = 24, circ = 2 * Math.PI * r;
-  const frac = score == null ? 0 : Math.max(0, Math.min(100, score)) / 100;
-  const fill = scoreFill(score);
-  return `<svg viewBox="0 0 60 60" width="54" height="54">
-    <circle cx="30" cy="30" r="19" fill="${fill}"/>
-    <circle cx="30" cy="30" r="${r}" fill="none" stroke="${TOK('--line')}" stroke-width="5"/>
-    <circle cx="30" cy="30" r="${r}" fill="none" stroke="${fill}" stroke-width="5"
+/* SVG ring outline — 100 is a complete ring, 75 three-quarters filled, etc.
+   Used for the tool-grade circles (HIT/DIS/PWR/SPD/AGE/wRC+); the number
+   sits in the open middle via a plain HTML <b>, not SVG <text>. */
+function gradeRing(pct, color) {
+  const r = 13, circ = 2 * Math.PI * r;
+  const frac = pct == null ? 0 : Math.max(0, Math.min(100, pct)) / 100;
+  return `<svg viewBox="0 0 34 34" width="34" height="34">
+    <circle cx="17" cy="17" r="${r}" fill="none" stroke="${TOK('--line')}" stroke-width="3"/>
+    <circle cx="17" cy="17" r="${r}" fill="none" stroke="${color}" stroke-width="3"
       stroke-linecap="round" stroke-dasharray="${circ.toFixed(2)}"
-      stroke-dashoffset="${(circ * (1 - frac)).toFixed(2)}" transform="rotate(-90 30 30)"/>
+      stroke-dashoffset="${(circ * (1 - frac)).toFixed(2)}" transform="rotate(-90 17 17)"/>
   </svg>`;
 }
 
@@ -2099,14 +2090,13 @@ function renderSort() {
       <div class="deck-stub s1"></div>
       <div class="swipe-card" id="swipe-card">
         <div class="edge-wash" id="edge-wash"></div>
-        <div class="edge-icon left"  id="edge-l">✕</div>
-        <div class="edge-icon right" id="edge-r">◎</div>
+        <div class="edge-icon left"  id="edge-l">${TIER_BY_ID.pass.icon}</div>
+        <div class="edge-icon right" id="edge-r">${TIER_BY_ID.watch.icon}</div>
         <div class="sc-expand" onclick="sortExpand()" title="Full detail view">⤢</div>
 
         <div class="sc-top">
-          <div class="sc-badge">
-            ${scoreRing(p.prospect_score)}
-            <div class="sc-badge-txt"><b>${p.prospect_score ?? '—'}</b><span>Score</span></div>
+          <div class="sc-badge" style="background:${scoreFill(p.prospect_score)}">
+            <b>${p.prospect_score ?? '—'}</b><span>Score</span>
           </div>
           <div class="sc-id">
             <div class="sc-name">${p.name}</div>
@@ -2143,9 +2133,12 @@ function renderSort() {
         <div class="sc-sec">
           <div class="sc-sec-t">Tool Grades</div>
           <div class="sc-rings">
-            ${grades.map(g => `<div class="sc-g">
-              <div class="ring" style="background:${g.c}">${p[g.k] == null ? '—' : Math.round(p[g.k]*100)}</div>
-              <span>${g.l}</span></div>`).join('')}
+            ${grades.map(g => {
+              const val = p[g.k] == null ? null : Math.round(p[g.k]*100);
+              return `<div class="sc-g">
+                <div class="ring">${gradeRing(val, g.c)}<b>${val ?? '—'}</b></div>
+                <span>${g.l}</span></div>`;
+            }).join('')}
           </div>
         </div>
 
@@ -2166,8 +2159,7 @@ function renderSort() {
       ${TIERS.map(t => `<button class="tier-btn" onclick="setTier('${t.id}')" title="${t.label}">
         <div class="tier-circle" style="color:${t.color}">${t.icon}</div><span>${t.label}</span>
       </button>`).join('')}
-    </div>
-    <div class="sort-hints"><span>← swipe · Pass</span><span>Watch · swipe →</span></div>`;
+    </div>`;
 
   bindSwipe();
 }
