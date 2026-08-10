@@ -1897,12 +1897,18 @@ function toggleWatch(p, e) {
    until it exists the cloud calls no-op and localStorage carries the
    feature on its own, so this ships working either way.
    ══════════════════════════════════════════════════════════════════════ */
+/* Monochrome flame outline, sized in em so it scales with whatever
+   font-size context it's dropped into (tier button, table tag, swipe
+   edge) — matches the app's plain-glyph icon language instead of a
+   colored emoji picture. */
+const FLAME_ICON = `<svg viewBox="0 0 24 24" width="1em" height="1em" fill="currentColor" style="vertical-align:-0.14em"><path d="M12.7 1.6c.4 2.9-.6 4.6-2 6.1-1.5 1.6-3.3 3.4-3.3 6.6a4.6 4.6 0 0 0 9.2 0c0-1-.3-1.8-.7-2.5.1 1.2-.5 1.9-.5 1.9.1-1.6-.6-2.5-1.4-3.5-.2 1.1-.8 1.7-.8 1.7-.4-2.6.9-3.9 1.3-5.6.5 1 1.1 1.7 1.9 2.3 1.6 1.2 2.9 2.8 2.9 5.7a6.9 6.9 0 0 1-13.8 0c0-4.3 3.2-6.6 5.2-8.7.8-.9 1.5-2 2-4z"/></svg>`;
+
 const TIERS = [
   { id:'pass',   label:'Pass',   icon:'✕', color:'var(--bad)'   },
-  { id:'watch',  label:'Watch',  icon:'🏪', color:'var(--t-hit)' },
+  { id:'watch',  label:'Watch',  icon:'★', color:'var(--t-hit)' },
   { id:'rising', label:'Rising', icon:'↗', color:'var(--good)'  },
   { id:'good',   label:'Value',  icon:'$', color:'var(--gold)'  },
-  { id:'elite',  label:'Elite',  icon:'🔥', color:'var(--accent)'},
+  { id:'elite',  label:'Elite',  icon:FLAME_ICON, color:'var(--accent)'},
 ];
 const TIER_BY_ID = Object.fromEntries(TIERS.map(t => [t.id, t]));
 
