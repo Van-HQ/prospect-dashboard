@@ -727,6 +727,127 @@
      ══════════════════════════════════════════════════════════════════ */
   .wl-cloud-err { font-family:var(--font-mono); font-size:10px; color:var(--red);
     margin-bottom:12px; line-height:1.5; }
+
+  /* ══ Sort Mode ═══════════════════════════════════════════════════════
+     One prospect at a time: swipe left/right for the obvious calls, tap a
+     tier for everything else. z-index sits below .detail-overlay (200) so
+     tapping ⤢ can stack the real detail card on top and return here.
+     ══════════════════════════════════════════════════════════════════ */
+  .sort-overlay { display:none; position:fixed; inset:0; background:var(--paper);
+    z-index:150; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+  .sort-overlay.open { display:block; }
+  .sort-inner { max-width:420px; margin:0 auto; padding:16px 16px calc(20px + env(safe-area-inset-bottom,0px)); }
+
+  .sort-top { display:flex; align-items:center; gap:11px; margin-bottom:16px; }
+  .sort-x, .sort-undo { width:34px; height:34px; border-radius:50%; background:var(--panel);
+    border:1px solid var(--line); display:flex; align-items:center; justify-content:center;
+    font-size:15px; color:var(--dim); flex:none; cursor:pointer; box-shadow:var(--shadow-sm);
+    transition:color .15s, border-color .15s; }
+  .sort-x:hover, .sort-undo:hover:not(:disabled) { color:var(--ink); border-color:var(--line-strong); }
+  .sort-undo:disabled { opacity:.35; cursor:default; }
+  .sort-prog { flex:1; min-width:0; }
+  .sort-prog-lbl { display:flex; justify-content:space-between; gap:10px; font-family:var(--font-mono);
+    font-size:9.5px; color:var(--faint); letter-spacing:.5px; text-transform:uppercase; margin-bottom:5px;
+    white-space:nowrap; }
+  .sort-prog-lbl b { color:var(--ink-mid); }
+  #sort-scope { overflow:hidden; text-overflow:ellipsis; min-width:0; }
+  #sort-count { flex:none; }
+  .sort-prog-track { height:5px; background:var(--line); border-radius:3px; overflow:hidden; }
+  .sort-prog-fill { height:100%; background:var(--accent); border-radius:3px; transition:width .3s ease; }
+
+  .deck { position:relative; margin:0 auto; }
+  .deck-stub { position:absolute; inset:0; background:var(--panel); border:1px solid var(--line);
+    border-radius:var(--r-xl,20px); pointer-events:none; }
+  .deck-stub.s2 { transform:scale(.94) translateY(14px); opacity:.55; }
+  .deck-stub.s1 { transform:scale(.97) translateY(7px); opacity:.8; }
+
+  .swipe-card { position:relative; z-index:3; background:var(--panel); border:1px solid var(--line);
+    border-radius:20px; box-shadow:var(--shadow-lg); overflow:hidden; touch-action:pan-y;
+    user-select:none; -webkit-user-select:none; cursor:grab; }
+  .swipe-card.dragging { cursor:grabbing; }
+  .swipe-card.settling { transition:transform .28s cubic-bezier(.3,.9,.4,1), opacity .28s ease; }
+
+  .edge-wash { position:absolute; inset:0; z-index:4; pointer-events:none; opacity:0; }
+  .edge-icon { position:absolute; top:50%; transform:translateY(-50%); width:38px; height:38px;
+    border-radius:50%; background:var(--panel); display:flex; align-items:center; justify-content:center;
+    font-size:16px; box-shadow:var(--shadow-md); z-index:5; opacity:0; pointer-events:none; }
+  .edge-icon.left  { left:20px;  color:var(--bad); }
+  .edge-icon.right { right:20px; color:var(--t-hit); }
+  .sc-expand { position:absolute; top:14px; right:14px; z-index:6; width:28px; height:28px;
+    border-radius:50%; border:1px solid var(--line); background:var(--panel); color:var(--dim);
+    display:flex; align-items:center; justify-content:center; font-size:12px; cursor:pointer; }
+  .sc-expand:hover { color:var(--accent); border-color:var(--accent-line); }
+
+  .sc-top { display:flex; align-items:center; gap:12px; padding:18px 16px 12px; }
+  .sc-badge { flex:none; width:52px; height:52px; border-radius:var(--r-md); color:#fff;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  .sc-badge b { font-size:19px; line-height:1; font-family:var(--font-mono); }
+  .sc-badge span { font-family:var(--font-mono); font-size:6.5px; letter-spacing:.4px;
+    text-transform:uppercase; opacity:.85; margin-top:2px; }
+  .sc-id { min-width:0; }
+  .sc-name { font-size:16.5px; font-weight:700; letter-spacing:-.2px; }
+  .sc-meta { font-family:var(--font-mono); font-size:10.5px; color:var(--dim); margin-top:2px; }
+
+  .sc-trend { margin:0 16px; padding:7px 11px; border-radius:var(--r-md);
+    background:var(--accent-soft); border:1px solid var(--accent-line);
+    display:flex; align-items:center; justify-content:space-between; }
+  .sc-trend .move { font-family:var(--font-mono); font-size:12px; font-weight:700; }
+  .sc-trend .move i { font-style:normal; font-size:7px; font-weight:400; color:var(--faint);
+    letter-spacing:.4px; text-transform:uppercase; margin-left:4px; }
+  .sc-trend .rank { font-family:var(--font-mono); font-size:11px; color:var(--ink-mid); }
+  .sc-trend .rank b { color:var(--ink); }
+
+  .sc-sec { padding:10px 16px 0; }
+  .sc-sec-t { font-family:var(--font-mono); font-size:8px; letter-spacing:1.2px; text-transform:uppercase;
+    color:var(--faint); margin-bottom:6px; }
+  .sc-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; }
+  .sc-cell { background:var(--sunk); border-radius:var(--r-sm); padding:7px 3px; text-align:center; }
+  .sc-cell b { display:block; font-family:var(--font-mono); font-size:12.5px; font-weight:700; }
+  .sc-cell span { font-family:var(--font-mono); font-size:7px; color:var(--faint); letter-spacing:.3px; }
+
+  .sc-rings { display:flex; justify-content:space-between; gap:4px; }
+  .sc-g { display:flex; flex-direction:column; align-items:center; gap:4px; flex:1; }
+  .sc-g .ring { width:34px; height:34px; border-radius:50%; display:flex; align-items:center;
+    justify-content:center; font-family:var(--font-mono); font-weight:700; font-size:11px; color:#fff; }
+  .sc-g span { font-family:var(--font-mono); font-size:7px; color:var(--faint); letter-spacing:.3px; }
+
+  .sc-mkt { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; }
+  .sc-mkt .sc-cell b { font-size:11.5px; }
+  .sc-none { font-family:var(--font-mono); font-size:9.5px; color:var(--faint); text-align:center;
+    padding:8px 0 2px; }
+
+  .tier-row { display:flex; justify-content:center; gap:9px; margin-top:20px; }
+  .tier-btn { display:flex; flex-direction:column; align-items:center; gap:6px; background:none;
+    border:none; cursor:pointer; padding:0; flex:1; max-width:64px; }
+  .tier-circle { width:100%; aspect-ratio:1; max-width:50px; border-radius:50%; display:flex;
+    align-items:center; justify-content:center; font-size:18px; background:var(--panel);
+    border:1px solid var(--line); box-shadow:var(--shadow-sm);
+    transition:transform .12s ease, box-shadow .12s ease; }
+  .tier-btn:hover .tier-circle { transform:translateY(-2px); box-shadow:var(--shadow-md); }
+  .tier-btn:active .tier-circle { transform:scale(.94); }
+  .tier-btn span { font-family:var(--font-mono); font-size:8.5px; letter-spacing:.4px;
+    text-transform:uppercase; color:var(--dim); }
+  .sort-hints { display:flex; justify-content:space-between; margin-top:12px; padding:0 4px;
+    font-family:var(--font-mono); font-size:9px; color:var(--faint); }
+
+  .sort-done { text-align:center; padding:60px 20px; }
+  .sort-done .big { font-size:34px; margin-bottom:12px; }
+  .sort-done h3 { font-size:17px; margin-bottom:6px; }
+  .sort-done p { font-family:var(--font-mono); font-size:11px; color:var(--dim); line-height:1.7; }
+  .sort-done button { margin-top:16px; font-family:var(--font-mono); font-size:10px;
+    letter-spacing:1px; text-transform:uppercase; padding:9px 18px; border-radius:var(--r-ctl);
+    border:1px solid var(--line-strong); background:var(--panel); color:var(--ink-mid); cursor:pointer; }
+  .sort-done button:hover { border-color:var(--accent); color:var(--accent); }
+
+  /* the tier a player already holds, shown wherever they appear in the app */
+  .tier-tag { display:inline-flex; align-items:center; justify-content:center; width:16px; height:16px;
+    border-radius:50%; font-size:9px; line-height:1; vertical-align:middle; margin-left:5px; }
+
+  @media (max-width:640px) {
+    .sort-inner { padding:12px 12px calc(16px + env(safe-area-inset-bottom,0px)); }
+    .tier-circle { max-width:54px; font-size:19px; }
+    .tier-row { gap:7px; }
+  }
 </style>
 </head>
 <body>
@@ -741,6 +862,7 @@
     <div class="search-ac" id="search-ac"></div>
   </div>
   <button class="fp-btn" id="fp-btn" onclick="toggleFilters()" title="Filters"><span class="fp-i">▤</span><span class="fp-badge" id="fp-badge" style="display:none">0</span></button>
+  <button class="fp-btn" id="sort-btn" onclick="openSort()" title="Sort Mode — tier players one at a time"><span class="fp-i">⧉</span></button>
   <div class="toolbar-sep"></div>
   <span id="arrange-group" class="ctl-group">
   <span class="sort-label">↕</span>
@@ -923,6 +1045,23 @@
     <button id="dstar" onclick="toggleWatch(RAW[currentIdx],event)" title="Watchlist (W)">★</button>
     <button id="dhistory" onclick="toggleHistory()" title="Stat History (S)">≋</button>
     <div id="dc"></div>
+  </div>
+</div>
+
+<div class="sort-overlay" id="sov">
+  <div class="sort-inner">
+    <div class="sort-top">
+      <div class="sort-x" onclick="closeSort()" title="Close (Esc)">✕</div>
+      <div class="sort-prog">
+        <div class="sort-prog-lbl">
+          <span id="sort-scope">Sorting</span>
+          <span id="sort-count"></span>
+        </div>
+        <div class="sort-prog-track"><div class="sort-prog-fill" id="sort-fill"></div></div>
+      </div>
+      <button class="sort-undo" id="sort-undo" onclick="undoSort()" title="Undo (Z)" disabled>↺</button>
+    </div>
+    <div id="sort-body"></div>
   </div>
 </div>
 
@@ -1150,7 +1289,7 @@ function marketRow(p, gi, idx, starOn) {
   return `<tr onclick="showD(${idx})">
     <td class="star-td st st1"><button class="star-btn ${starOn?'on':inWatch(p)?'on':''}" onclick="toggleWatch(RAW[${idx}],event)">★</button></td>
     <td class="st st2" style="color:var(--text-dim)">${gi}</td>
-    <td class="pname st st3">${p.name}</td>
+    <td class="pname st st3">${p.name}${tierTag(p)}</td>
     <td><span class="tbadge">${p.team}</span></td>
     <td>${p.age}</td>
     <td style="color:var(--text-dim)">${p.pos||'—'}</td>
@@ -1189,7 +1328,7 @@ function statsRow(p, gi, idx, starOn) {
   return `<tr onclick="showD(${idx})">
     <td class="star-td st st1"><button class="star-btn ${starOn?'on':inWatch(p)?'on':''}" onclick="toggleWatch(RAW[${idx}],event)">★</button></td>
     <td class="st st2" style="color:var(--text-dim)">${gi}</td>
-    <td class="pname st st3">${p.name}</td>
+    <td class="pname st st3">${p.name}${tierTag(p)}</td>
     <td><span class="tbadge">${p.team}</span></td>
     <td>${p.age}</td>
     <td class="${cls}" style="font-weight:600">${p.prospect_score??'—'}</td>
@@ -1733,6 +1872,318 @@ function toggleWatch(p, e) {
   // sync detail-panel star if open
   const ds = document.getElementById('dstar');
   if (ds.style.display !== 'none') { ds.className = inWatch(p) ? 'on' : ''; ds.textContent = inWatch(p) ? '★' : '☆'; }
+}
+
+/* ══ Sort Mode ═════════════════════════════════════════════════════════
+   Work the roster one player at a time and assign a personal tier. This is
+   deliberately a separate layer from prospect_score — it's your read, not
+   the spreadsheet's, so nothing here feeds back into the pipeline.
+
+   Storage mirrors the watchlist exactly: localStorage for instant load,
+   plus the same Supabase table under a different row id. That row has to
+   be created once by hand (anon can update but not insert, by design) —
+   until it exists the cloud calls no-op and localStorage carries the
+   feature on its own, so this ships working either way.
+   ══════════════════════════════════════════════════════════════════════ */
+const TIERS = [
+  { id:'pass',   label:'Pass',   icon:'✕', color:'var(--bad)'   },
+  { id:'watch',  label:'Watch',  icon:'◎', color:'var(--t-hit)' },
+  { id:'rising', label:'Rising', icon:'↗', color:'var(--good)'  },
+  { id:'good',   label:'Good',   icon:'✓', color:'var(--gold)'  },
+  { id:'elite',  label:'Elite',  icon:'★', color:'var(--accent)'},
+];
+const TIER_BY_ID = Object.fromEntries(TIERS.map(t => [t.id, t]));
+
+const TIER_ROW_ID   = 'tiers';
+const TIER_ENDPOINT = `${SUPABASE_URL}/rest/v1/${SYNC_TABLE}?id=eq.${TIER_ROW_ID}`;
+
+let tierMap    = JSON.parse(localStorage.getItem('tiers') || '{}');
+let tierSynced = parseInt(localStorage.getItem('tiers_synced_at') || '0', 10);
+let sortQueue  = [];
+let sortPos    = 0;
+let sortUndo   = [];
+
+function saveTiersLocal() { localStorage.setItem('tiers', JSON.stringify(tierMap)); }
+function tierOf(p) { return tierMap[pkey(p)] || null; }
+/* the tier badge shown next to a name anywhere in the app */
+function tierTag(p) {
+  const t = TIER_BY_ID[tierOf(p)];
+  return t ? `<span class="tier-tag" style="color:${t.color}" title="${t.label}">${t.icon}</span>` : '';
+}
+
+async function syncTiersPull(isStartup) {
+  if (!SYNC_ENABLED) return;
+  try {
+    const res = await fetch(TIER_ENDPOINT + '&select=items,updated_at', { headers: SYNC_HEADERS });
+    if (!res.ok) throw new Error(res.status);
+    const rows = await res.json();
+    // row absent (not created yet) -> nothing to adopt, local stays authoritative
+    if (!rows.length) return;
+    const remote   = rows[0] || {};
+    const remoteTs = Number(remote.updated_at) || 0;
+    if (remoteTs > tierSynced && remote.items && typeof remote.items === 'object') {
+      tierMap    = remote.items;
+      tierSynced = remoteTs;
+      saveTiersLocal();
+      localStorage.setItem('tiers_synced_at', String(tierSynced));
+      if (!isStartup) renderAll();
+    }
+  } catch (e) { /* offline or row missing — localStorage carries it */ }
+}
+
+let tierPushTimer = null;
+function syncTiersPush() {
+  if (!SYNC_ENABLED) return;
+  clearTimeout(tierPushTimer);
+  // debounced so a burst of quick tier taps sends one write, not one each
+  tierPushTimer = setTimeout(async () => {
+    const ts = Date.now();
+    try {
+      const res = await fetch(TIER_ENDPOINT, {
+        method: 'PATCH',
+        headers: { ...SYNC_HEADERS, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+        body: JSON.stringify({ items: tierMap, updated_at: ts }),
+      });
+      if (!res.ok) throw new Error(res.status);
+      tierSynced = ts;
+      localStorage.setItem('tiers_synced_at', String(ts));
+    } catch (e) { /* stays local; next successful push reconciles */ }
+  }, 600);
+}
+
+/* Queue = everyone not yet tiered, in the order they're currently sorted, so
+   whatever sort/filter you had set carries in. Resuming needs no stored
+   cursor — an untiered player simply stays in the queue. */
+function buildSortQueue() {
+  sortQueue = filtered.filter(p => !tierOf(p));
+  sortPos = 0;
+}
+
+function openSort() {
+  buildSortQueue();
+  sortUndo = [];
+  document.getElementById('sov').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  renderSort();
+}
+function closeSort() {
+  document.getElementById('sov').classList.remove('open');
+  document.body.style.overflow = '';
+  renderAll();
+}
+
+function setTier(tierId) {
+  const p = sortQueue[sortPos];
+  if (!p) return;
+  sortUndo.push({ key: pkey(p), prev: tierMap[pkey(p)] ?? null, pos: sortPos });
+  tierMap[pkey(p)] = tierId;
+  saveTiersLocal();
+  syncTiersPush();
+  sortPos++;
+  renderSort();
+}
+
+function undoSort() {
+  const last = sortUndo.pop();
+  if (!last) return;
+  if (last.prev === null) delete tierMap[last.key]; else tierMap[last.key] = last.prev;
+  saveTiersLocal();
+  syncTiersPush();
+  sortPos = last.pos;
+  renderSort();
+}
+
+function sortExpand() {
+  const p = sortQueue[sortPos];
+  if (!p) return;
+  const idx = RAW.indexOf(p);
+  if (idx >= 0) showD(idx);
+}
+
+function renderSort() {
+  const body  = document.getElementById('sort-body');
+  const total = sortQueue.length;
+  const doneN = Math.min(sortPos, total);
+  document.getElementById('sort-count').innerHTML = total ? `<b>${doneN}</b> / ${total}` : '';
+  document.getElementById('sort-fill').style.width = total ? (doneN / total * 100) + '%' : '0%';
+  document.getElementById('sort-undo').disabled = !sortUndo.length;
+  // kept short — this sits on one line next to the counter, and the phone
+  // has nowhere near the width for a sentence
+  const tiered = Object.keys(tierMap).length;
+  document.getElementById('sort-scope').innerHTML =
+    tiered ? `<b>${tiered}</b> tiered` : 'Untiered';
+
+  const p = sortQueue[sortPos];
+  if (!p) {
+    body.innerHTML = `<div class="sort-done">
+      <div class="big">✦</div>
+      <h3>${total ? 'Queue complete' : 'Nothing left to sort'}</h3>
+      <p>${total ? `You tiered ${doneN} player${doneN===1?'':'s'} in this pass.` :
+        'Every player in the current view already has a tier.<br>Change the filters to bring more in.'}</p>
+      <button onclick="closeSort()">Back to dashboard</button>
+    </div>`;
+    return;
+  }
+
+  const num  = (v, d=3) => v == null ? '—' : Number(v).toFixed(d).replace(/^0\./, '.');
+  const pct  = v => v == null ? '—' : Number(v).toFixed(1) + '%';
+  const dol  = v => v == null ? '—' : '$' + Number(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const cell = (val, lbl, color) => `<div class="sc-cell"><b${color?` style="color:${color}"`:''}>${val}</b><span>${lbl}</span></div>`;
+
+  const grades = [
+    {k:'hit',   l:'HIT',  c:'var(--t-hit)'}, {k:'dis',   l:'DIS',  c:'var(--t-dis)'},
+    {k:'pwr',   l:'PWR',  c:'var(--t-pwr)'}, {k:'spd',   l:'SPD',  c:'var(--t-spd)'},
+    {k:'age_r', l:'AGE',  c:'var(--t-age)'}, {k:'wrc_r', l:'WRC+', c:'var(--t-wrc)'},
+  ];
+  const d = p.prospect_score_d;
+  const moveColor = d == null ? 'var(--dim)' : d > 0 ? 'var(--good)' : d < 0 ? 'var(--bad)' : 'var(--dim)';
+  const moveTxt   = d == null ? 'No prior month' : `${d > 0 ? '↗ +' : d < 0 ? '↘ ' : '→ '}${d.toFixed(1)}`;
+  const hasPrice  = p.price_raw != null || p.price_psa9 != null || p.price_psa10 != null;
+
+  body.innerHTML = `
+    <div class="deck">
+      <div class="deck-stub s2"></div>
+      <div class="deck-stub s1"></div>
+      <div class="swipe-card" id="swipe-card">
+        <div class="edge-wash" id="edge-wash"></div>
+        <div class="edge-icon left"  id="edge-l">✕</div>
+        <div class="edge-icon right" id="edge-r">◎</div>
+        <div class="sc-expand" onclick="sortExpand()" title="Full detail view">⤢</div>
+
+        <div class="sc-top">
+          <div class="sc-badge" style="background:${scoreFill(p.prospect_score)}">
+            <b>${p.prospect_score ?? '—'}</b><span>Score</span>
+          </div>
+          <div class="sc-id">
+            <div class="sc-name">${p.name}</div>
+            <div class="sc-meta">${p.team} · ${p.level} · Age ${p.age}${p.pos ? ' · ' + p.pos : ''}</div>
+          </div>
+        </div>
+
+        <div class="sc-trend">
+          <span class="move" style="color:${moveColor}">${moveTxt}<i>this month</i></span>
+          <span class="rank">Rank <b>${p.rank != null ? '#' + p.rank : 'N/Q'}</b></span>
+        </div>
+
+        <div class="sc-sec">
+          <div class="sc-sec-t">Slash Line</div>
+          <div class="sc-grid">
+            ${cell(num(p.avg), 'AVG')}${cell(num(p.obp), 'OBP')}${cell(num(p.slg), 'SLG')}${cell(num(p.ops), 'OPS')}
+          </div>
+        </div>
+
+        <div class="sc-sec">
+          <div class="sc-sec-t">Production</div>
+          <div class="sc-grid">
+            ${cell(p.ab ?? '—', 'AB')}${cell(p.wrc ?? '—', 'wRC+')}${cell(pct(p.bb), 'BB%')}${cell(pct(p.k), 'K%')}
+          </div>
+        </div>
+
+        <div class="sc-sec">
+          <div class="sc-sec-t">Batted Ball</div>
+          <div class="sc-grid">
+            ${cell(pct(p.swstr), 'SwStr%')}${cell(pct(p.ld), 'LD%')}${cell(pct(p.hrfb), 'HR/FB')}${cell(p.gbfb == null ? '—' : Number(p.gbfb).toFixed(2), 'GB/FB')}
+          </div>
+        </div>
+
+        <div class="sc-sec">
+          <div class="sc-sec-t">Tool Grades</div>
+          <div class="sc-rings">
+            ${grades.map(g => `<div class="sc-g">
+              <div class="ring" style="background:${g.c}">${p[g.k] == null ? '—' : Math.round(p[g.k]*100)}</div>
+              <span>${g.l}</span></div>`).join('')}
+          </div>
+        </div>
+
+        <div class="sc-sec" style="padding-bottom:16px">
+          <div class="sc-sec-t">Market Value</div>
+          ${hasPrice ? `<div class="sc-mkt">
+            ${cell(dol(p.price_raw), 'RAW')}
+            ${cell(p._val == null ? '—' : p._val.toFixed(2), 'VALUE', p._val != null ? valColor(p._val) : null)}
+            ${cell(dol(p.price_psa9), 'PSA 9', 'var(--gold)')}
+            ${cell(dol(p.price_psa10), 'PSA 10', 'var(--accent)')}
+          </div>` : `<div class="sc-none">No market data for this player</div>`}
+        </div>
+      </div>
+    </div>
+
+    <div class="tier-row">
+      ${TIERS.map(t => `<button class="tier-btn" onclick="setTier('${t.id}')" title="${t.label}">
+        <div class="tier-circle" style="color:${t.color}">${t.icon}</div><span>${t.label}</span>
+      </button>`).join('')}
+    </div>
+    <div class="sort-hints"><span>← swipe · Pass</span><span>Watch · swipe →</span></div>`;
+
+  bindSwipe();
+}
+
+/* Colour of the score badge, matching the thresholds the rest of the app uses */
+function scoreFill(s) {
+  if (s == null) return 'var(--dim)';
+  return s >= 90 ? 'var(--t-hit)' : s >= 70 ? 'var(--good)'
+       : s >= 55 ? 'var(--gold)'  : s >= 40 ? 'var(--warm)' : 'var(--bad)';
+}
+
+/* Pointer events so one code path covers mouse and touch. touch-action:pan-y
+   on the card lets a vertical drag still scroll the overlay. */
+function bindSwipe() {
+  const card = document.getElementById('swipe-card');
+  if (!card) return;
+  const wash = document.getElementById('edge-wash');
+  const eL = document.getElementById('edge-l'), eR = document.getElementById('edge-r');
+  const THRESHOLD = 90;
+  let x0 = 0, y0 = 0, dx = 0, active = false, decided = false;
+
+  const paint = () => {
+    const rot = dx / 22;
+    card.style.transform = `translateX(${dx}px) rotate(${rot}deg)`;
+    const t = Math.min(Math.abs(dx) / THRESHOLD, 1);
+    wash.style.opacity = t;
+    wash.style.background = dx < 0
+      ? 'linear-gradient(to right, rgba(179,64,47,.20), transparent 45%)'
+      : 'linear-gradient(to left, rgba(37,99,168,.20), transparent 45%)';
+    eL.style.opacity = dx < 0 ? t : 0;
+    eR.style.opacity = dx > 0 ? t : 0;
+  };
+  const reset = () => {
+    card.classList.add('settling');
+    card.style.transform = '';
+    wash.style.opacity = 0; eL.style.opacity = 0; eR.style.opacity = 0;
+    setTimeout(() => card.classList.remove('settling'), 300);
+  };
+
+  card.addEventListener('pointerdown', e => {
+    if (e.target.closest('.sc-expand')) return;
+    active = true; decided = false;
+    x0 = e.clientX; y0 = e.clientY; dx = 0;
+    card.classList.add('dragging');
+  });
+  card.addEventListener('pointermove', e => {
+    if (!active) return;
+    const mx = e.clientX - x0, my = e.clientY - y0;
+    // let a clearly-vertical drag scroll the page instead of swiping
+    if (!decided) {
+      if (Math.abs(my) > 12 && Math.abs(my) > Math.abs(mx)) { active = false; card.classList.remove('dragging'); return; }
+      if (Math.abs(mx) > 8) { decided = true; card.setPointerCapture(e.pointerId); }
+      else return;
+    }
+    dx = mx; paint();
+  });
+  const finish = () => {
+    if (!active) return;
+    active = false;
+    card.classList.remove('dragging');
+    if (Math.abs(dx) >= THRESHOLD) {
+      const tier = dx < 0 ? 'pass' : 'watch';
+      card.classList.add('settling');
+      card.style.transform = `translateX(${dx < 0 ? -600 : 600}px) rotate(${dx/12}deg)`;
+      card.style.opacity = '0';
+      setTimeout(() => setTier(tier), 180);
+    } else { reset(); }
+    dx = 0;
+  };
+  card.addEventListener('pointerup', finish);
+  card.addEventListener('pointercancel', finish);
 }
 
 function sc(p) {
@@ -2286,7 +2737,7 @@ function renderTable() {
     return `<tr onclick="showD(${idx})">
       <td class="star-td st st1"><button class="star-btn ${inWatch(p)?'on':''}" onclick="toggleWatch(RAW[${idx}],event)">★</button></td>
       <td class="st st2" style="color:var(--text-dim)">${gi}</td>
-      <td class="pname st st3">${p.name}</td>
+      <td class="pname st st3">${p.name}${tierTag(p)}</td>
       <td><span class="tbadge">${p.team}</span></td>
       <td><span class="lvl ${lc(p.level)}">${lvlShort(p.level)}</span></td>
       <td>${p.age}</td>
@@ -2426,7 +2877,7 @@ function renderWatch() {
     return `<tr onclick="showD(${idx})">
       <td class="star-td st st1"><button class="star-btn on" onclick="toggleWatch(RAW[${idx}],event)">★</button></td>
       <td class="st st2" style="color:var(--text-dim)">${gi}</td>
-      <td class="pname st st3">${p.name}</td>
+      <td class="pname st st3">${p.name}${tierTag(p)}</td>
       <td><span class="tbadge">${p.team}</span></td>
       <td><span class="lvl ${lc(p.level)}">${lvlShort(p.level)}</span></td>
       <td>${p.age}</td>
@@ -2795,6 +3246,20 @@ clearBtn.addEventListener('click', () => {
 });
 
 document.addEventListener('keydown', e => {
+  // Sort Mode — checked before the detail panel so Esc closes whichever is on
+  // top: if the detail card was opened from Sort Mode it's above, and closing
+  // it should return here rather than dismissing both at once.
+  if (document.getElementById('sov').classList.contains('open')
+      && !document.getElementById('dov').classList.contains('open')) {
+    if (e.key === 'Escape') { e.preventDefault(); closeSort(); }
+    if (e.key === 'z' || e.key === 'Z') { e.preventDefault(); undoSort(); }
+    if (e.key === 'ArrowLeft')  { e.preventDefault(); setTier('pass'); }
+    if (e.key === 'ArrowRight') { e.preventDefault(); setTier('watch'); }
+    // 1-5 map to the tier row left to right
+    const n = parseInt(e.key, 10);
+    if (n >= 1 && n <= TIERS.length) { e.preventDefault(); setTier(TIERS[n-1].id); }
+    return;
+  }
   // Detail panel arrow navigation
   if (document.getElementById('dov').classList.contains('open')) {
     if (e.key === 'ArrowLeft')  { e.preventDefault(); navD(-1); }
@@ -2861,6 +3326,7 @@ async function init() {
   buildHeatAnchors(RAW);
   buildMultis(RAW);
   await syncWatchlistPull(true);
+  await syncTiersPull(true);
   applyTheme();
   reflowChrome();
   filtered = [...RAW];
