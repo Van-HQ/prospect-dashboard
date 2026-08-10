@@ -733,12 +733,20 @@
      tier for everything else. z-index sits below .detail-overlay (200) so
      tapping ⤢ can stack the real detail card on top and return here.
      ══════════════════════════════════════════════════════════════════ */
+  /* Three fixed regions, not one scrolling column — the tier row needs to
+     stay reachable (and visible) without hunting for it below a tall card,
+     so only the middle region scrolls. */
   .sort-overlay { display:none; position:fixed; inset:0; background:var(--paper);
-    z-index:150; overflow-y:auto; -webkit-overflow-scrolling:touch; }
-  .sort-overlay.open { display:block; }
-  .sort-inner { max-width:420px; margin:0 auto; padding:16px 16px calc(20px + env(safe-area-inset-bottom,0px)); }
+    z-index:150; flex-direction:column; }
+  .sort-overlay.open { display:flex; }
+  .sort-inner { max-width:420px; margin:0 auto; padding:0 16px; }
 
-  .sort-top { display:flex; align-items:center; gap:11px; margin-bottom:16px; }
+  .sort-top { flex:none; padding-top:16px; padding-bottom:12px; }
+  .sort-top-row { display:flex; align-items:center; gap:11px; }
+  .sort-scroll { flex:1; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+  .sort-scroll .sort-inner { padding-bottom:16px; }
+  .sort-bottom { flex:none; padding-top:12px; padding-bottom:calc(14px + env(safe-area-inset-bottom,0px));
+    background:var(--paper); border-top:1px solid var(--line); }
   .sort-x, .sort-undo { width:34px; height:34px; border-radius:50%; background:var(--panel);
     border:1px solid var(--line); display:flex; align-items:center; justify-content:center;
     font-size:15px; color:var(--dim); flex:none; cursor:pointer; box-shadow:var(--shadow-sm);
@@ -779,11 +787,17 @@
   .sc-expand:hover { color:var(--accent); border-color:var(--accent-line); }
 
   .sc-top { display:flex; align-items:center; gap:12px; padding:18px 16px 12px; }
-  .sc-badge { flex:none; width:52px; height:52px; border-radius:var(--r-md); color:#fff;
-    display:flex; flex-direction:column; align-items:center; justify-content:center; }
-  .sc-badge b { font-size:19px; line-height:1; font-family:var(--font-mono); }
-  .sc-badge span { font-family:var(--font-mono); font-size:6.5px; letter-spacing:.4px;
-    text-transform:uppercase; opacity:.85; margin-top:2px; }
+  /* score ring — an SVG donut, not a flat fill, so 100 reads as a complete
+     ring and 50 as a literal half. Text sits on top as normal HTML rather
+     than SVG <text> so the mono font renders identically to the rest of
+     the card. */
+  .sc-badge { position:relative; flex:none; width:54px; height:54px; }
+  .sc-badge svg { display:block; }
+  .sc-badge-txt { position:absolute; inset:0; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; color:#fff; pointer-events:none; }
+  .sc-badge-txt b { font-size:17px; line-height:1; font-family:var(--font-mono); }
+  .sc-badge-txt span { font-family:var(--font-mono); font-size:6px; letter-spacing:.4px;
+    text-transform:uppercase; opacity:.85; margin-top:1px; }
   .sc-id { min-width:0; }
   .sc-name { font-size:16.5px; font-weight:700; letter-spacing:-.2px; }
   .sc-meta { font-family:var(--font-mono); font-size:10.5px; color:var(--dim); margin-top:2px; }
@@ -791,9 +805,13 @@
   .sc-trend { margin:0 16px; padding:7px 11px; border-radius:var(--r-md);
     background:var(--accent-soft); border:1px solid var(--accent-line);
     display:flex; align-items:center; justify-content:space-between; }
-  .sc-trend .move { font-family:var(--font-mono); font-size:12px; font-weight:700; }
-  .sc-trend .move i { font-style:normal; font-size:7px; font-weight:400; color:var(--faint);
-    letter-spacing:.4px; text-transform:uppercase; margin-left:4px; }
+  /* label leads, number follows — "Score Δ  +3.4" reads as what the number
+     means before the number itself, rather than a bare figure you have to
+     guess at. */
+  .sc-trend .move { display:flex; align-items:baseline; gap:6px; }
+  .sc-trend .move i { font-style:normal; font-family:var(--font-mono); font-size:7.5px; font-weight:600;
+    color:var(--faint); letter-spacing:.4px; text-transform:uppercase; }
+  .sc-trend .move b { font-family:var(--font-mono); font-size:12px; font-weight:700; }
   .sc-trend .rank { font-family:var(--font-mono); font-size:11px; color:var(--ink-mid); }
   .sc-trend .rank b { color:var(--ink); }
 
@@ -844,7 +862,7 @@
     border-radius:50%; font-size:9px; line-height:1; vertical-align:middle; margin-left:5px; }
 
   @media (max-width:640px) {
-    .sort-inner { padding:12px 12px calc(16px + env(safe-area-inset-bottom,0px)); }
+    .sort-inner { padding-left:12px; padding-right:12px; }
     .tier-circle { max-width:54px; font-size:19px; }
     .tier-row { gap:7px; }
   }
@@ -1049,8 +1067,8 @@
 </div>
 
 <div class="sort-overlay" id="sov">
-  <div class="sort-inner">
-    <div class="sort-top">
+  <div class="sort-top">
+    <div class="sort-inner sort-top-row">
       <div class="sort-x" onclick="closeSort()" title="Close (Esc)">✕</div>
       <div class="sort-prog">
         <div class="sort-prog-lbl">
@@ -1061,8 +1079,9 @@
       </div>
       <button class="sort-undo" id="sort-undo" onclick="undoSort()" title="Undo (Z)" disabled>↺</button>
     </div>
-    <div id="sort-body"></div>
   </div>
+  <div class="sort-scroll"><div class="sort-inner" id="sort-deck"></div></div>
+  <div class="sort-bottom"><div class="sort-inner" id="sort-actions"></div></div>
 </div>
 
 <script>
@@ -2000,8 +2019,42 @@ function sortExpand() {
   if (idx >= 0) showD(idx);
 }
 
+/* SVG donut — 100 is a complete ring, 50 a literal half, matching the
+   score's own colour thresholds (scoreFill). Text is normal HTML on top,
+   not SVG <text>, so it renders in the same mono font as everything else. */
+function scoreRing(score) {
+  const r = 24, circ = 2 * Math.PI * r;
+  const frac = score == null ? 0 : Math.max(0, Math.min(100, score)) / 100;
+  const fill = scoreFill(score);
+  return `<svg viewBox="0 0 60 60" width="54" height="54">
+    <circle cx="30" cy="30" r="19" fill="${fill}"/>
+    <circle cx="30" cy="30" r="${r}" fill="none" stroke="${TOK('--line')}" stroke-width="5"/>
+    <circle cx="30" cy="30" r="${r}" fill="none" stroke="${fill}" stroke-width="5"
+      stroke-linecap="round" stroke-dasharray="${circ.toFixed(2)}"
+      stroke-dashoffset="${(circ * (1 - frac)).toFixed(2)}" transform="rotate(-90 30 30)"/>
+  </svg>`;
+}
+
+/* Same percentile-within-level heat used everywhere else in the app
+   (heatPct/heatFill/heatInk, built once from RAW) — a card stat gets the
+   identical color a table cell for the same stat would get. Falls back to
+   a plain cell for anything HEAT is off, has no anchors yet, or isn't a
+   heat-tracked stat at all (AB, GB/FB aren't in HEAT_STATS). */
+function scCell(p, key, val, lbl, fallbackColor) {
+  if (HEAT && key && HEAT_STATS.includes(key)) {
+    const t = heatPct(p, key);
+    if (t != null) {
+      const ink = heatInk(t);
+      return `<div class="sc-cell" style="background:${heatFill(t)}">
+        <b style="color:${ink}">${val}</b><span style="color:${ink};opacity:.75">${lbl}</span></div>`;
+    }
+  }
+  return `<div class="sc-cell"><b${fallbackColor?` style="color:${fallbackColor}"`:''}>${val}</b><span>${lbl}</span></div>`;
+}
+
 function renderSort() {
-  const body  = document.getElementById('sort-body');
+  const deck  = document.getElementById('sort-deck');
+  const acts  = document.getElementById('sort-actions');
   const total = sortQueue.length;
   const doneN = Math.min(sortPos, total);
   document.getElementById('sort-count').innerHTML = total ? `<b>${doneN}</b> / ${total}` : '';
@@ -2015,20 +2068,20 @@ function renderSort() {
 
   const p = sortQueue[sortPos];
   if (!p) {
-    body.innerHTML = `<div class="sort-done">
+    deck.innerHTML = `<div class="sort-done">
       <div class="big">✦</div>
       <h3>${total ? 'Queue complete' : 'Nothing left to sort'}</h3>
       <p>${total ? `You tiered ${doneN} player${doneN===1?'':'s'} in this pass.` :
         'Every player in the current view already has a tier.<br>Change the filters to bring more in.'}</p>
       <button onclick="closeSort()">Back to dashboard</button>
     </div>`;
+    acts.innerHTML = '';
     return;
   }
 
   const num  = (v, d=3) => v == null ? '—' : Number(v).toFixed(d).replace(/^0\./, '.');
   const pct  = v => v == null ? '—' : Number(v).toFixed(1) + '%';
   const dol  = v => v == null ? '—' : '$' + Number(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
-  const cell = (val, lbl, color) => `<div class="sc-cell"><b${color?` style="color:${color}"`:''}>${val}</b><span>${lbl}</span></div>`;
 
   const grades = [
     {k:'hit',   l:'HIT',  c:'var(--t-hit)'}, {k:'dis',   l:'DIS',  c:'var(--t-dis)'},
@@ -2037,10 +2090,10 @@ function renderSort() {
   ];
   const d = p.prospect_score_d;
   const moveColor = d == null ? 'var(--dim)' : d > 0 ? 'var(--good)' : d < 0 ? 'var(--bad)' : 'var(--dim)';
-  const moveTxt   = d == null ? 'No prior month' : `${d > 0 ? '↗ +' : d < 0 ? '↘ ' : '→ '}${d.toFixed(1)}`;
+  const moveTxt   = d == null ? '—' : `${d > 0 ? '↗ +' : d < 0 ? '↘ ' : '→ '}${d.toFixed(1)}`;
   const hasPrice  = p.price_raw != null || p.price_psa9 != null || p.price_psa10 != null;
 
-  body.innerHTML = `
+  deck.innerHTML = `
     <div class="deck">
       <div class="deck-stub s2"></div>
       <div class="deck-stub s1"></div>
@@ -2051,8 +2104,9 @@ function renderSort() {
         <div class="sc-expand" onclick="sortExpand()" title="Full detail view">⤢</div>
 
         <div class="sc-top">
-          <div class="sc-badge" style="background:${scoreFill(p.prospect_score)}">
-            <b>${p.prospect_score ?? '—'}</b><span>Score</span>
+          <div class="sc-badge">
+            ${scoreRing(p.prospect_score)}
+            <div class="sc-badge-txt"><b>${p.prospect_score ?? '—'}</b><span>Score</span></div>
           </div>
           <div class="sc-id">
             <div class="sc-name">${p.name}</div>
@@ -2061,28 +2115,28 @@ function renderSort() {
         </div>
 
         <div class="sc-trend">
-          <span class="move" style="color:${moveColor}">${moveTxt}<i>this month</i></span>
+          <span class="move"><i>Score Δ, this month</i><b style="color:${moveColor}">${moveTxt}</b></span>
           <span class="rank">Rank <b>${p.rank != null ? '#' + p.rank : 'N/Q'}</b></span>
         </div>
 
         <div class="sc-sec">
           <div class="sc-sec-t">Slash Line</div>
           <div class="sc-grid">
-            ${cell(num(p.avg), 'AVG')}${cell(num(p.obp), 'OBP')}${cell(num(p.slg), 'SLG')}${cell(num(p.ops), 'OPS')}
+            ${scCell(p,'avg',num(p.avg),'AVG')}${scCell(p,'obp',num(p.obp),'OBP')}${scCell(p,'slg',num(p.slg),'SLG')}${scCell(p,'ops',num(p.ops),'OPS')}
           </div>
         </div>
 
         <div class="sc-sec">
           <div class="sc-sec-t">Production</div>
           <div class="sc-grid">
-            ${cell(p.ab ?? '—', 'AB')}${cell(p.wrc ?? '—', 'wRC+')}${cell(pct(p.bb), 'BB%')}${cell(pct(p.k), 'K%')}
+            ${scCell(p,null,p.ab ?? '—','AB')}${scCell(p,'wrc',p.wrc ?? '—','wRC+')}${scCell(p,'bb',pct(p.bb),'BB%')}${scCell(p,'k',pct(p.k),'K%')}
           </div>
         </div>
 
         <div class="sc-sec">
           <div class="sc-sec-t">Batted Ball</div>
           <div class="sc-grid">
-            ${cell(pct(p.swstr), 'SwStr%')}${cell(pct(p.ld), 'LD%')}${cell(pct(p.hrfb), 'HR/FB')}${cell(p.gbfb == null ? '—' : Number(p.gbfb).toFixed(2), 'GB/FB')}
+            ${scCell(p,'swstr',pct(p.swstr),'SwStr%')}${scCell(p,'ld',pct(p.ld),'LD%')}${scCell(p,'hrfb',pct(p.hrfb),'HR/FB')}${scCell(p,'gbfb',p.gbfb == null ? '—' : Number(p.gbfb).toFixed(2),'GB/FB')}
           </div>
         </div>
 
@@ -2098,15 +2152,16 @@ function renderSort() {
         <div class="sc-sec" style="padding-bottom:16px">
           <div class="sc-sec-t">Market Value</div>
           ${hasPrice ? `<div class="sc-mkt">
-            ${cell(dol(p.price_raw), 'RAW')}
-            ${cell(p._val == null ? '—' : p._val.toFixed(2), 'VALUE', p._val != null ? valColor(p._val) : null)}
-            ${cell(dol(p.price_psa9), 'PSA 9', 'var(--gold)')}
-            ${cell(dol(p.price_psa10), 'PSA 10', 'var(--accent)')}
+            ${scCell(p,null,dol(p.price_raw),'RAW')}
+            ${scCell(p,null,p._val == null ? '—' : p._val.toFixed(2),'VALUE', p._val != null ? valColor(p._val) : null)}
+            ${scCell(p,null,dol(p.price_psa9),'PSA 9','var(--gold)')}
+            ${scCell(p,null,dol(p.price_psa10),'PSA 10','var(--accent)')}
           </div>` : `<div class="sc-none">No market data for this player</div>`}
         </div>
       </div>
-    </div>
+    </div>`;
 
+  acts.innerHTML = `
     <div class="tier-row">
       ${TIERS.map(t => `<button class="tier-btn" onclick="setTier('${t.id}')" title="${t.label}">
         <div class="tier-circle" style="color:${t.color}">${t.icon}</div><span>${t.label}</span>
