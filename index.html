@@ -100,9 +100,19 @@
   .rail-wrap { position:sticky; top:0; z-index:100; background:var(--bg);
     padding:10px 20px 0; }
   .controls {
-    max-width:1640px; margin:0 auto; background:var(--panel); border:1px solid var(--line);
+    margin:0 auto; background:var(--panel); border:1px solid var(--line);
     border-radius:999px; box-shadow:var(--shadow-sm);
     padding:6px 10px 6px 6px; display:flex; flex-wrap:wrap; gap:5px; align-items:center;
+  }
+  /* Desktop only: shrink-wrap to content instead of stretching to fill the
+     window — on a wide monitor a full-width bar leaves a big empty gap
+     inside the pill; sized to its own content, there's no gap to leave.
+     Mobile keeps the full-width card look (set below), which is the
+     expected shape for a phone toolbar. */
+  @media (min-width:761px) {
+    /* left-aligned, not centered — matches the table/cards content below it,
+       which starts at the page's left padding rather than the middle */
+    .controls { width:fit-content; max-width:100%; margin:0; }
   }
   .rail-mark { flex:none; width:32px; height:32px; border-radius:50%; background:var(--accent);
     color:var(--accent-ink); display:flex; align-items:center; justify-content:center;
@@ -198,16 +208,12 @@
   .rtoggle.on .rt-track { background:var(--accent-soft); border-color:var(--accent-line); }
   .rtoggle.on .rt-knob { left:14px; background:var(--accent); border-color:var(--accent); color:var(--accent-ink); }
   .rt-lbl { font-family:var(--font-mono); font-size:8px; letter-spacing:.5px; text-transform:uppercase; color:var(--faint); }
-  /* Heat/Trends/Night + More pin to the right edge of the rail instead of
-     packing left and leaving dead space before them — the rail fills
-     whatever width the window gives it, this just uses that width. */
-  #btn-heat { margin-left:auto; }
 
   /* ══ Quick filters — underline tag rail ═════════════════════════════ */
   /* left-aligned with the rail-mark above it, not just centered independently —
      .controls is 1180px with a 1px border + 6px padding before its first child,
      so 7px here lands the first chip directly under the mark's left edge. */
-  .tags-row { max-width:1640px; margin:0 auto; padding:10px 7px 0; }
+  .tags-row { padding:10px 7px 0; }
   .quickchips { display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
   .chip {
     font-family:var(--font-mono); font-size:11px; color:var(--dim); cursor:pointer;
@@ -219,6 +225,9 @@
   .saved-chip { color:var(--gold) !important; display:inline-flex; align-items:center; }
   .chip-del { font-size:13px; margin-left:7px; opacity:.45; vertical-align:middle; transition:opacity .15s; }
   .chip-del:hover { opacity:1; }
+  .chip-tier-sep { display:inline-block; width:1px; height:12px; background:var(--line); margin:0 3px; vertical-align:middle; }
+  .tier-chip { display:inline-flex; align-items:center; gap:4px; }
+  .tier-chip svg { display:block; }
   .sv-add { border-bottom-style:dashed; color:var(--faint); }
   .sv-input { background:var(--panel); border:1px solid var(--accent); color:var(--ink);
     font-family:var(--font-mono); font-size:11px; padding:5px 10px; border-radius:var(--r-sm);
@@ -606,7 +615,6 @@
        stray row. */
     .search-wrap { flex:1 1 50px; max-width:none; min-width:0; }
     .rtoggle { order:2; padding:2px; }
-    #btn-heat { margin-left:0; }
     .rt-lbl { display:none; }
     /* More sits right after Heat/Trends/Night — same order, and it's after
        them in the HTML now that desktop wants it rightmost too, so source
@@ -1393,6 +1401,7 @@ let sortF = 'rank', sortD = -1;
 let activeProfile = null; // 'power' | 'contact' | 'prodigy' | 'surging' | null
 let activeFallers = false;
 let activeValue = false;
+let activeTier = null; // TIERS id ('pass'|'watch'|'rising'|'good'|'elite') | null
 let savedViews = JSON.parse(localStorage.getItem('dash_saved_views') || '[]');
 let savingView = false;
 let activeColView = 'all'; // 'all' | 'market' | 'stats'
@@ -2858,7 +2867,7 @@ function syncChipToPanel(profile) {
 }
 
 function getCurrentFilterState() {
-  const state = { sortF, sortD, activeProfile, activeFallers, activeValue,
+  const state = { sortF, sortD, activeProfile, activeFallers, activeValue, activeTier,
                   search: document.getElementById('search').value };
   FILTER_IDS.forEach(id => { state[id] = document.getElementById(id).value; });
   return state;
@@ -2891,6 +2900,7 @@ function loadView(idx) {
   activeProfile = state.activeProfile || null;
   activeFallers = !!state.activeFallers;
   activeValue   = !!state.activeValue;
+  activeTier    = state.activeTier || null;
   document.getElementById('sb').value = sortF;
   if (!activeValue) computeValueScores(RAW);
   openFilterPanel();
@@ -2918,7 +2928,7 @@ function updateFilterBadge() {
 function resetFilters() {
   FILTER_IDS.forEach(id => document.getElementById(id).value = '');
   msSyncAll();
-  activeProfile = null; activeFallers = false; activeValue = false;
+  activeProfile = null; activeFallers = false; activeValue = false; activeTier = null;
   sortF = 'rank'; sortD = -1;
   document.getElementById('sb').value = 'rank';
   computeValueScores(RAW);
@@ -3184,6 +3194,9 @@ function applyF() {
       (p.ab                ?? 0)    >= 50
     );
   }
+  if (activeTier) {
+    filtered = filtered.filter(p => tierOf(p) === activeTier);
+  }
   sortData();
   page = 1;
   updateSummary();
@@ -3265,6 +3278,10 @@ function quickFilter(type) {
   }
   document.getElementById('sb').value = sortF;
 }
+function quickTier(id) {
+  activeTier = activeTier === id ? null : id;
+  applyF();
+}
 
 function updateSummary() {
   // ── Quick filter chips → tag rail ─────────────────────────────────────────
@@ -3288,10 +3305,17 @@ function updateSummary() {
     { l:'Market', v:'market' },
     { l:'Stats',  v:'stats' },
   ];
+  // Sort Mode tiers, reusing the same id/label/color/icon as the tier row —
+  // a chip per tier so the table/cards/watch views can be filtered down to
+  // just what you've already tiered, not only the score-based profiles above.
+  const tierChips = TIERS.map(t => `<button class="chip tier-chip${activeTier===t.id?' on':''}"
+    style="${activeTier===t.id?`color:${t.color};border-bottom-color:${t.color}`:''}"
+    onclick="quickTier('${t.id}')" title="${t.label} tier">${t.icon} ${t.label}</button>`).join('');
   // quick filters live in the working strip; columns become a segmented
   // control so they read as one choice rather than three loose chips
   document.getElementById('quickchips').innerHTML =
     chips.map(c=>`<button class="chip${c.on?' on':''}" onclick="quickFilter('${c.type}')">${c.l}</button>`).join('')
+    + `<span class="chip-tier-sep"></span>` + tierChips
     + savedChips + saveControl;
   document.getElementById('colseg').innerHTML =
     colViews.map(v=>`<button class="seg-btn${activeColView===v.v?' active':''}" onclick="setColView('${v.v}')">${v.l}</button>`).join('');
