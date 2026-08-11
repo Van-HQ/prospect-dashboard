@@ -110,9 +110,7 @@
      Mobile keeps the full-width card look (set below), which is the
      expected shape for a phone toolbar. */
   @media (min-width:761px) {
-    /* left-aligned, not centered — matches the table/cards content below it,
-       which starts at the page's left padding rather than the middle */
-    .controls { width:fit-content; max-width:100%; margin:0; }
+    .controls { width:fit-content; max-width:100%; margin:0 auto; }
   }
   .rail-mark { flex:none; width:32px; height:32px; border-radius:50%; background:var(--accent);
     color:var(--accent-ink); display:flex; align-items:center; justify-content:center;
@@ -173,10 +171,6 @@
   .seg-btn:hover { color:var(--ink); }
   .seg-btn.active { background:var(--accent); color:var(--accent-ink); font-weight:600;
     box-shadow:inset 0 1px 3px rgba(0,0,0,.28), 0 1px 2px rgba(0,0,0,.1); }
-  /* the column preset pairs visually with the view switcher it governs —
-     smaller and quieter since it's a modifier, not a primary choice */
-  #colseg.seg { padding:2px; gap:1px; }
-  #colseg .seg-btn { font-size:9px; padding:5px 9px; }
 
   /* ── "More" overflow menu — Sort Mode, Analytics, anything future that
      doesn't need a permanent slot in the rail ── */
@@ -946,8 +940,11 @@
     color:var(--dim); letter-spacing:.3px; }
   .an-lg-dot { width:7px; height:7px; border-radius:50%; flex:none; }
   .an-lg-sw { width:12px; height:2px; flex:none; }
-  .an-out-lbl { font-family:var(--font-mono); font-size:10px; color:var(--ink-mid); margin-bottom:4px; }
+  .an-out-lbl { font-family:var(--font-mono); font-size:10px; color:var(--ink-mid); margin-bottom:4px;
+    border-radius:var(--r-sm); padding:2px 4px; margin-left:-4px; transition:background .12s; }
   .an-out-lbl b { color:var(--ink); }
+  .an-out-lbl:hover { background:var(--sunk); }
+  .an-lg-item[onclick]:hover { color:var(--ink); }
   .an-callout { stroke:var(--line-strong); stroke-width:1; }
   .an-trend { stroke:var(--ink-mid); stroke-width:1.3; stroke-dasharray:3 3; }
 
@@ -957,7 +954,9 @@
   .an-kpi-l { font-family:var(--font-mono); font-size:8.5px; color:var(--faint); letter-spacing:.5px;
     text-transform:uppercase; margin-top:2px; }
 
-  .an-pipe-row { display:grid; grid-template-columns:64px 1fr 46px; align-items:center; gap:10px; margin-bottom:9px; }
+  .an-pipe-row { display:grid; grid-template-columns:64px 1fr 46px; align-items:center; gap:10px; margin-bottom:9px;
+    border-radius:var(--r-sm); padding:2px 6px; margin-left:-6px; margin-right:-6px; transition:background .12s; }
+  .an-pipe-row:hover { background:var(--sunk); }
   .an-pipe-lbl { font-family:var(--font-mono); font-size:10px; color:var(--ink-mid); }
   .an-pipe-track { height:20px; border-radius:4px; overflow:hidden; display:flex; background:var(--sunk2); }
   .an-pipe-seg { height:100%; }
@@ -967,20 +966,26 @@
   .an-mv-col-t { font-family:var(--font-mono); font-size:9.5px; letter-spacing:.8px; text-transform:uppercase;
     display:flex; align-items:center; gap:6px; margin-bottom:8px; }
   .an-mv-row { display:grid; grid-template-columns:1fr auto; align-items:center; gap:10px;
-    padding:8px 0; border-bottom:1px solid var(--line-soft); cursor:default; }
+    padding:8px 6px; margin:0 -6px; border-bottom:1px solid var(--line-soft); border-radius:var(--r-sm);
+    transition:background .12s; }
   .an-mv-row:last-child { border-bottom:none; }
+  .an-mv-row:hover { background:var(--sunk); }
   .an-mv-name { font-size:12px; font-weight:600; }
   .an-mv-meta { font-family:var(--font-mono); font-size:9px; color:var(--dim); margin-top:1px; }
   .an-mv-delta { font-family:var(--font-mono); font-size:11.5px; font-weight:700; text-align:right; }
 
-  .an-td-row { display:grid; grid-template-columns:96px 1fr 60px; align-items:center; gap:10px; padding:6px 0; }
+  .an-td-row { display:grid; grid-template-columns:96px 1fr 60px; align-items:center; gap:10px; padding:6px 6px;
+    margin:0 -6px; border-radius:var(--r-sm); transition:background .12s; }
+  .an-td-row:hover { background:var(--sunk); }
   .an-td-name { font-size:11.5px; font-weight:600; }
   .an-td-dots { display:flex; align-items:center; gap:2.5px; flex-wrap:wrap; }
   .an-td-dot { width:6px; height:6px; border-radius:50%; flex:none; }
   .an-td-count { font-family:var(--font-mono); font-size:10px; color:var(--dim); text-align:right; }
   .an-td-count b { color:var(--accent); }
 
-  .an-pos-row { display:grid; grid-template-columns:38px 1fr 30px; align-items:center; gap:10px; margin-bottom:8px; }
+  .an-pos-row { display:grid; grid-template-columns:38px 1fr 30px; align-items:center; gap:10px; margin-bottom:8px;
+    border-radius:var(--r-sm); padding:2px 6px; margin-left:-6px; margin-right:-6px; transition:background .12s; }
+  .an-pos-row:hover { background:var(--sunk); }
   .an-pos-lbl { font-family:var(--font-mono); font-size:10px; color:var(--ink-mid); font-weight:600; }
   .an-pos-track { height:16px; border-radius:3px; overflow:hidden; display:flex; background:var(--sunk2); }
   .an-pos-seg { height:100%; }
@@ -988,7 +993,8 @@
 
   .an-mm-list { display:flex; flex-direction:column; gap:8px; }
   .an-mm-row { display:grid; grid-template-columns:1fr auto auto; align-items:center; gap:14px;
-    padding:10px 12px; background:var(--sunk); border-radius:var(--r-md); }
+    padding:10px 12px; background:var(--sunk); border-radius:var(--r-md); transition:background .12s; }
+  .an-mm-row:hover { background:var(--sunk2); }
   .an-mm-name { font-weight:600; font-size:12.5px; color:var(--ink); }
   .an-mm-meta { font-family:var(--font-mono); font-size:9.5px; color:var(--dim); margin-top:1px; }
   .an-mm-price { font-family:var(--font-mono); font-size:11.5px; color:var(--ink-mid); text-align:right; white-space:nowrap; }
@@ -2444,6 +2450,29 @@ function setAnTab(id) {
 }
 
 function anData() { return filtered.filter(p => p.prospect_score != null); }
+
+/* Interaction helpers — every chart/list below is clickable. A player
+   (dot, row) opens the real detail card stacked on top, same pattern as
+   Sort Mode's expand button. A chart segment (level/team/position row,
+   score bucket) applies the matching filter and drops you into the
+   filtered table/cards/watch view instead of just describing it. */
+function anOpenPlayer(p) {
+  const idx = RAW.indexOf(p);
+  if (idx >= 0) showD(idx);
+}
+function anFilterTo(fieldId, value) {
+  document.getElementById(fieldId).value = value;
+  if (MS_IDS.includes(fieldId)) msSyncAll();
+  updateFilterBadge();
+  applyF();
+  closeAnalytics();
+}
+function anFilterScoreMin(min) {
+  document.getElementById('ff-score').value = min;
+  updateFilterBadge();
+  applyF();
+  closeAnalytics();
+}
 function anLevelColor(l) {
   const c = lc(l || '');
   return c==='lAAA' ? 'var(--gold)' : c==='lAA' ? 'var(--t-hit)' : c==='lAp' ? 'var(--good)'
@@ -2495,7 +2524,7 @@ function renderAnalytics() {
 }
 
 function anMoversList(p) {
-  return `<div class="an-mv-row">
+  return `<div class="an-mv-row" onclick="anOpenPlayer(RAW[${RAW.indexOf(p)}])" style="cursor:pointer">
     <div><div class="an-mv-name">${p.name}</div><div class="an-mv-meta">${p.team||'—'} · ${lvlShort(p.level||'—')} · score ${p.prospect_score}</div></div>
     <div class="an-mv-delta" style="color:${p.prospect_score_d>0?'var(--good)':'var(--bad)'}">${p.prospect_score_d>0?'+':''}${p.prospect_score_d.toFixed(1)}</div>
   </div>`;
@@ -2512,7 +2541,8 @@ function renderAnOverview(d, body) {
   const barsW = 400, barsH = 140, bw = barsW/10 - 4;
   const bars = buckets.map((n,i) => {
     const h = Math.round(n/maxB*barsH), x = i*(barsW/10) + 2, y = barsH - h;
-    return `<rect x="${x}" y="${y}" width="${bw}" height="${h}" fill="${anBracket(i*10+5).c}" rx="2"/>`;
+    return `<rect x="${x}" y="${y}" width="${bw}" height="${Math.max(h,2)}" fill="${anBracket(i*10+5).c}" rx="2"
+      style="cursor:pointer" onclick="anFilterScoreMin(${i*10})"><title>Score ${i*10}+ (${n} players) — click to filter</title></rect>`;
   }).join('');
 
   const withDelta = d.filter(p => p.prospect_score_d != null && p.prospect_score_d !== 0);
@@ -2564,12 +2594,17 @@ function renderAnScatter(d, body) {
   const under = [...resid].sort((a,b)=>a.r-b.r).slice(0,3);
   const outSet = new Set([...over,...under].map(o=>o.p));
 
-  const dots = pts.filter(p=>!outSet.has(p)).map(p =>
-    `<circle cx="${x(p.age).toFixed(1)}" cy="${y(p.prospect_score).toFixed(1)}" r="2.6" fill="${anLevelColor(p.level)}" opacity=".55"/>`).join('');
-  const outDots = [...over.map(o=>({...o,c:'var(--good)'})), ...under.map(o=>({...o,c:'var(--bad)'}))].map(o =>
-    `<circle cx="${x(o.p.age).toFixed(1)}" cy="${y(o.p.prospect_score).toFixed(1)}" r="4.6" fill="${o.c}" stroke="var(--panel)" stroke-width="1.3"/>`).join('');
+  const anDot = (p, cx, cy, r, fill, opacity) => `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${r}" fill="${fill}"
+    ${opacity?`opacity="${opacity}"`:''} stroke="var(--panel)" stroke-width="1.3" style="cursor:pointer"
+    onclick="anOpenPlayer(RAW[${RAW.indexOf(p)}])"><title>${p.name} — ${p.team||'—'}, age ${p.age}, score ${p.prospect_score}</title></circle>`;
 
-  const outRows = (arr,color) => arr.map(o => `<div class="an-out-lbl"><span style="color:${color}">●</span> <b>${o.p.name}</b> — ${o.r>0?'+':''}${o.r.toFixed(1)} vs. age trend</div>`).join('');
+  const dots = pts.filter(p=>!outSet.has(p)).map(p =>
+    anDot(p, x(p.age), y(p.prospect_score), 2.6, anLevelColor(p.level), .55)).join('');
+  const outDots = [...over.map(o=>({...o,c:'var(--good)'})), ...under.map(o=>({...o,c:'var(--bad)'}))].map(o =>
+    anDot(o.p, x(o.p.age), y(o.p.prospect_score), 4.6, o.c)).join('');
+
+  const outRows = (arr,color) => arr.map(o => `<div class="an-out-lbl" style="cursor:pointer" onclick="anOpenPlayer(RAW[${RAW.indexOf(o.p)}])">
+    <span style="color:${color}">●</span> <b>${o.p.name}</b> — ${o.r>0?'+':''}${o.r.toFixed(1)} vs. age trend</div>`).join('');
 
   body.innerHTML = `
     <div class="an-card">
@@ -2625,13 +2660,14 @@ function renderAnLevels(d, body) {
       const pct = rows_.filter(p=>p.prospect_score>=b.lo && p.prospect_score<b.hi).length/n*100;
       return pct>0 ? `<div class="an-pipe-seg" style="width:${pct}%; background:${b.c}"></div>` : '';
     }).join('');
-    return `<div class="an-pipe-row"><div class="an-pipe-lbl">${l}</div>
+    return `<div class="an-pipe-row" style="cursor:pointer" onclick="anFilterTo('fl','${l}')" title="Filter to ${l}">
+      <div class="an-pipe-lbl">${l}</div>
       <div class="an-pipe-track" style="width:${widthPct}%">${segs}</div>
       <div class="an-pipe-n">${n}</div></div>`;
   }).join('');
   body.innerHTML = `
     <div class="an-card">
-      <div class="an-card-head"><div><div class="an-card-t">Level Pipeline</div><div class="an-card-sub">count by level, split by score band</div></div><div class="an-card-stat"><b>${d.length}</b> total</div></div>
+      <div class="an-card-head"><div><div class="an-card-t">Level Pipeline</div><div class="an-card-sub">count by level, split by score band — click a row to filter</div></div><div class="an-card-stat"><b>${d.length}</b> total</div></div>
       ${rows}${anBracketLegend()}
     </div>`;
 }
@@ -2648,13 +2684,14 @@ function renderAnTeams(d, body) {
     const rows_ = groups[t];
     const dots = rows_.map(p => `<span class="an-td-dot" style="background:${anBracket(p.prospect_score).c}"></span>`).join('');
     const top = rows_.filter(p=>p.prospect_score>=90).length;
-    return `<div class="an-td-row"><div class="an-td-name">${t}</div>
+    return `<div class="an-td-row" style="cursor:pointer" onclick="anFilterTo('ft','${t}')" title="Filter to ${t}">
+      <div class="an-td-name">${t}</div>
       <div class="an-td-dots">${dots}</div>
       <div class="an-td-count">90+ <b>${top}</b></div></div>`;
   }).join('');
   body.innerHTML = `
     <div class="an-card">
-      <div class="an-card-head"><div><div class="an-card-t">Team Depth Chart</div><div class="an-card-sub">one dot per prospect, by score band</div></div><div class="an-card-stat">sorted by <b>90+</b> count</div></div>
+      <div class="an-card-head"><div><div class="an-card-t">Team Depth Chart</div><div class="an-card-sub">one dot per prospect, by score band — click a row to filter</div></div><div class="an-card-stat">sorted by <b>90+</b> count</div></div>
       ${rows}${anBracketLegend()}
     </div>`;
 }
@@ -2675,12 +2712,13 @@ function renderAnPositions(d, body) {
       const pct = rows_.filter(p=>p.prospect_score>=b.lo && p.prospect_score<b.hi).length/n*100;
       return pct>0 ? `<div class="an-pos-seg" style="width:${pct}%; background:${b.c}"></div>` : '';
     }).join('');
-    return `<div class="an-pos-row"><div class="an-pos-lbl">${pos}</div>
+    return `<div class="an-pos-row" style="cursor:pointer" onclick="anFilterTo('fpos','${pos}')" title="Filter to ${pos}">
+      <div class="an-pos-lbl">${pos}</div>
       <div class="an-pos-track">${segs}</div><div class="an-pos-n">${n}</div></div>`;
   }).join('');
   body.innerHTML = `
     <div class="an-card">
-      <div class="an-card-head"><div><div class="an-card-t">Position Scarcity</div><div class="an-card-sub">score-band counts by position</div></div><div class="an-card-stat">sorted by <b>90+</b> count</div></div>
+      <div class="an-card-head"><div><div class="an-card-t">Position Scarcity</div><div class="an-card-sub">score-band counts by position — click a row to filter</div></div><div class="an-card-stat">sorted by <b>90+</b> count</div></div>
       ${rows}${anBracketLegend()}
     </div>`;
 }
@@ -2725,7 +2763,8 @@ function renderAnRadar(d, body) {
         ${axLabels}
       </svg>
       <div class="an-legend" style="justify-content:center">
-        <div class="an-lg-item"><span class="an-lg-sw" style="background:var(--accent)"></span>Top decile (${p90cut.toFixed(0)}+)</div>
+        <div class="an-lg-item" style="cursor:pointer" onclick="anFilterScoreMin(${Math.floor(p90cut)})" title="Filter to score ${p90cut.toFixed(0)}+">
+          <span class="an-lg-sw" style="background:var(--accent)"></span>Top decile (${p90cut.toFixed(0)}+)</div>
         ${rest.length?`<div class="an-lg-item"><span class="an-lg-sw" style="background:var(--gold)"></span>Everyone else</div>`:''}
       </div>
     </div>`;
@@ -2747,11 +2786,15 @@ function renderAnPrice(d, body) {
   const x = s => padL + (s-minS)/((maxS-minS)||1)*(W-padL-padR);
   const yLog = pr => (H-padB) - (Math.log(pr+1)/Math.log(maxP+1))*(H-padB-padT);
 
+  const anPriceDot = (p, cx, cy, r, fill, opacity) => `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${r}" fill="${fill}"
+    ${opacity?`opacity="${opacity}"`:''} stroke="var(--panel)" stroke-width="1.3" style="cursor:pointer"
+    onclick="anOpenPlayer(RAW[${RAW.indexOf(p)}])"><title>${p.name} — score ${p.prospect_score}, raw $${p.price_raw.toFixed(2)}</title></circle>`;
+
   const outSet = new Set([...over,...under].map(o=>o.p));
   const dots = priced.filter(p=>!outSet.has(p)).map(p =>
-    `<circle cx="${x(p.prospect_score).toFixed(1)}" cy="${yLog(p.price_raw).toFixed(1)}" r="2.6" fill="var(--dim)" opacity=".5"/>`).join('');
+    anPriceDot(p, x(p.prospect_score), yLog(p.price_raw), 2.6, 'var(--dim)', .5)).join('');
   const outDots = [...over.map(o=>({...o,c:'var(--bad)'})), ...under.map(o=>({...o,c:'var(--good)'}))].map(o =>
-    `<circle cx="${x(o.p.prospect_score).toFixed(1)}" cy="${yLog(o.p.price_raw).toFixed(1)}" r="4.6" fill="${o.c}" stroke="var(--panel)" stroke-width="1.3"/>`).join('');
+    anPriceDot(o.p, x(o.p.prospect_score), yLog(o.p.price_raw), 4.6, o.c)).join('');
 
   const trendPts = [];
   const stepN = 20;
@@ -2762,7 +2805,7 @@ function renderAnPrice(d, body) {
 
   const mmList = (arr,label,color,tag) => !arr.length ? '' : `
     <div class="an-mm-sub-head">${label}</div>
-    <div class="an-mm-list">${arr.map(o => `<div class="an-mm-row">
+    <div class="an-mm-list">${arr.map(o => `<div class="an-mm-row" style="cursor:pointer" onclick="anOpenPlayer(RAW[${RAW.indexOf(o.p)}])">
       <div><div class="an-mm-name">${o.p.name}</div><div class="an-mm-meta">${o.p.team||'—'} · ${lvlShort(o.p.level||'—')} · score ${o.p.prospect_score}</div></div>
       <div class="an-mm-price">raw <b>$${o.p.price_raw.toFixed(2)}</b></div>
       <div class="an-mm-gap" style="color:${color}">${tag}</div>
