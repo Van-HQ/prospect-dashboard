@@ -196,10 +196,14 @@
      each carrying its own glyph (◍ heat, ◐ night, ↗ trends) in the knob. */
   .rtoggle { display:flex; flex-direction:column; align-items:center; gap:2px; background:none;
     border:none; cursor:pointer; padding:2px 4px; flex:none; }
-  .rt-track { width:30px; height:17px; border-radius:99px; background:var(--sunk);
+  /* off-state track/knob use --sunk2 and --faint rather than --sunk and
+     --line-strong — those sat too close to --panel in Night theme, so an
+     off toggle nearly vanished next to an on one instead of reading as
+     "same control, different state". */
+  .rt-track { width:30px; height:17px; border-radius:99px; background:var(--sunk2);
     border:1px solid var(--line-strong); position:relative; transition:background .15s, border-color .15s; }
   .rt-knob { position:absolute; top:1px; left:1px; width:13px; height:13px; border-radius:50%;
-    background:var(--panel); border:1px solid var(--line-strong); transition:left .15s;
+    background:var(--panel); border:1px solid var(--faint); transition:left .15s;
     display:flex; align-items:center; justify-content:center; font-size:8px; line-height:1; color:var(--dim); }
   .rtoggle.on .rt-track { background:var(--accent-soft); border-color:var(--accent-line); }
   .rtoggle.on .rt-knob { left:14px; background:var(--accent); border-color:var(--accent); color:var(--accent-ink); }
@@ -606,10 +610,16 @@
     .search-wrap { flex:1 1 50px; max-width:none; min-width:0; }
     .rtoggle { order:2; padding:2px; }
     .rt-lbl { display:none; }
-    /* the view pill comes after Heat/Trends/Night in flex order, not before —
-       otherwise it eats the width the three toggles need to stay together on
-       row one, and they split awkwardly across two rows instead. */
-    .ss { order:3; }
+    /* the view pill and column preset come after Heat/Trends/Night in flex
+       order, not before — otherwise they eat the width the three toggles
+       need to stay together on row one, and everything splits awkwardly.
+       They pair up on row two instead of one sitting alone: same order, so
+       source order (Table pill, then All/Market/Stats) keeps them side by
+       side, each taking half the row and a shade shorter than row one's
+       44px controls since neither is a primary tap target. */
+    .ss { order:3; flex:1 1 0; }
+    .ss-btn { height:36px; justify-content:center; }
+    #colseg .ss-btn { height:36px; }
     /* More lives after Heat/Trends/Night in the HTML now (desktop wants it
        rightmost), but on mobile it stays put next to Filters — order pulls
        it back before the toggles regardless of source position. */
@@ -1046,8 +1056,8 @@
       <option value="age">Age</option>
     </optgroup>
   </select>
-  <span class="ss" id="colseg"></span>
   </span>
+  <span class="ss" id="colseg"></span>
   <div class="toolbar-sep" id="sep-view"></div>
   <div class="ss" id="view-ss">
     <button type="button" class="ss-btn" onclick="ssToggle('view-ss',event)"><span id="view-ss-lbl">Table</span><span class="ss-car">▾</span></button>
