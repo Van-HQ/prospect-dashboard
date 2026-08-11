@@ -174,9 +174,6 @@
     color:var(--ink-mid); cursor:pointer; white-space:nowrap; }
   .ss-opt:hover { background:var(--sunk); }
   .ss-opt.sel { color:var(--accent); font-weight:600; }
-  /* the column preset (All/Market/Stats) pairs visually with the view switcher
-     it governs — smaller and quieter since it's a modifier, not a primary choice */
-  #colseg .ss-btn { font-size:9.5px; padding:0 10px; height:calc(var(--h-ctl) - 6px); }
 
   /* ── "More" overflow menu — Sort Mode, Analytics, anything future that
      doesn't need a permanent slot in the rail ── */
@@ -208,6 +205,10 @@
   .rtoggle.on .rt-track { background:var(--accent-soft); border-color:var(--accent-line); }
   .rtoggle.on .rt-knob { left:14px; background:var(--accent); border-color:var(--accent); color:var(--accent-ink); }
   .rt-lbl { font-family:var(--font-mono); font-size:8px; letter-spacing:.5px; text-transform:uppercase; color:var(--faint); }
+  /* Heat/Trends/Night + More pin to the right edge of the rail instead of
+     packing left and leaving dead space before them — the rail fills
+     whatever width the window gives it, this just uses that width. */
+  #btn-heat { margin-left:auto; }
 
   /* ══ Quick filters — underline tag rail ═════════════════════════════ */
   /* left-aligned with the rail-mark above it, not just centered independently —
@@ -240,6 +241,10 @@
   .toolbar-label { font-family:var(--font-mono); font-size:9px; color:var(--faint);
     letter-spacing:1.2px; text-transform:uppercase; min-width:46px; flex-shrink:0; }
   .toolbar-sep { width:1px; height:16px; background:var(--line); margin:0 3px; flex-shrink:0; }
+  /* purely a DOM anchor reflowChrome uses to reinsert the sort/column group
+     in the right spot — Table and All now sit right next to each other with
+     nothing between them, so this shouldn't render as a divider. */
+  #sep-view { display:none; }
 
   /* ══ Filter panel ════════════════════════════════════════════════════ */
   .filter-panel { background:var(--sunk); border-bottom:1px solid var(--line); padding:16px 20px 14px; display:none; }
@@ -609,6 +614,7 @@
        stray row. */
     .search-wrap { flex:1 1 50px; max-width:none; min-width:0; }
     .rtoggle { order:2; padding:2px; }
+    #btn-heat { margin-left:0; }
     .rt-lbl { display:none; }
     /* the view pill and column preset come after Heat/Trends/Night in flex
        order, not before — otherwise they eat the width the three toggles
@@ -619,7 +625,6 @@
        44px controls since neither is a primary tap target. */
     .ss { order:3; flex:1 1 0; }
     .ss-btn { height:36px; justify-content:center; }
-    #colseg .ss-btn { height:36px; }
     /* More lives after Heat/Trends/Night in the HTML now (desktop wants it
        rightmost), but on mobile it stays put next to Filters — order pulls
        it back before the toggles regardless of source position. */
