@@ -610,6 +610,10 @@
        otherwise it eats the width the three toggles need to stay together on
        row one, and they split awkwardly across two rows instead. */
     .ss { order:3; }
+    /* More lives after Heat/Trends/Night in the HTML now (desktop wants it
+       rightmost), but on mobile it stays put next to Filters — order pulls
+       it back before the toggles regardless of source position. */
+    .more-wrap { order:1; }
 
     /* quick filters as one swipeable strip below the rail, never wrapped */
     /* mobile .controls padding is 5px + 1px border = 6px to its first child */
@@ -1001,19 +1005,6 @@
     <div class="search-ac" id="search-ac"></div>
   </div>
   <button class="fp-btn" id="fp-btn" onclick="toggleFilters()" title="Filters"><span class="fp-i">▤</span><span class="fp-badge" id="fp-badge" style="display:none">0</span></button>
-  <div class="more-wrap" id="more-wrap">
-    <button class="fp-btn" onclick="moreToggle(event)" title="More"><span class="fp-i">⋯</span></button>
-    <div class="more-pop">
-      <div class="more-item" onclick="moreCloseAll();openSort();">
-        <div class="more-ico">⧉</div>
-        <div><div class="more-t">Sort Mode</div><div class="more-d">Swipe or tier players one at a time</div></div>
-      </div>
-      <div class="more-item" onclick="moreCloseAll();openAnalytics();">
-        <div class="more-ico">◎</div>
-        <div><div class="more-t">Analytics</div><div class="more-d">Distributions, outliers, tier vs. price</div></div>
-      </div>
-    </div>
-  </div>
   <div class="toolbar-sep"></div>
   <span id="arrange-group" class="ctl-group">
   <span class="sort-label">↕</span>
@@ -1076,6 +1067,19 @@
   <button class="rtoggle" id="btn-theme" onclick="toggleTheme()" title="Switch between Daylight and Night">
     <span class="rt-track"><span class="rt-knob">◐</span></span><span class="rt-lbl">Night</span>
   </button>
+  <div class="more-wrap" id="more-wrap">
+    <button class="fp-btn" onclick="moreToggle(event)" title="More"><span class="fp-i">⋯</span></button>
+    <div class="more-pop">
+      <div class="more-item" onclick="moreCloseAll();openSort();">
+        <div class="more-ico">⧉</div>
+        <div><div class="more-t">Sort Mode</div><div class="more-d">Swipe or tier players one at a time</div></div>
+      </div>
+      <div class="more-item" onclick="moreCloseAll();openAnalytics();">
+        <div class="more-ico">◎</div>
+        <div><div class="more-t">Analytics</div><div class="more-d">Distributions, outliers, tier vs. price</div></div>
+      </div>
+    </div>
+  </div>
 </div>
 <div class="tags-row"><span class="quickchips" id="quickchips"></span></div>
 </div>
