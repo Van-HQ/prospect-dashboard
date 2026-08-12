@@ -949,6 +949,15 @@
   .an-trend { stroke:var(--ink-mid); stroke-width:1.3; stroke-dasharray:3 3; }
 
   /* ── drill-down filter bar ── */
+  /* ── hover tooltip ── */
+  #an-tip { position:fixed; z-index:300; display:none; pointer-events:none;
+    background:var(--panel); border:1px solid var(--line-strong); border-radius:var(--r-md);
+    box-shadow:var(--shadow-md); padding:9px 11px; max-width:250px; }
+  #an-tip b { font-size:12px; color:var(--ink); display:block; margin-bottom:3px; font-family:var(--font-ui); }
+  .an-tip-row { display:flex; justify-content:space-between; gap:14px; font-family:var(--font-mono);
+    font-size:10px; color:var(--dim); line-height:1.6; }
+  .an-tip-row b { display:inline; font-size:10.5px; color:var(--ink); margin:0; }
+
   .an-fbar { display:flex; align-items:center; flex-wrap:wrap; gap:7px; padding-bottom:2px; }
   .an-fbar-lbl { font-family:var(--font-mono); font-size:12px; font-weight:700; color:var(--ink); }
   .an-fbar-lbl span { font-weight:400; color:var(--dim); }
@@ -990,10 +999,14 @@
   .an-corr-h { flex:none; width:52px; font-family:var(--font-mono); font-size:8px; color:var(--dim);
     display:flex; align-items:center; justify-content:flex-end; padding-right:6px; letter-spacing:.2px; }
   /* must match .an-corr-c's width or the rotated labels drift off their
-     own columns — the row header keeps the wider 52px, these do not */
-  .an-corr-h-top { width:34px; height:44px; justify-content:center; align-items:flex-end;
-    padding:0 0 3px; white-space:nowrap; }
-  .an-corr-h-top span { transform:rotate(-50deg); transform-origin:bottom center; display:block; }
+     own columns — the row header keeps the wider 52px, these do not.
+     The label is absolutely positioned and rotated from a fixed anchor
+     point rather than flex-centered, so its length can't push it down
+     into the row below (flex sizing a rotated box is unreliable — the
+     box's own height doesn't shrink to account for the rotation). */
+  .an-corr-h-top { width:34px; height:58px; position:relative; }
+  .an-corr-h-top span { position:absolute; left:17px; bottom:6px; transform:rotate(-45deg);
+    transform-origin:bottom left; white-space:nowrap; }
   .an-corr-c { flex:none; width:34px; height:24px; display:flex; align-items:center; justify-content:center;
     font-family:var(--font-mono); font-size:8.5px; color:var(--ink); border:1px solid var(--panel); border-radius:2px; }
   .an-corr-c:hover { outline:1.5px solid var(--accent); outline-offset:-1px; }
@@ -1072,6 +1085,19 @@
   .an-pos-track { height:16px; border-radius:3px; overflow:hidden; display:flex; background:var(--sunk2); }
   .an-pos-seg { height:100%; }
   .an-pos-n { font-family:var(--font-mono); font-size:9.5px; color:var(--dim); text-align:right; }
+
+  /* ── position diamond ── */
+  .an-field { display:block; }
+  .an-field-lbl { font-family:var(--font-mono); font-size:15px; font-weight:700; fill:var(--ink); }
+  .an-field-n { font-family:var(--font-mono); font-size:10px; fill:var(--ink-mid); }
+  .an-bench { margin-top:16px; padding-top:14px; border-top:1px solid var(--line-soft); }
+  .an-bench-row { display:flex; flex-wrap:wrap; gap:8px; }
+  .an-bench-chip { display:flex; align-items:center; gap:7px; background:var(--sunk); border-radius:var(--r-sm);
+    padding:7px 11px; transition:background .12s; }
+  .an-bench-chip:hover { background:var(--sunk2); }
+  .an-bench-pos { font-family:var(--font-mono); font-size:11px; font-weight:700; color:var(--ink); }
+  .an-bench-n { font-family:var(--font-mono); font-size:11px; color:var(--accent); font-weight:700; }
+  .an-bench-top { font-family:var(--font-mono); font-size:9px; color:var(--faint); }
 
   .an-mm-list { display:flex; flex-direction:column; gap:8px; }
   .an-mm-row { display:grid; grid-template-columns:1fr auto auto; align-items:center; gap:14px;
@@ -1340,6 +1366,7 @@
     <div class="an-tabs" id="an-tabs"></div>
   </div>
   <div class="an-scroll"><div class="an-body" id="an-body"></div></div>
+  <div id="an-tip"></div>
 </div>
 
 <script>
@@ -2583,6 +2610,46 @@ function anFmt(k, v) {
 }
 function anLabel(k) { return (AN_STAT_BY[k] || {}).l || k; }
 
+/* ── Hover tooltip — a single fixed div, repositioned per element, in
+   place of native SVG <title> (slow to appear, can't be styled, clips
+   at the SVG's own bounds). Desktop only: on a touch device "hover" is
+   just a delayed tap with nowhere clean to dismiss it, so a real click
+   is the only interaction there — the tooltip stays disabled. */
+const AN_HOVER_CAPABLE = window.matchMedia('(hover:hover) and (pointer:fine)').matches;
+function anTip(html, e) {
+  if (!AN_HOVER_CAPABLE) return;
+  const el = document.getElementById('an-tip');
+  el.innerHTML = html;
+  el.style.display = 'block';
+  anTipMove(e);
+}
+function anTipMove(e) {
+  if (!AN_HOVER_CAPABLE) return;
+  const el = document.getElementById('an-tip');
+  if (el.style.display !== 'block') return;
+  const pad = 16, vw = window.innerWidth, vh = window.innerHeight;
+  const r = el.getBoundingClientRect();
+  let x = e.clientX + pad, y = e.clientY + pad;
+  if (x + r.width > vw - 8) x = e.clientX - r.width - pad;
+  if (y + r.height > vh - 8) y = e.clientY - r.height - pad;
+  el.style.left = Math.max(8,x) + 'px';
+  el.style.top = Math.max(8,y) + 'px';
+}
+function anTipHide() { if (AN_HOVER_CAPABLE) document.getElementById('an-tip').style.display = 'none'; }
+function anTipPlayer(p, extraRows) {
+  return `<b>${p.name}${tierTag(p)}</b>
+    <div class="an-tip-row"><span>${p.team||'—'} · ${lvlShort(p.level||'—')} · age ${p.age??'—'}</span></div>
+    ${(extraRows||[]).map(([l,v])=>`<div class="an-tip-row"><span>${l}</span><b>${v}</b></div>`).join('')}`;
+}
+// inline handler fragment shared by every hoverable element — the tip's
+// HTML rides in a data attribute (auto-decoded by the browser) rather than
+// a JS string literal, so it never needs JS-escaping, only the ordinary
+// HTML-attribute escaping every other attribute here already gets.
+function anEsc(s) { return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;'); }
+function anHoverAttrs(html) {
+  return `data-tip="${anEsc(html)}" onmouseenter="anTip(this.dataset.tip,event)" onmousemove="anTipMove(event)" onmouseleave="anTipHide()"`;
+}
+
 function openAnalytics() {
   document.getElementById('an-tabs').innerHTML = AN_TABS.map(t =>
     `<button class="an-tab${anTab===t.id?' active':''}" onclick="setAnTab('${t.id}')">${t.l}</button>`).join('');
@@ -2629,7 +2696,9 @@ function anOpenPlayer(p) {
   if (idx >= 0) showD(idx);
 }
 // Shorthand used by every clickable player mark/row
-function anPlayerAttrs(p) { return `style="cursor:pointer" onclick="anOpenPlayer(RAW[${RAW.indexOf(p)}])"`; }
+function anPlayerAttrs(p, extraRows) {
+  return `style="cursor:pointer" onclick="anOpenPlayer(RAW[${RAW.indexOf(p)}])" ${anHoverAttrs(anTipPlayer(p, extraRows))}`;
+}
 
 // ── Filter constructors, one per drill-down dimension ────────────────
 /* Matches on the player's *primary* level (the first token), because that's
@@ -2732,11 +2801,14 @@ function anBins(vals, n) {
 function anDonut(segs, size, onclick) {
   const total = segs.reduce((s,x)=>s+x.n, 0) || 1;
   const r = size/2, ri = r*0.6, live = segs.filter(s => s.n > 0);
+  const tipFor = s => `<b>${s.l}</b>
+    <div class="an-tip-row"><span>Players</span><b>${s.n}</b></div>
+    <div class="an-tip-row"><span>Share</span><b>${(s.n/total*100).toFixed(0)}%</b></div>`;
   if (live.length === 1) {
     const s = live[0];
     return `<svg class="an-donut" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
       <circle cx="${r}" cy="${r}" r="${(r+ri)/2}" fill="none" stroke="${s.c}" stroke-width="${r-ri}"
-        style="cursor:pointer" onclick="${onclick(s)}"><title>${s.l} — ${s.n}</title></circle></svg>`;
+        style="cursor:pointer" onclick="${onclick(s)}" ${anHoverAttrs(tipFor(s))}></circle></svg>`;
   }
   let a0 = -Math.PI/2;
   const paths = live.map(s => {
@@ -2745,7 +2817,7 @@ function anDonut(segs, size, onclick) {
     const d = `M${P(a0,r)} A${r} ${r} 0 ${large} 1 ${P(a1,r)} L${P(a1,ri)} A${ri} ${ri} 0 ${large} 0 ${P(a0,ri)} Z`;
     a0 = a1;
     return `<path d="${d}" fill="${s.c}" stroke="var(--panel)" stroke-width="1" style="cursor:pointer"
-      onclick="${onclick(s)}"><title>${s.l} — ${s.n} (${(frac*100).toFixed(0)}%)</title></path>`;
+      onclick="${onclick(s)}" ${anHoverAttrs(tipFor(s))}></path>`;
   }).join('');
   return `<svg class="an-donut" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">${paths}</svg>`;
 }
@@ -2818,10 +2890,13 @@ function renderAnOverview(d) {
   const W = 400, H = 140;
   const bars = buckets.map((n,i) => {
     const h = Math.round(n/maxB*H), x = i*(W/10)+2, y = H-h;
-    return `<g style="cursor:pointer" onclick="anPickBand(${i*10},${i*10+10})">
+    const pct = (n/scores.length*100).toFixed(1);
+    const tip = `<b>Score ${i*10}–${i*10+9}</b>
+      <div class="an-tip-row"><span>Players</span><b>${n}</b></div>
+      <div class="an-tip-row"><span>Share of scope</span><b>${pct}%</b></div>`;
+    return `<g style="cursor:pointer" onclick="anPickBand(${i*10},${i*10+10})" ${anHoverAttrs(tip)}>
       <rect x="${x}" y="0" width="${W/10-4}" height="${H}" fill="transparent"/>
-      <rect x="${x}" y="${y}" width="${W/10-4}" height="${Math.max(h,2)}" fill="${anBracket(i*10+5).c}" rx="2"/>
-      <title>Score ${i*10}–${i*10+9} · ${n} players</title></g>`;
+      <rect x="${x}" y="${y}" width="${W/10-4}" height="${Math.max(h,2)}" fill="${anBracket(i*10+5).c}" rx="2"/></g>`;
   }).join('');
 
   const lvlGroups = {};
@@ -2909,10 +2984,10 @@ function renderAnExplore(d) {
 
   const dots = pts.map(p => {
     const big = flagged.has(p);
+    const extra = [[anLabel(anY), anFmt(anY,anVal(p,anY))], [anLabel(anX), anFmt(anX,anVal(p,anX))]];
     return `<circle cx="${X(anVal(p,anX)).toFixed(1)}" cy="${Y(anVal(p,anY)).toFixed(1)}" r="${big?4.8:2.8}"
       fill="${anMarkColor(p)}" ${big?'':'opacity=".5"'} stroke="var(--panel)" stroke-width="${big?1.4:0.8}"
-      ${anPlayerAttrs(p)}><title>${p.name} — ${p.team||'—'} ${lvlShort(p.level||'')}
-${anLabel(anX)} ${anFmt(anX,anVal(p,anX))} · ${anLabel(anY)} ${anFmt(anY,anVal(p,anY))}</title></circle>`;
+      ${anPlayerAttrs(p, extra)}></circle>`;
   }).join('');
 
   const gridY = [0,0.25,0.5,0.75,1].map(f => {
@@ -2957,11 +3032,13 @@ function renderAnDist(d) {
     const bw = W/bins.length;
     const bars = bins.map((b,i) => {
       const h = Math.round(b.n/maxN*H);
-      return `<g style="cursor:pointer" onclick="anPickRange('${k}',${b.lo},${b.hi})">
+      const tip = `<b>${anLabel(k)}</b>
+        <div class="an-tip-row"><span>Range</span><b>${anFmt(k,b.lo)}–${anFmt(k,b.hi)}</b></div>
+        <div class="an-tip-row"><span>Players</span><b>${b.n}</b></div>`;
+      return `<g style="cursor:pointer" onclick="anPickRange('${k}',${b.lo},${b.hi})" ${anHoverAttrs(tip)}>
         <rect x="${(i*bw).toFixed(1)}" y="0" width="${bw.toFixed(1)}" height="${H}" fill="transparent"/>
         <rect x="${(i*bw+0.5).toFixed(1)}" y="${H-h}" width="${(bw-1).toFixed(1)}" height="${Math.max(h,1)}"
-          fill="var(--accent)" opacity="${0.35 + 0.55*(b.n/maxN)}" rx="1"/>
-        <title>${anLabel(k)} ${anFmt(k,b.lo)}–${anFmt(k,b.hi)} · ${b.n} players</title></g>`;
+          fill="var(--accent)" opacity="${0.35 + 0.55*(b.n/maxN)}" rx="1"/></g>`;
     }).join('');
     const medX = ((med - bins[0].lo) / ((bins[bins.length-1].hi - bins[0].lo)||1)) * W;
     return `<div class="an-sm">
@@ -2992,8 +3069,11 @@ function renderAnCorr(d) {
   const rows = keys.map(a => `<div class="an-corr-row"><span class="an-corr-h">${anLabel(a)}</span>${keys.map(b => {
       if (a === b) return `<span class="an-corr-c an-corr-diag">–</span>`;
       const r = anPearson(d, a, b);
+      const tip = `<b>${anLabel(a)} vs ${anLabel(b)}</b>
+        <div class="an-tip-row"><span>Pearson r</span><b>${r==null?'n/a':r.toFixed(2)}</b></div>
+        <div class="an-tip-row"><span>Click</span><b>plot this pair</b></div>`;
       return `<span class="an-corr-c" style="background:${anCorrColor(r)}; cursor:pointer"
-        onclick="anGoScatter('${b}','${a}')" title="${anLabel(a)} vs ${anLabel(b)} — r ${r==null?'n/a':r.toFixed(2)} (click to plot)">${r==null?'':r.toFixed(2).replace(/^0\./,'.').replace(/^-0\./,'-.')}</span>`;
+        onclick="anGoScatter('${b}','${a}')" ${anHoverAttrs(tip)}>${r==null?'':r.toFixed(2).replace(/^0\./,'.').replace(/^-0\./,'-.')}</span>`;
     }).join('')}</div>`).join('');
 
   // strongest relationships, ignoring the mirrored duplicates
@@ -3068,8 +3148,8 @@ function renderAnTeams(d) {
   const rows = teams.map(t => {
     const g = [...groups[t]].sort((a,b)=>b.prospect_score-a.prospect_score);
     const dots = g.slice(0,40).map(p =>
-      `<span class="an-td-dot" style="background:${anBracket(p.prospect_score).c}" ${anPlayerAttrs(p)}
-        title="${p.name} — ${p.prospect_score}"></span>`).join('');
+      `<span class="an-td-dot" style="background:${anBracket(p.prospect_score).c}"
+        ${anPlayerAttrs(p, [['Score', p.prospect_score]])}></span>`).join('');
     return `<div class="an-td-row">
       <div class="an-td-name" style="cursor:pointer" onclick="anPickTeam('${t}')" title="Drill into ${t}">${t}</div>
       <div class="an-td-dots">${dots}</div>
@@ -3080,6 +3160,17 @@ function renderAnTeams(d) {
 }
 
 // ── Positions ────────────────────────────────────────────────────────
+// Fielding-depth coordinates for the six positions that map to one spot on
+// a diamond. INF/UTIL/DH don't correspond to a single spot on the field —
+// those stay a chip list below it instead of being forced onto the grass.
+const AN_FIELD_SPOTS = {
+  OF: { x:200, y:64,  l:'OF'  },
+  SS: { x:167, y:172, l:'SS'  },
+  '2B': { x:233, y:172, l:'2B' },
+  '3B': { x:100, y:240, l:'3B' },
+  '1B': { x:300, y:240, l:'1B' },
+  C:  { x:200, y:352, l:'C'   },
+};
 function renderAnPositions(d) {
   const groups = {};
   d.forEach(p => {
@@ -3087,36 +3178,87 @@ function renderAnPositions(d) {
     const pos = p.pos.split('/')[0].trim();
     (groups[pos]=groups[pos]||[]).push(p);
   });
-  const positions = Object.keys(groups).sort((a,b) =>
-    groups[b].filter(p=>p.prospect_score>=70).length - groups[a].filter(p=>p.prospect_score>=70).length);
+  const positions = Object.keys(groups);
   if (!positions.length) return `<div class="an-empty">No position data in this scope.</div>`;
-  const rows = positions.map(pos => {
-    const g = groups[pos], n = g.length;
-    const segs = AN_BRACKETS.map(b => {
-      const pct = g.filter(p=>p.prospect_score>=b.lo && p.prospect_score<b.hi).length/n*100;
-      return pct>0 ? `<div class="an-pos-seg" style="width:${pct}%; background:${b.c}"></div>` : '';
-    }).join('');
-    return `<div class="an-pos-row" style="cursor:pointer" onclick="anPickPos('${pos}')" title="Drill into ${pos}">
-      <div class="an-pos-lbl">${pos}</div>
-      <div class="an-pos-track">${segs}</div><div class="an-pos-n">${n}</div></div>`;
+  const maxN = Math.max(...positions.map(pos=>groups[pos].length), 1);
+
+  const fieldPositions = positions.filter(pos => AN_FIELD_SPOTS[pos]);
+  const benchPositions = positions.filter(pos => !AN_FIELD_SPOTS[pos])
+    .sort((a,b) => groups[b].length - groups[a].length);
+
+  const markers = fieldPositions.map(pos => {
+    const g = groups[pos], n = g.length, spot = AN_FIELD_SPOTS[pos];
+    const top = g.filter(p=>p.prospect_score>=70).length;
+    const r = 17 + Math.sqrt(n/maxN) * 20;
+    const med = anMedian(g.map(p=>p.prospect_score));
+    const tip = `<b>${spot.l}</b>
+      <div class="an-tip-row"><span>Players</span><b>${n}</b></div>
+      <div class="an-tip-row"><span>Median score</span><b>${med.toFixed(0)}</b></div>
+      <div class="an-tip-row"><span>70+ scorers</span><b>${top}</b></div>`;
+    return `<g style="cursor:pointer" onclick="anPickPos('${pos}')" ${anHoverAttrs(tip)}>
+      <circle cx="${spot.x}" cy="${spot.y}" r="${r.toFixed(1)}" fill="var(--accent)" fill-opacity=".22" stroke="var(--accent)" stroke-width="1.5"/>
+      <text x="${spot.x}" y="${(spot.y-2).toFixed(1)}" text-anchor="middle" class="an-field-lbl">${spot.l}</text>
+      <text x="${spot.x}" y="${(spot.y+13).toFixed(1)}" text-anchor="middle" class="an-field-n">${n}</text>
+    </g>`;
   }).join('');
-  return anCard('Position Scarcity', 'score-band counts by position — click a row to drill in',
-    'sorted by <b>70+</b> count', rows + anBracketLegend());
+
+  const bench = benchPositions.map(pos => {
+    const g = groups[pos], n = g.length;
+    const top = g.filter(p=>p.prospect_score>=70).length;
+    return `<div class="an-bench-chip" style="cursor:pointer" onclick="anPickPos('${pos}')">
+      <span class="an-bench-pos">${pos}</span><span class="an-bench-n">${n}</span>
+      ${top?`<span class="an-bench-top">${top} at 70+</span>`:''}</div>`;
+  }).join('');
+
+  return anCard('Position Scarcity', 'bubble size = headcount — click a spot to drill in',
+    'sorted by field position',
+    `<svg class="an-svg an-field" viewBox="0 0 400 400" style="max-width:400px; margin:0 auto">
+      <path d="M200,398 L18,216 A257 257 0 0 1 382,216 Z" fill="var(--sunk)"/>
+      <polygon points="200,352 300,240 200,152 100,240" fill="var(--sunk2)" stroke="var(--line-strong)" stroke-width="1"/>
+      <line x1="200" y1="352" x2="18" y2="216" stroke="var(--line-strong)" stroke-width="1"/>
+      <line x1="200" y1="352" x2="382" y2="216" stroke="var(--line-strong)" stroke-width="1"/>
+      <rect x="196" y="348" width="8" height="8" fill="var(--panel)" stroke="var(--line-strong)" transform="rotate(45 200 352)"/>
+      <rect x="296" y="236" width="8" height="8" fill="var(--panel)" stroke="var(--line-strong)" transform="rotate(45 300 240)"/>
+      <rect x="196" y="148" width="8" height="8" fill="var(--panel)" stroke="var(--line-strong)" transform="rotate(45 200 152)"/>
+      <rect x="96" y="236" width="8" height="8" fill="var(--panel)" stroke="var(--line-strong)" transform="rotate(45 100 240)"/>
+      ${markers}
+    </svg>
+    ${bench ? `<div class="an-bench"><div class="an-card-sub" style="margin-bottom:8px">not shown on the field</div>
+      <div class="an-bench-row">${bench}</div></div>` : ''}`);
 }
 
 // ── Radar ────────────────────────────────────────────────────────────
+let anRadarCompare = '__top__'; // '__top__' or a pkey — who the accent shape represents
+function anSetRadarCompare(v) { anRadarCompare = v; renderAnalytics(); }
+
 function renderAnRadar(d) {
   const G = ['hit','dis','pwr','spd','age_r','wrc_r'], L = ['HIT','DIS','PWR','SPD','AGE','WRC+'];
   const rows = d.filter(p => G.every(k => p[k] != null));
   if (rows.length < 6) return `<div class="an-empty">Not enough tool-grade data in this scope.</div>`;
-  const cut = anPercentile(rows.map(p=>p.prospect_score), 90);
-  const top = rows.filter(p=>p.prospect_score>=cut), rest = rows.filter(p=>p.prospect_score<cut);
   const avg = (arr,k) => arr.reduce((s,p)=>s+p[k],0)/arr.length*100;
-  const topVals = G.map(k=>avg(top,k)), restVals = rest.length ? G.map(k=>avg(rest,k)) : G.map(()=>0);
+
+  const focusPlayer = anRadarCompare === '__top__' ? null : rows.find(p => pkey(p) === anRadarCompare);
+  // fall back to top-decile mode if the picked player scrolled out of scope
+  const mode = focusPlayer ? 'player' : 'top';
+
+  let focusVals, restVals, focusLabel, restLabel, focusN, restN, cut;
+  if (mode === 'player') {
+    const rest = rows.filter(p => p !== focusPlayer);
+    focusVals = G.map(k => focusPlayer[k]*100);
+    restVals  = rest.length ? G.map(k=>avg(rest,k)) : G.map(()=>0);
+    focusLabel = focusPlayer.name; restLabel = 'Rest of scope avg';
+    focusN = 1; restN = rest.length;
+  } else {
+    cut = anPercentile(rows.map(p=>p.prospect_score), 90);
+    const top = rows.filter(p=>p.prospect_score>=cut), rest = rows.filter(p=>p.prospect_score<cut);
+    focusVals = G.map(k=>avg(top,k)), restVals = rest.length ? G.map(k=>avg(rest,k)) : G.map(()=>0);
+    focusLabel = `Top decile (${cut.toFixed(0)}+)`; restLabel = 'Everyone else';
+    focusN = top.length; restN = rest.length;
+  }
 
   const cx=230, cy=145, R=100;
   const ang = i => -Math.PI/2 + i*(2*Math.PI/6);
-  const pt = (v,i) => [cx + Math.cos(ang(i))*R*(v/100), cy + Math.sin(ang(i))*R*(v/100)];
+  const pt = (v,i) => [cx + Math.cos(ang(i))*R*(Math.max(0,v)/100), cy + Math.sin(ang(i))*R*(Math.max(0,v)/100)];
   const poly = vs => vs.map((v,i)=>pt(v,i).map(n=>n.toFixed(1)).join(',')).join(' ');
   const rings = [.25,.5,.75,1].map(f =>
     `<polygon points="${G.map((_,i)=>pt(100*f,i).map(n=>n.toFixed(1)).join(',')).join(' ')}" fill="none" stroke="var(--line-soft)"/>`).join('');
@@ -3128,26 +3270,38 @@ function renderAnRadar(d) {
     return `<text class="an-ax" x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="${a}">${L[i]}</text>`;
   }).join('');
   const deltas = G.map((k,i) => {
-    const diff = topVals[i] - restVals[i];
+    const diff = focusVals[i] - restVals[i];
     return `<div class="an-delta-row"><span>${L[i]}</span>
       <span class="an-delta-bar"><i style="width:${Math.min(100,Math.abs(diff))}%; background:${diff>=0?'var(--good)':'var(--bad)'}"></i></span>
       <b style="color:${diff>=0?'var(--good)':'var(--bad)'}">${diff>=0?'+':''}${diff.toFixed(0)}</b></div>`;
   }).join('');
 
-  return `<div class="an-row">
-    ${anCard('Aggregate Tool Grades', 'top decile vs. everyone else',
-      `Top <b>n=${top.length}</b> · Rest <b>n=${rest.length}</b>`,
+  const picker = `<div class="an-ctrls">
+    <span class="an-ctrl-l">Compare</span>
+    <select class="an-sel" onchange="anSetRadarCompare(this.value)">
+      <option value="__top__"${mode==='top'?' selected':''}>Top decile vs. rest</option>
+      <optgroup label="Compare one player to the scope">
+        ${[...rows].sort((a,b)=>a.name.localeCompare(b.name)).map(p =>
+          `<option value="${pkey(p)}"${mode==='player'&&p===focusPlayer?' selected':''}>${p.name} (${p.team||'—'})</option>`).join('')}
+      </optgroup>
+    </select>
+  </div>`;
+
+  return picker + `<div class="an-row">
+    ${anCard(mode==='player' ? `${focusLabel}'s Tool Grades` : 'Aggregate Tool Grades',
+      mode==='player' ? 'vs. the average of everyone else in scope' : 'top decile vs. everyone else',
+      `<b>${focusN}</b> · <b>${restN}</b> compared`,
       `<svg class="an-svg" viewBox="0 0 460 290" style="max-width:380px; margin:0 auto">
         ${rings}${spokes}
-        ${rest.length?`<polygon points="${poly(restVals)}" fill="none" stroke="var(--gold)" stroke-width="1.6" stroke-dasharray="4 3"/>`:''}
-        <polygon points="${poly(topVals)}" fill="var(--accent)" fill-opacity=".16" stroke="var(--accent)" stroke-width="2"/>
+        ${restN?`<polygon points="${poly(restVals)}" fill="none" stroke="var(--gold)" stroke-width="1.6" stroke-dasharray="4 3"/>`:''}
+        <polygon points="${poly(focusVals)}" fill="var(--accent)" fill-opacity=".16" stroke="var(--accent)" stroke-width="2"/>
         ${labels}</svg>
       <div class="an-legend" style="justify-content:center">
-        <div class="an-lg-item" style="cursor:pointer" onclick="anPickBand(${Math.floor(cut)},101)">
-          <span class="an-lg-sw" style="background:var(--accent)"></span>Top decile (${cut.toFixed(0)}+)</div>
-        ${rest.length?`<div class="an-lg-item"><span class="an-lg-sw" style="background:var(--gold)"></span>Everyone else</div>`:''}
+        <div class="an-lg-item"${mode==='top'?` style="cursor:pointer" onclick="anPickBand(${Math.floor(cut)},101)"`:''}>
+          <span class="an-lg-sw" style="background:var(--accent)"></span>${focusLabel}</div>
+        ${restN?`<div class="an-lg-item"><span class="an-lg-sw" style="background:var(--gold)"></span>${restLabel}</div>`:''}
       </div>`)}
-    ${anCard('Where the Gap Is', 'top decile minus the rest, in grade points', '', `<div class="an-deltas">${deltas}</div>`)}
+    ${anCard('Where the Gap Is', `${mode==='player'?focusLabel:'top decile'} minus the rest, in grade points`, '', `<div class="an-deltas">${deltas}</div>`)}
   </div>`;
 }
 
@@ -3172,7 +3326,7 @@ function renderAnPrice(d) {
     const o = flag.has(p), fill = !o ? 'var(--dim)' : (Math.log(p.price_raw) > intercept+slope*p.prospect_score ? 'var(--bad)' : 'var(--good)');
     return `<circle cx="${X(p.prospect_score).toFixed(1)}" cy="${Y(p.price_raw).toFixed(1)}" r="${o?4.8:2.8}"
       fill="${fill}" ${o?'':'opacity=".45"'} stroke="var(--panel)" stroke-width="${o?1.4:0.8}"
-      ${anPlayerAttrs(p)}><title>${p.name} — score ${p.prospect_score}, raw $${p.price_raw.toFixed(2)}</title></circle>`;
+      ${anPlayerAttrs(p, [['Score', p.prospect_score], ['Raw price', '$'+p.price_raw.toFixed(2)]])}></circle>`;
   }).join('');
   const trend = Array.from({length:21}, (_,i) => {
     const s = minS + (maxS-minS)*i/20;
