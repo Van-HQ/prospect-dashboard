@@ -948,13 +948,95 @@
   .an-callout { stroke:var(--line-strong); stroke-width:1; }
   .an-trend { stroke:var(--ink-mid); stroke-width:1.3; stroke-dasharray:3 3; }
 
-  .an-kpis { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+  /* ── drill-down filter bar ── */
+  .an-fbar { display:flex; align-items:center; flex-wrap:wrap; gap:7px; padding-bottom:2px; }
+  .an-fbar-lbl { font-family:var(--font-mono); font-size:12px; font-weight:700; color:var(--ink); }
+  .an-fbar-lbl span { font-weight:400; color:var(--dim); }
+  .an-fbar-hint { font-family:var(--font-mono); font-size:9.5px; color:var(--faint); letter-spacing:.3px; }
+  .an-fchip { display:inline-flex; align-items:center; gap:6px; font-family:var(--font-mono); font-size:10px;
+    letter-spacing:.3px; color:var(--accent); background:var(--accent-soft); border:1px solid var(--accent-line);
+    border-radius:999px; padding:4px 9px; cursor:pointer; }
+  .an-fchip span { opacity:.6; font-size:9px; }
+  .an-fchip:hover { background:var(--accent); color:var(--accent-ink); border-color:var(--accent); }
+  .an-fclear, .an-fapply { font-family:var(--font-mono); font-size:9.5px; letter-spacing:.4px;
+    background:none; border:1px solid var(--line-strong); color:var(--dim); border-radius:999px;
+    padding:4px 10px; cursor:pointer; }
+  .an-fclear:hover { border-color:var(--bad); color:var(--bad); }
+  .an-fapply { margin-left:auto; border-color:var(--accent-line); color:var(--accent); }
+  .an-fapply:hover { background:var(--accent); color:var(--accent-ink); border-color:var(--accent); }
+
+  /* ── explore axis controls ── */
+  .an-ctrls { display:flex; align-items:center; flex-wrap:wrap; gap:8px; }
+  .an-ctrl-l { font-family:var(--font-mono); font-size:9px; letter-spacing:1px; text-transform:uppercase; color:var(--faint); }
+  .an-sel { background:var(--panel); border:1px solid var(--line); color:var(--ink);
+    font-family:var(--font-mono); font-size:11px; padding:6px 8px; border-radius:var(--r-sm); cursor:pointer; height:auto; }
+  .an-sel:hover { border-color:var(--line-strong); }
+  .an-swap { background:var(--sunk); border:1px solid var(--line); color:var(--dim); cursor:pointer;
+    width:26px; height:26px; border-radius:50%; font-size:12px; line-height:1; }
+  .an-swap:hover { color:var(--accent); border-color:var(--accent-line); }
+
+  /* ── small-multiple distributions ── */
+  .an-sm-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(190px,1fr)); gap:16px 18px; }
+  .an-sm-head { display:flex; align-items:baseline; justify-content:space-between; margin-bottom:3px; }
+  .an-sm-t { font-family:var(--font-mono); font-size:10px; font-weight:700; color:var(--ink); letter-spacing:.4px; }
+  .an-sm-med { font-family:var(--font-mono); font-size:8.5px; color:var(--faint); }
+  .an-sm-ax { display:flex; justify-content:space-between; font-family:var(--font-mono);
+    font-size:8px; color:var(--faint); margin-top:2px; }
+
+  /* ── correlation matrix ── */
+  .an-corr-scroll { overflow-x:auto; }
+  .an-corr { display:inline-block; min-width:100%; }
+  .an-corr-row { display:flex; align-items:stretch; }
+  .an-corr-h { flex:none; width:52px; font-family:var(--font-mono); font-size:8px; color:var(--dim);
+    display:flex; align-items:center; justify-content:flex-end; padding-right:6px; letter-spacing:.2px; }
+  /* must match .an-corr-c's width or the rotated labels drift off their
+     own columns — the row header keeps the wider 52px, these do not */
+  .an-corr-h-top { width:34px; height:44px; justify-content:center; align-items:flex-end;
+    padding:0 0 3px; white-space:nowrap; }
+  .an-corr-h-top span { transform:rotate(-50deg); transform-origin:bottom center; display:block; }
+  .an-corr-c { flex:none; width:34px; height:24px; display:flex; align-items:center; justify-content:center;
+    font-family:var(--font-mono); font-size:8.5px; color:var(--ink); border:1px solid var(--panel); border-radius:2px; }
+  .an-corr-c:hover { outline:1.5px solid var(--accent); outline-offset:-1px; }
+  .an-corr-diag { color:var(--faint); background:var(--sunk); }
+  .an-pairs { display:grid; grid-template-columns:repeat(auto-fill, minmax(210px,1fr)); gap:7px; }
+  .an-pair { display:flex; align-items:center; justify-content:space-between; gap:10px; cursor:pointer;
+    background:var(--sunk); border-radius:var(--r-sm); padding:8px 10px; transition:background .12s; }
+  .an-pair:hover { background:var(--sunk2); }
+  .an-pair-n { font-family:var(--font-mono); font-size:10px; color:var(--ink-mid); }
+  .an-pair-n i { color:var(--faint); font-style:normal; }
+  .an-pair-r { font-family:var(--font-mono); font-size:11.5px; font-weight:700; }
+
+  /* ── leaderboard rows ── */
+  .an-lead-row { display:grid; grid-template-columns:20px 1fr auto auto; align-items:center; gap:10px;
+    padding:7px 6px; margin:0 -6px; border-radius:var(--r-sm); cursor:pointer;
+    border-bottom:1px solid var(--line-soft); transition:background .12s; }
+  .an-lead-row:last-child { border-bottom:none; }
+  .an-lead-row:hover { background:var(--sunk); }
+  .an-lead-i { font-family:var(--font-mono); font-size:9.5px; color:var(--faint); text-align:right; }
+  .an-lead-n { font-size:12px; font-weight:600; }
+  .an-lead-m { font-family:var(--font-mono); font-size:9px; color:var(--dim); }
+  .an-lead-v { font-family:var(--font-mono); font-size:12px; font-weight:700; color:var(--accent); }
+
+  .an-donut { display:block; flex:none; }
+  .an-donut-wrap { display:flex; align-items:center; gap:18px; flex-wrap:wrap; justify-content:center; }
+  .an-legend-col { flex-direction:column; gap:5px; margin-top:0; align-items:flex-start; }
+  .an-legend-col b { color:var(--ink); margin-left:2px; }
+
+  .an-deltas { display:flex; flex-direction:column; gap:9px; }
+  .an-delta-row { display:grid; grid-template-columns:38px 1fr 34px; align-items:center; gap:9px;
+    font-family:var(--font-mono); font-size:10px; color:var(--ink-mid); }
+  .an-delta-bar { height:6px; background:var(--sunk2); border-radius:3px; overflow:hidden; }
+  .an-delta-bar i { display:block; height:100%; border-radius:3px; }
+  .an-delta-row b { font-size:10.5px; text-align:right; }
+  .an-pipe-n i { color:var(--faint); font-style:normal; font-size:8.5px; }
+
+  .an-kpis { display:grid; grid-template-columns:repeat(5,1fr); gap:10px; }
   .an-kpi { background:var(--sunk); border-radius:var(--r-md); padding:11px 12px; }
   .an-kpi-v { font-family:var(--font-mono); font-size:18px; font-weight:700; }
   .an-kpi-l { font-family:var(--font-mono); font-size:8.5px; color:var(--faint); letter-spacing:.5px;
     text-transform:uppercase; margin-top:2px; }
 
-  .an-pipe-row { display:grid; grid-template-columns:64px 1fr 46px; align-items:center; gap:10px; margin-bottom:9px;
+  .an-pipe-row { display:grid; grid-template-columns:64px 1fr 84px; align-items:center; gap:10px; margin-bottom:9px;
     border-radius:var(--r-sm); padding:2px 6px; margin-left:-6px; margin-right:-6px; transition:background .12s; }
   .an-pipe-row:hover { background:var(--sunk); }
   .an-pipe-lbl { font-family:var(--font-mono); font-size:10px; color:var(--ink-mid); }
@@ -1010,6 +1092,13 @@
     .an-row { grid-template-columns:1fr; }
     .an-kpis { grid-template-columns:repeat(2,1fr); }
     .an-mv-grid { grid-template-columns:1fr; }
+    .an-sm-grid { grid-template-columns:repeat(2,1fr); gap:12px; }
+    .an-pairs { grid-template-columns:1fr; }
+    .an-ctrls { gap:6px; }
+    .an-fapply { margin-left:0; }
+    .an-donut-wrap { gap:12px; }
+    /* 5 KPIs in a 2-wide grid leaves the last one orphaned at half width */
+    .an-kpis > :last-child:nth-child(odd) { grid-column:span 2; }
   }
 </style>
 </head>
@@ -2417,12 +2506,18 @@ function bindSwipe() {
 }
 
 /* ══════════════════════════════════════════════════════════════════
-   Analytics — whole-database charts, scoped to whatever's currently
-   filtered so it stays consistent with the table/cards/watch views.
+   Analytics — an interactive cross-filtering view over the whole
+   database. Two layers of scope: the dashboard's own `filtered` set,
+   then Analytics' own stack of drill-down filters (anFilters) that
+   every chart can add to by being clicked. Nothing here navigates
+   away — clicking a segment narrows the view in place and shows a
+   removable chip; clicking a player opens the real detail card on top.
    ══════════════════════════════════════════════════════════════════ */
 const AN_TABS = [
   { id:'overview',  l:'Overview'  },
-  { id:'scatter',   l:'Scatter'   },
+  { id:'explore',   l:'Explore'   },
+  { id:'dist',      l:'Spread'    },
+  { id:'corr',      l:'Correlate' },
   { id:'movers',    l:'Movers'    },
   { id:'levels',    l:'Levels'    },
   { id:'teams',     l:'Teams'     },
@@ -2431,6 +2526,62 @@ const AN_TABS = [
   { id:'price',     l:'Price'     },
 ];
 let anTab = 'overview';
+/* Each entry: { id, label, test(p), apply? } — `id` is the category, so
+   picking a second team replaces the first rather than stacking an
+   impossible "team is BOS and is LAD". `apply` maps to a real dashboard
+   filter field for the "Apply to dashboard" handoff. */
+let anFilters = [];
+let anX = 'age', anY = 'prospect_score', anColorBy = 'level';
+
+/* Every numeric column worth plotting. d = decimals, g = 0-1 tool grade
+   (shown as 0-100), inv = lower is better, money = currency. */
+const AN_STATS = [
+  { k:'prospect_score', l:'Score' },
+  { k:'ltw',   l:'LTW' },
+  { k:'rank',  l:'Rank', inv:true },
+  { k:'age',   l:'Age',  inv:true },
+  { k:'ab',    l:'AB' },
+  { k:'avg',   l:'AVG',  d:3 },
+  { k:'obp',   l:'OBP',  d:3 },
+  { k:'slg',   l:'SLG',  d:3 },
+  { k:'ops',   l:'OPS',  d:3 },
+  { k:'iso',   l:'ISO',  d:3 },
+  { k:'woba',  l:'wOBA', d:3 },
+  { k:'wrc',   l:'wRC+' },
+  { k:'bb',    l:'BB%',  d:1 },
+  { k:'k',     l:'K%',   d:1, inv:true },
+  { k:'swstr', l:'SwStr%', d:1, inv:true },
+  { k:'ld',    l:'LD%',  d:1 },
+  { k:'hrfb',  l:'HR/FB', d:1 },
+  { k:'gbfb',  l:'GB/FB', d:2, inv:true },
+  { k:'hr',    l:'HR' },
+  { k:'sb',    l:'SB' },
+  { k:'hit',   l:'HIT',  g:true },
+  { k:'pwr',   l:'PWR',  g:true },
+  { k:'dis',   l:'DIS',  g:true },
+  { k:'spd',   l:'SPD',  g:true },
+  { k:'price_raw', l:'Raw $', money:true },
+];
+const AN_STAT_BY = Object.fromEntries(AN_STATS.map(s => [s.k, s]));
+/* the subset that carries signal for the correlation matrix and the
+   small-multiple spread charts — the full list would be unreadable */
+const AN_CORE = ['prospect_score','age','avg','obp','slg','ops','iso','woba','wrc','bb','k','swstr','ld','hrfb','gbfb'];
+
+function anVal(p, k) {
+  const s = AN_STAT_BY[k], v = p[k];
+  if (v == null) return null;
+  return s && s.g ? v * 100 : v;
+}
+function anFmt(k, v) {
+  if (v == null) return '—';
+  const s = AN_STAT_BY[k];
+  if (!s) return String(v);
+  if (s.money) return '$' + Number(v).toFixed(2);
+  if (s.g) return Math.round(v);
+  if (s.d != null) return Number(v).toFixed(s.d).replace(/^0\./, '.');
+  return Math.round(v).toLocaleString();
+}
+function anLabel(k) { return (AN_STAT_BY[k] || {}).l || k; }
 
 function openAnalytics() {
   document.getElementById('an-tabs').innerHTML = AN_TABS.map(t =>
@@ -2450,29 +2601,65 @@ function setAnTab(id) {
 }
 
 function anData() { return filtered.filter(p => p.prospect_score != null); }
+function anScope() { return anFilters.reduce((rows,f) => rows.filter(f.test), anData()); }
 
-/* Interaction helpers — every chart/list below is clickable. A player
-   (dot, row) opens the real detail card stacked on top, same pattern as
-   Sort Mode's expand button. A chart segment (level/team/position row,
-   score bucket) applies the matching filter and drops you into the
-   filtered table/cards/watch view instead of just describing it. */
+function anAddFilter(f) {
+  anFilters = anFilters.filter(x => x.id !== f.id).concat(f);
+  renderAnalytics();
+}
+function anRemoveFilter(id) { anFilters = anFilters.filter(f => f.id !== id); renderAnalytics(); }
+function anClearFilters() { anFilters = []; renderAnalytics(); }
+
+/* Hand the drill-down back to the dashboard so the table/cards/watch
+   views show the same slice — only the filters that map to a real
+   field can travel, the rest stay Analytics-only. */
+function anApplyToDashboard() {
+  anFilters.forEach(f => {
+    if (!f.apply) return;
+    const el = document.getElementById(f.apply.field);
+    if (el) el.value = f.apply.value;
+  });
+  msSyncAll(); updateFilterBadge(); applyF();
+  anClearFilters();
+  closeAnalytics();
+}
+
 function anOpenPlayer(p) {
   const idx = RAW.indexOf(p);
   if (idx >= 0) showD(idx);
 }
-function anFilterTo(fieldId, value) {
-  document.getElementById(fieldId).value = value;
-  if (MS_IDS.includes(fieldId)) msSyncAll();
-  updateFilterBadge();
-  applyF();
-  closeAnalytics();
+// Shorthand used by every clickable player mark/row
+function anPlayerAttrs(p) { return `style="cursor:pointer" onclick="anOpenPlayer(RAW[${RAW.indexOf(p)}])"`; }
+
+// ── Filter constructors, one per drill-down dimension ────────────────
+/* Matches on the player's *primary* level (the first token), because that's
+   how every chart here buckets them — testing all tokens would leave an
+   "A+" slice visible inside a "Level AA" drill-down for anyone who split
+   the season across both. */
+function anPickLevel(l) {
+  anAddFilter({ id:'level', label:`Level ${l}`, apply:{field:'fl', value:l},
+    test: p => lvlShort(p.level||'—') === l });
 }
-function anFilterScoreMin(min) {
-  document.getElementById('ff-score').value = min;
-  updateFilterBadge();
-  applyF();
-  closeAnalytics();
+function anPickTeam(t) {
+  anAddFilter({ id:'team', label:`Team ${t}`, apply:{field:'ft', value:t}, test: p => p.team === t });
 }
+function anPickPos(pos) {
+  anAddFilter({ id:'pos', label:`Pos ${pos}`, apply:{field:'fpos', value:pos},
+    test: p => String(p.pos||'').split('/').map(s=>s.trim()).includes(pos) });
+}
+function anPickTier(id) {
+  const t = TIER_BY_ID[id];
+  anAddFilter({ id:'tier', label:`${t.label} tier`, test: p => tierOf(p) === id });
+}
+function anPickBand(lo, hi) {
+  anAddFilter({ id:'band', label:`Score ${lo}–${hi>100?'100':hi}`, apply:{field:'ff-score', value:lo},
+    test: p => p.prospect_score >= lo && p.prospect_score < hi });
+}
+function anPickRange(k, lo, hi) {
+  anAddFilter({ id:'stat:'+k, label:`${anLabel(k)} ${anFmt(k,lo)}–${anFmt(k,hi)}`,
+    test: p => { const v = anVal(p,k); return v != null && v >= lo && v <= hi; } });
+}
+
 function anLevelColor(l) {
   const c = lc(l || '');
   return c==='lAAA' ? 'var(--gold)' : c==='lAA' ? 'var(--t-hit)' : c==='lAp' ? 'var(--good)'
@@ -2487,8 +2674,18 @@ const AN_BRACKETS = [
 ];
 function anBracket(s) { return AN_BRACKETS.find(b => s>=b.lo && s<b.hi) || AN_BRACKETS[0]; }
 function anBracketLegend() {
-  return `<div class="an-legend">${AN_BRACKETS.map(b=>`<div class="an-lg-item"><span class="an-lg-dot" style="background:${b.c}"></span>${b.l}</div>`).join('')}</div>`;
+  return `<div class="an-legend">${AN_BRACKETS.map(b=>
+    `<div class="an-lg-item" style="cursor:pointer" onclick="anPickBand(${b.lo},${b.hi})">
+       <span class="an-lg-dot" style="background:${b.c}"></span>${b.l}</div>`).join('')}</div>`;
 }
+// Colour a mark by whichever dimension the Explore tab is grouped on
+function anMarkColor(p) {
+  if (anColorBy === 'level') return anLevelColor(p.level);
+  if (anColorBy === 'band')  return anBracket(p.prospect_score).c;
+  if (anColorBy === 'tier')  { const t = TIER_BY_ID[tierOf(p)]; return t ? t.color : 'var(--faint)'; }
+  return 'var(--dim)';
+}
+
 // Least-squares fit over [[x,y],...]
 function linreg(pts) {
   const n = pts.length;
@@ -2502,344 +2699,519 @@ function linreg(pts) {
 }
 function anMedian(arr) {
   const s = [...arr].sort((a,b)=>a-b), n = s.length;
+  if (!n) return 0;
   return n % 2 ? s[(n-1)/2] : (s[n/2-1]+s[n/2])/2;
 }
 function anPercentile(arr, p) {
   const s = [...arr].sort((a,b)=>a-b);
+  if (!s.length) return 0;
   return s[Math.min(s.length-1, Math.max(0, Math.floor(p/100*s.length)))];
+}
+// Pearson r over the rows where both stats are present
+function anPearson(rows, a, b) {
+  const pts = rows.map(p => [anVal(p,a), anVal(p,b)]).filter(([x,y]) => x!=null && y!=null);
+  const n = pts.length;
+  if (n < 3) return null;
+  let sx=0, sy=0; pts.forEach(([x,y]) => { sx+=x; sy+=y; });
+  const mx=sx/n, my=sy/n;
+  let num=0, dx=0, dy=0;
+  pts.forEach(([x,y]) => { const u=x-mx, v=y-my; num+=u*v; dx+=u*u; dy+=v*v; });
+  const den = Math.sqrt(dx*dy);
+  return den ? num/den : null;
+}
+function anBins(vals, n) {
+  const lo = Math.min(...vals), hi = Math.max(...vals);
+  const span = (hi - lo) || 1, w = span / n;
+  const bins = Array.from({length:n}, (_,i) => ({ lo: lo+i*w, hi: lo+(i+1)*w, n:0 }));
+  vals.forEach(v => bins[Math.min(n-1, Math.floor((v-lo)/w))].n++);
+  return bins;
+}
+
+/* Donut — one arc per segment. A single 100% segment can't be drawn as
+   an arc (start and end coincide), so that case falls back to a ring. */
+function anDonut(segs, size, onclick) {
+  const total = segs.reduce((s,x)=>s+x.n, 0) || 1;
+  const r = size/2, ri = r*0.6, live = segs.filter(s => s.n > 0);
+  if (live.length === 1) {
+    const s = live[0];
+    return `<svg class="an-donut" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+      <circle cx="${r}" cy="${r}" r="${(r+ri)/2}" fill="none" stroke="${s.c}" stroke-width="${r-ri}"
+        style="cursor:pointer" onclick="${onclick(s)}"><title>${s.l} — ${s.n}</title></circle></svg>`;
+  }
+  let a0 = -Math.PI/2;
+  const paths = live.map(s => {
+    const frac = s.n/total, a1 = a0 + frac*2*Math.PI, large = frac > 0.5 ? 1 : 0;
+    const P = (ang,rad) => `${(r+Math.cos(ang)*rad).toFixed(2)} ${(r+Math.sin(ang)*rad).toFixed(2)}`;
+    const d = `M${P(a0,r)} A${r} ${r} 0 ${large} 1 ${P(a1,r)} L${P(a1,ri)} A${ri} ${ri} 0 ${large} 0 ${P(a0,ri)} Z`;
+    a0 = a1;
+    return `<path d="${d}" fill="${s.c}" stroke="var(--panel)" stroke-width="1" style="cursor:pointer"
+      onclick="${onclick(s)}"><title>${s.l} — ${s.n} (${(frac*100).toFixed(0)}%)</title></path>`;
+  }).join('');
+  return `<svg class="an-donut" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">${paths}</svg>`;
+}
+
+// ── Shell ────────────────────────────────────────────────────────────
+function anChipBar(scoped, base) {
+  const applicable = anFilters.some(f => f.apply);
+  return `<div class="an-fbar">
+    <span class="an-fbar-lbl">${scoped.length.toLocaleString()}<span> of ${base.length.toLocaleString()}</span></span>
+    ${anFilters.map(f => `<button class="an-fchip" onclick="anRemoveFilter('${f.id}')" title="Remove">${f.label}<span>✕</span></button>`).join('')}
+    ${anFilters.length ? `<button class="an-fclear" onclick="anClearFilters()">Clear all</button>` : `<span class="an-fbar-hint">Click any bar, row or slice to drill in</span>`}
+    ${applicable ? `<button class="an-fapply" onclick="anApplyToDashboard()">Apply to dashboard →</button>` : ''}
+  </div>`;
 }
 
 function renderAnalytics() {
-  const d = anData();
-  document.getElementById('an-sub').textContent = `${filtered.length.toLocaleString()} prospects · current filter`;
+  const base = anData();
   const body = document.getElementById('an-body');
-  if (!d.length) {
+  document.getElementById('an-sub').textContent = `${filtered.length.toLocaleString()} prospects · current filter`;
+  if (!base.length) {
     body.innerHTML = `<div class="an-empty">No scored players in the current filter.<br>Try widening or clearing your filters.
       <br><button onclick="resetFilters();renderAnalytics();">Reset filters</button></div>`;
     return;
   }
-  ({ overview: renderAnOverview, scatter: renderAnScatter, movers: renderAnMovers,
-     levels: renderAnLevels, teams: renderAnTeams, positions: renderAnPositions,
-     radar: renderAnRadar, price: renderAnPrice }[anTab] || renderAnOverview)(d, body);
+  const d = anScope();
+  const chips = anChipBar(d, base);
+  if (!d.length) {
+    body.innerHTML = chips + `<div class="an-empty">Nothing matches this drill-down.<br>Remove a filter above to widen it.</div>`;
+    return;
+  }
+  const fn = { overview: renderAnOverview, explore: renderAnExplore, dist: renderAnDist,
+     corr: renderAnCorr, movers: renderAnMovers, levels: renderAnLevels, teams: renderAnTeams,
+     positions: renderAnPositions, radar: renderAnRadar, price: renderAnPrice }[anTab] || renderAnOverview;
+  body.innerHTML = chips + fn(d);
 }
 
+// ── Shared pieces ────────────────────────────────────────────────────
 function anMoversList(p) {
-  return `<div class="an-mv-row" onclick="anOpenPlayer(RAW[${RAW.indexOf(p)}])" style="cursor:pointer">
+  return `<div class="an-mv-row" ${anPlayerAttrs(p)}>
     <div><div class="an-mv-name">${p.name}</div><div class="an-mv-meta">${p.team||'—'} · ${lvlShort(p.level||'—')} · score ${p.prospect_score}</div></div>
     <div class="an-mv-delta" style="color:${p.prospect_score_d>0?'var(--good)':'var(--bad)'}">${p.prospect_score_d>0?'+':''}${p.prospect_score_d.toFixed(1)}</div>
   </div>`;
 }
+function anLeaderRow(p, i, k) {
+  return `<div class="an-lead-row" ${anPlayerAttrs(p)}>
+    <span class="an-lead-i">${i+1}</span>
+    <span class="an-lead-n">${p.name}${tierTag(p)}</span>
+    <span class="an-lead-m">${p.team||'—'} · ${lvlShort(p.level||'—')}</span>
+    <span class="an-lead-v">${anFmt(k, anVal(p,k))}</span>
+  </div>`;
+}
+function anCard(title, sub, stat, inner) {
+  return `<div class="an-card">
+    <div class="an-card-head">
+      <div><div class="an-card-t">${title}</div>${sub?`<div class="an-card-sub">${sub}</div>`:''}</div>
+      ${stat?`<div class="an-card-stat">${stat}</div>`:''}
+    </div>${inner}</div>`;
+}
 
-function renderAnOverview(d, body) {
+// ── Overview ─────────────────────────────────────────────────────────
+function renderAnOverview(d) {
   const scores = d.map(p=>p.prospect_score);
   const med = anMedian(scores), p90 = anPercentile(scores, 90);
   const tieredN = d.filter(p => tierOf(p)).length;
+  const priced = d.filter(p => p.price_raw != null && p.price_raw > 0);
 
   const buckets = Array(10).fill(0);
   scores.forEach(s => buckets[Math.min(9, Math.floor(s/10))]++);
   const maxB = Math.max(...buckets, 1);
-  const barsW = 400, barsH = 140, bw = barsW/10 - 4;
+  const W = 400, H = 140;
   const bars = buckets.map((n,i) => {
-    const h = Math.round(n/maxB*barsH), x = i*(barsW/10) + 2, y = barsH - h;
-    return `<rect x="${x}" y="${y}" width="${bw}" height="${Math.max(h,2)}" fill="${anBracket(i*10+5).c}" rx="2"
-      style="cursor:pointer" onclick="anFilterScoreMin(${i*10})"><title>Score ${i*10}+ (${n} players) — click to filter</title></rect>`;
+    const h = Math.round(n/maxB*H), x = i*(W/10)+2, y = H-h;
+    return `<g style="cursor:pointer" onclick="anPickBand(${i*10},${i*10+10})">
+      <rect x="${x}" y="0" width="${W/10-4}" height="${H}" fill="transparent"/>
+      <rect x="${x}" y="${y}" width="${W/10-4}" height="${Math.max(h,2)}" fill="${anBracket(i*10+5).c}" rx="2"/>
+      <title>Score ${i*10}–${i*10+9} · ${n} players</title></g>`;
   }).join('');
 
-  const withDelta = d.filter(p => p.prospect_score_d != null && p.prospect_score_d !== 0);
-  const risers = [...withDelta].filter(p=>p.prospect_score_d>0).sort((a,b)=>b.prospect_score_d-a.prospect_score_d).slice(0,3);
-  const fallers = [...withDelta].filter(p=>p.prospect_score_d<0).sort((a,b)=>a.prospect_score_d-b.prospect_score_d).slice(0,3);
+  const lvlGroups = {};
+  d.forEach(p => { const l = lvlShort(p.level||'—'); (lvlGroups[l] = lvlGroups[l]||[]).push(p); });
+  const lvlSegs = Object.keys(lvlGroups)
+    .sort((a,b)=>(AN_LEVEL_ORDER.indexOf(a)+1||99)-(AN_LEVEL_ORDER.indexOf(b)+1||99))
+    .map(l => ({ l, n:lvlGroups[l].length, c:anLevelColor(l) }));
 
-  body.innerHTML = `
+  const withDelta = d.filter(p => p.prospect_score_d != null && p.prospect_score_d !== 0);
+  const risers  = [...withDelta].filter(p=>p.prospect_score_d>0).sort((a,b)=>b.prospect_score_d-a.prospect_score_d).slice(0,5);
+  const fallers = [...withDelta].filter(p=>p.prospect_score_d<0).sort((a,b)=>a.prospect_score_d-b.prospect_score_d).slice(0,5);
+  const top = [...d].sort((a,b)=>b.prospect_score-a.prospect_score).slice(0,8);
+
+  return `
     <div class="an-kpis">
-      <div class="an-kpi"><div class="an-kpi-v">${d.length.toLocaleString()}</div><div class="an-kpi-l">Scored prospects</div></div>
+      <div class="an-kpi"><div class="an-kpi-v">${d.length.toLocaleString()}</div><div class="an-kpi-l">Prospects</div></div>
       <div class="an-kpi"><div class="an-kpi-v">${med.toFixed(1)}</div><div class="an-kpi-l">Median score</div></div>
-      <div class="an-kpi"><div class="an-kpi-v">${p90.toFixed(0)}</div><div class="an-kpi-l">Top decile cutoff</div></div>
+      <div class="an-kpi"><div class="an-kpi-v">${p90.toFixed(0)}</div><div class="an-kpi-l">Top decile at</div></div>
       <div class="an-kpi"><div class="an-kpi-v">${tieredN}</div><div class="an-kpi-l">Tiered by you</div></div>
+      <div class="an-kpi"><div class="an-kpi-v">${priced.length}</div><div class="an-kpi-l">Priced cards</div></div>
     </div>
     <div class="an-row">
-      <div class="an-card">
-        <div class="an-card-head"><div><div class="an-card-t">Score Distribution</div><div class="an-card-sub">current filter</div></div></div>
-        <svg class="an-svg" viewBox="0 0 ${barsW} ${barsH+20}">
-          ${bars}
-          <line x1="0" y1="${barsH}" x2="${barsW}" y2="${barsH}" class="an-grid-ln"/>
-          <text class="an-ax" x="2" y="${barsH+14}">0</text>
-          <text class="an-ax" x="${barsW/2-8}" y="${barsH+14}">50</text>
-          <text class="an-ax" x="${barsW-16}" y="${barsH+14}">100</text>
-        </svg>
-        ${anBracketLegend()}
-      </div>
-      <div class="an-card">
-        <div class="an-card-head"><div><div class="an-card-t">Biggest Movers</div><div class="an-card-sub">this month</div></div></div>
-        ${!withDelta.length ? '<div class="an-card-sub" style="padding:8px 0">No month-over-month data yet.</div>' : `
+      ${anCard('Score Distribution', 'click a bar to drill in', '',
+        `<svg class="an-svg" viewBox="0 0 ${W} ${H+20}">${bars}
+          <line x1="0" y1="${H}" x2="${W}" y2="${H}" class="an-grid-ln"/>
+          <text class="an-ax" x="2" y="${H+14}">0</text>
+          <text class="an-ax" x="${W/2-8}" y="${H+14}">50</text>
+          <text class="an-ax" x="${W-16}" y="${H+14}">100</text></svg>${anBracketLegend()}`)}
+      ${anCard('Level Mix', 'click a slice to drill in', '',
+        `<div class="an-donut-wrap">${anDonut(lvlSegs, 150, s => `anPickLevel('${s.l}')`)}
+          <div class="an-legend an-legend-col">${lvlSegs.map(s=>
+            `<div class="an-lg-item" style="cursor:pointer" onclick="anPickLevel('${s.l}')">
+              <span class="an-lg-dot" style="background:${s.c}"></span>${s.l} <b>${s.n}</b></div>`).join('')}</div></div>`)}
+    </div>
+    <div class="an-row">
+      ${anCard('Top by Score', 'click a player for their card', '',
+        top.map((p,i)=>anLeaderRow(p,i,'prospect_score')).join(''))}
+      ${anCard('Biggest Movers', 'month over month', '',
+        !withDelta.length ? '<div class="an-card-sub" style="padding:8px 0">No month-over-month data yet.</div>' : `
           <div class="an-mv-col-t" style="color:var(--good)">↗ Risers</div>
           ${risers.map(anMoversList).join('') || '<div class="an-card-sub">None</div>'}
           <div class="an-mv-col-t" style="color:var(--bad); margin-top:12px">↘ Fallers</div>
-          ${fallers.map(anMoversList).join('') || '<div class="an-card-sub">None</div>'}`}
-      </div>
+          ${fallers.map(anMoversList).join('') || '<div class="an-card-sub">None</div>'}`)}
     </div>`;
 }
 
-function renderAnScatter(d, body) {
-  const pts = d.filter(p => p.age != null);
-  if (pts.length < 5) { body.innerHTML = `<div class="an-empty">Not enough age/score data in this filter.</div>`; return; }
-  const ages = pts.map(p=>p.age);
-  const minAge = Math.min(...ages), maxAge = Math.max(...ages);
-  const W=460, H=260, padL=40, padB=26, padT=10, padR=10;
-  const x = a => padL + (a-minAge)/((maxAge-minAge)||1)*(W-padL-padR);
-  const y = s => (H-padB) - s/100*(H-padB-padT);
+// ── Explore: configurable scatter ────────────────────────────────────
+function anSetAxis(which, v) {
+  if (which === 'x') anX = v; else if (which === 'y') anY = v; else anColorBy = v;
+  renderAnalytics();
+}
+function anSwapAxes() { const t = anX; anX = anY; anY = t; renderAnalytics(); }
 
-  const { slope, intercept } = linreg(pts.map(p=>[p.age,p.prospect_score]));
-  const resid = pts.map(p => ({ p, r: p.prospect_score - (intercept+slope*p.age) }));
-  const over = [...resid].sort((a,b)=>b.r-a.r).slice(0,3);
-  const under = [...resid].sort((a,b)=>a.r-b.r).slice(0,3);
-  const outSet = new Set([...over,...under].map(o=>o.p));
+function renderAnExplore(d) {
+  const pts = d.filter(p => anVal(p,anX) != null && anVal(p,anY) != null);
+  const sel = (which, cur) => `<select class="an-sel" onchange="anSetAxis('${which}',this.value)">
+    ${AN_STATS.map(s=>`<option value="${s.k}"${s.k===cur?' selected':''}>${s.l}</option>`).join('')}</select>`;
+  const colorSel = `<select class="an-sel" onchange="anSetAxis('color',this.value)">
+    ${[['level','Level'],['band','Score band'],['tier','Your tier']].map(([v,l])=>
+      `<option value="${v}"${v===anColorBy?' selected':''}>${l}</option>`).join('')}</select>`;
+  const controls = `<div class="an-ctrls">
+    <span class="an-ctrl-l">Y</span>${sel('y',anY)}
+    <button class="an-swap" onclick="anSwapAxes()" title="Swap axes">⇄</button>
+    <span class="an-ctrl-l">X</span>${sel('x',anX)}
+    <span class="an-ctrl-l">Colour</span>${colorSel}
+  </div>`;
 
-  const anDot = (p, cx, cy, r, fill, opacity) => `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${r}" fill="${fill}"
-    ${opacity?`opacity="${opacity}"`:''} stroke="var(--panel)" stroke-width="1.3" style="cursor:pointer"
-    onclick="anOpenPlayer(RAW[${RAW.indexOf(p)}])"><title>${p.name} — ${p.team||'—'}, age ${p.age}, score ${p.prospect_score}</title></circle>`;
+  if (pts.length < 3) return controls + `<div class="an-empty">Not enough players have both ${anLabel(anX)} and ${anLabel(anY)}.</div>`;
 
-  const dots = pts.filter(p=>!outSet.has(p)).map(p =>
-    anDot(p, x(p.age), y(p.prospect_score), 2.6, anLevelColor(p.level), .55)).join('');
-  const outDots = [...over.map(o=>({...o,c:'var(--good)'})), ...under.map(o=>({...o,c:'var(--bad)'}))].map(o =>
-    anDot(o.p, x(o.p.age), y(o.p.prospect_score), 4.6, o.c)).join('');
+  const xs = pts.map(p=>anVal(p,anX)), ys = pts.map(p=>anVal(p,anY));
+  const xMin = Math.min(...xs), xMax = Math.max(...xs);
+  const yMin = Math.min(...ys), yMax = Math.max(...ys);
+  const W=620, H=340, padL=52, padB=38, padT=12, padR=14;
+  const X = v => padL + (v-xMin)/((xMax-xMin)||1)*(W-padL-padR);
+  const Y = v => (H-padB) - (v-yMin)/((yMax-yMin)||1)*(H-padB-padT);
 
-  const outRows = (arr,color) => arr.map(o => `<div class="an-out-lbl" style="cursor:pointer" onclick="anOpenPlayer(RAW[${RAW.indexOf(o.p)}])">
-    <span style="color:${color}">●</span> <b>${o.p.name}</b> — ${o.r>0?'+':''}${o.r.toFixed(1)} vs. age trend</div>`).join('');
+  const r = anPearson(pts, anX, anY);
+  const { slope, intercept } = linreg(pts.map(p=>[anVal(p,anX), anVal(p,anY)]));
+  const trend = `<line class="an-trend" x1="${X(xMin).toFixed(1)}" y1="${Y(intercept+slope*xMin).toFixed(1)}"
+                       x2="${X(xMax).toFixed(1)}" y2="${Y(intercept+slope*xMax).toFixed(1)}"/>`;
 
-  body.innerHTML = `
-    <div class="an-card">
-      <div class="an-card-head">
-        <div><div class="an-card-t">Age vs. Score</div><div class="an-card-sub">by level, current filter</div></div>
-        <div class="an-card-stat"><b>${over.length+under.length}</b> outliers flagged</div>
-      </div>
-      <svg class="an-svg" viewBox="0 0 ${W} ${H}">
-        <line class="an-grid-ln" x1="${padL}" y1="${padT}" x2="${padL}" y2="${H-padB}"/>
-        <line class="an-grid-ln" x1="${padL}" y1="${H-padB}" x2="${W-padR}" y2="${H-padB}"/>
-        <text class="an-ax" x="${padL-4}" y="${H-padB+4}" text-anchor="end">0</text>
-        <text class="an-ax" x="${padL-4}" y="${padT+8}" text-anchor="end">100</text>
-        <text class="an-ax" x="${padL}" y="${H-6}" text-anchor="middle">${minAge}</text>
-        <text class="an-ax" x="${W-padR}" y="${H-6}" text-anchor="middle">${maxAge}</text>
-        <line class="an-trend" x1="${x(minAge).toFixed(1)}" y1="${y(intercept+slope*minAge).toFixed(1)}" x2="${x(maxAge).toFixed(1)}" y2="${y(intercept+slope*maxAge).toFixed(1)}"/>
-        ${dots}${outDots}
+  // residual outliers get a bigger, opaque mark so they read as notable
+  const resid = pts.map(p => ({ p, e: anVal(p,anY) - (intercept + slope*anVal(p,anX)) }));
+  const flagged = new Set([...resid].sort((a,b)=>Math.abs(b.e)-Math.abs(a.e)).slice(0,6).map(o=>o.p));
+
+  const dots = pts.map(p => {
+    const big = flagged.has(p);
+    return `<circle cx="${X(anVal(p,anX)).toFixed(1)}" cy="${Y(anVal(p,anY)).toFixed(1)}" r="${big?4.8:2.8}"
+      fill="${anMarkColor(p)}" ${big?'':'opacity=".5"'} stroke="var(--panel)" stroke-width="${big?1.4:0.8}"
+      ${anPlayerAttrs(p)}><title>${p.name} — ${p.team||'—'} ${lvlShort(p.level||'')}
+${anLabel(anX)} ${anFmt(anX,anVal(p,anX))} · ${anLabel(anY)} ${anFmt(anY,anVal(p,anY))}</title></circle>`;
+  }).join('');
+
+  const gridY = [0,0.25,0.5,0.75,1].map(f => {
+    const v = yMin + (yMax-yMin)*f, y = Y(v);
+    return `<line class="an-grid-ln" x1="${padL}" y1="${y.toFixed(1)}" x2="${W-padR}" y2="${y.toFixed(1)}"/>
+      <text class="an-ax" x="${padL-6}" y="${(y+3).toFixed(1)}" text-anchor="end">${anFmt(anY,v)}</text>`;
+  }).join('');
+  const gridX = [0,0.5,1].map(f => {
+    const v = xMin + (xMax-xMin)*f, x = X(v);
+    return `<text class="an-ax" x="${x.toFixed(1)}" y="${H-padB+16}" text-anchor="middle">${anFmt(anX,v)}</text>`;
+  }).join('');
+
+  const legend = anColorBy === 'band' ? anBracketLegend()
+    : anColorBy === 'tier'
+      ? `<div class="an-legend">${TIERS.map(t=>`<div class="an-lg-item" style="cursor:pointer" onclick="anPickTier('${t.id}')">
+          <span class="an-lg-dot" style="background:${t.color}"></span>${t.label}</div>`).join('')}</div>`
+      : `<div class="an-legend">${[...new Set(d.map(p=>lvlShort(p.level||'—')))]
+          .sort((a,b)=>(AN_LEVEL_ORDER.indexOf(a)+1||99)-(AN_LEVEL_ORDER.indexOf(b)+1||99))
+          .map(l=>`<div class="an-lg-item" style="cursor:pointer" onclick="anPickLevel('${l}')">
+            <span class="an-lg-dot" style="background:${anLevelColor(l)}"></span>${l}</div>`).join('')}</div>`;
+
+  return controls + anCard(`${anLabel(anY)} vs. ${anLabel(anX)}`,
+    'each dot is a player — click one for their card',
+    `n = <b>${pts.length}</b> · r = <b>${r==null?'—':r.toFixed(2)}</b>`,
+    `<svg class="an-svg" viewBox="0 0 ${W} ${H}">
+      <line class="an-grid-ln" x1="${padL}" y1="${padT}" x2="${padL}" y2="${H-padB}"/>
+      <line class="an-grid-ln" x1="${padL}" y1="${H-padB}" x2="${W-padR}" y2="${H-padB}"/>
+      ${gridY}${gridX}${trend}${dots}
+      <text class="an-ax-t" x="${(padL+W-padR)/2}" y="${H-4}" text-anchor="middle">${anLabel(anX)}</text>
+    </svg>${legend}`);
+}
+
+// ── Spread: small-multiple histograms ────────────────────────────────
+function renderAnDist(d) {
+  const cards = AN_CORE.map(k => {
+    const vals = d.map(p=>anVal(p,k)).filter(v=>v!=null);
+    if (vals.length < 5) return '';
+    const bins = anBins(vals, 14);
+    const maxN = Math.max(...bins.map(b=>b.n), 1);
+    const med = anMedian(vals);
+    const W=200, H=64;
+    const bw = W/bins.length;
+    const bars = bins.map((b,i) => {
+      const h = Math.round(b.n/maxN*H);
+      return `<g style="cursor:pointer" onclick="anPickRange('${k}',${b.lo},${b.hi})">
+        <rect x="${(i*bw).toFixed(1)}" y="0" width="${bw.toFixed(1)}" height="${H}" fill="transparent"/>
+        <rect x="${(i*bw+0.5).toFixed(1)}" y="${H-h}" width="${(bw-1).toFixed(1)}" height="${Math.max(h,1)}"
+          fill="var(--accent)" opacity="${0.35 + 0.55*(b.n/maxN)}" rx="1"/>
+        <title>${anLabel(k)} ${anFmt(k,b.lo)}–${anFmt(k,b.hi)} · ${b.n} players</title></g>`;
+    }).join('');
+    const medX = ((med - bins[0].lo) / ((bins[bins.length-1].hi - bins[0].lo)||1)) * W;
+    return `<div class="an-sm">
+      <div class="an-sm-head"><span class="an-sm-t">${anLabel(k)}</span>
+        <span class="an-sm-med">med ${anFmt(k,med)}</span></div>
+      <svg class="an-svg" viewBox="0 0 ${W} ${H+2}">${bars}
+        <line x1="${medX.toFixed(1)}" y1="0" x2="${medX.toFixed(1)}" y2="${H}" stroke="var(--ink-mid)" stroke-width="1" stroke-dasharray="2 2"/>
       </svg>
-      <div style="margin-top:6px">${outRows(over,'var(--good)')}${outRows(under,'var(--bad)')}</div>
-      <div class="an-legend">
-        <div class="an-lg-item"><span class="an-lg-dot" style="background:var(--good)"></span>Overperforming for age</div>
-        <div class="an-lg-item"><span class="an-lg-dot" style="background:var(--bad)"></span>Underperforming for age</div>
-      </div>
+      <div class="an-sm-ax"><span>${anFmt(k,bins[0].lo)}</span><span>${anFmt(k,bins[bins.length-1].hi)}</span></div>
     </div>`;
+  }).join('');
+  return anCard('Distributions', 'every core stat across the current scope — click any bar to drill into that range',
+    `<b>${d.length}</b> players`, `<div class="an-sm-grid">${cards}</div>`);
 }
 
-function renderAnMovers(d, body) {
+// ── Correlate: matrix ────────────────────────────────────────────────
+function anCorrColor(r) {
+  if (r == null) return 'transparent';
+  const pct = Math.round(Math.abs(r) * 82);
+  return `color-mix(in srgb, ${r>0?'var(--good)':'var(--bad)'} ${pct}%, transparent)`;
+}
+function anGoScatter(x, y) { anX = x; anY = y; setAnTab('explore'); }
+
+function renderAnCorr(d) {
+  const keys = AN_CORE;
+  const head = `<div class="an-corr-row"><span class="an-corr-h"></span>${keys.map(k=>
+    `<span class="an-corr-h an-corr-h-top"><span>${anLabel(k)}</span></span>`).join('')}</div>`;
+  const rows = keys.map(a => `<div class="an-corr-row"><span class="an-corr-h">${anLabel(a)}</span>${keys.map(b => {
+      if (a === b) return `<span class="an-corr-c an-corr-diag">–</span>`;
+      const r = anPearson(d, a, b);
+      return `<span class="an-corr-c" style="background:${anCorrColor(r)}; cursor:pointer"
+        onclick="anGoScatter('${b}','${a}')" title="${anLabel(a)} vs ${anLabel(b)} — r ${r==null?'n/a':r.toFixed(2)} (click to plot)">${r==null?'':r.toFixed(2).replace(/^0\./,'.').replace(/^-0\./,'-.')}</span>`;
+    }).join('')}</div>`).join('');
+
+  // strongest relationships, ignoring the mirrored duplicates
+  const pairs = [];
+  keys.forEach((a,i) => keys.slice(i+1).forEach(b => {
+    const r = anPearson(d, a, b);
+    if (r != null) pairs.push({ a, b, r });
+  }));
+  pairs.sort((p,q) => Math.abs(q.r) - Math.abs(p.r));
+  const top = pairs.slice(0,8).map(p =>
+    `<div class="an-pair" onclick="anGoScatter('${p.b}','${p.a}')">
+      <span class="an-pair-n">${anLabel(p.a)} <i>vs</i> ${anLabel(p.b)}</span>
+      <span class="an-pair-r" style="color:${p.r>0?'var(--good)':'var(--bad)'}">${p.r.toFixed(2)}</span></div>`).join('');
+
+  return anCard('Correlation Matrix', 'Pearson r across the current scope — click a cell to plot that pair',
+      `<b>${d.length}</b> players`,
+      `<div class="an-corr-scroll"><div class="an-corr">${head}${rows}</div></div>
+       <div class="an-legend"><div class="an-lg-item"><span class="an-lg-dot" style="background:var(--good)"></span>positive</div>
+       <div class="an-lg-item"><span class="an-lg-dot" style="background:var(--bad)"></span>negative</div>
+       <div class="an-lg-item">stronger = more saturated</div></div>`)
+    + anCard('Strongest Relationships', 'click to plot', '', `<div class="an-pairs">${top}</div>`);
+}
+
+// ── Movers ───────────────────────────────────────────────────────────
+function renderAnMovers(d) {
   const withDelta = d.filter(p => p.prospect_score_d != null && p.prospect_score_d !== 0);
-  if (!withDelta.length) { body.innerHTML = `<div class="an-empty">No month-over-month score deltas in this filter yet.<br>Check back after the next data refresh.</div>`; return; }
-  const risers = [...withDelta].filter(p=>p.prospect_score_d>0).sort((a,b)=>b.prospect_score_d-a.prospect_score_d).slice(0,10);
-  const fallers = [...withDelta].filter(p=>p.prospect_score_d<0).sort((a,b)=>a.prospect_score_d-b.prospect_score_d).slice(0,10);
-  body.innerHTML = `
-    <div class="an-card">
-      <div class="an-card-head"><div><div class="an-card-t">Score Movers</div><div class="an-card-sub">biggest change, this month</div></div></div>
-      <div class="an-mv-grid">
-        <div><div class="an-mv-col-t" style="color:var(--good)">↗ Risers</div>${risers.map(anMoversList).join('')||'<div class="an-card-sub">None</div>'}</div>
-        <div><div class="an-mv-col-t" style="color:var(--bad)">↘ Fallers</div>${fallers.map(anMoversList).join('')||'<div class="an-card-sub">None</div>'}</div>
-      </div>
-    </div>`;
+  if (!withDelta.length) return `<div class="an-empty">No month-over-month score deltas in this scope yet.<br>Check back after the next data refresh.</div>`;
+  const risers  = [...withDelta].filter(p=>p.prospect_score_d>0).sort((a,b)=>b.prospect_score_d-a.prospect_score_d).slice(0,12);
+  const fallers = [...withDelta].filter(p=>p.prospect_score_d<0).sort((a,b)=>a.prospect_score_d-b.prospect_score_d).slice(0,12);
+  const up = withDelta.filter(p=>p.prospect_score_d>0).length;
+  return anCard('Score Movers', 'biggest change, this month',
+    `<b>${up}</b> up · <b>${withDelta.length-up}</b> down`,
+    `<div class="an-mv-grid">
+      <div><div class="an-mv-col-t" style="color:var(--good)">↗ Risers</div>${risers.map(anMoversList).join('')||'<div class="an-card-sub">None</div>'}</div>
+      <div><div class="an-mv-col-t" style="color:var(--bad)">↘ Fallers</div>${fallers.map(anMoversList).join('')||'<div class="an-card-sub">None</div>'}</div>
+    </div>`);
 }
 
+// ── Levels ───────────────────────────────────────────────────────────
 const AN_LEVEL_ORDER = ['DSL','CPX','A','A+','AA','AAA','MLB'];
-function renderAnLevels(d, body) {
+function renderAnLevels(d) {
   const groups = {};
-  d.forEach(p => { const l = (p.level||'').split(',')[0].trim() || '—'; (groups[l]=groups[l]||[]).push(p); });
-  const levels = Object.keys(groups).sort((a,b) => {
-    const ia = AN_LEVEL_ORDER.indexOf(a), ib = AN_LEVEL_ORDER.indexOf(b);
-    return (ia<0?99:ia) - (ib<0?99:ib);
-  });
+  d.forEach(p => { const l = lvlShort(p.level||'—'); (groups[l]=groups[l]||[]).push(p); });
+  const levels = Object.keys(groups).sort((a,b) =>
+    (AN_LEVEL_ORDER.indexOf(a)+1||99) - (AN_LEVEL_ORDER.indexOf(b)+1||99));
   const maxN = Math.max(...levels.map(l=>groups[l].length), 1);
   const rows = levels.map(l => {
-    const rows_ = groups[l], n = rows_.length, widthPct = Math.max(10, n/maxN*100);
+    const g = groups[l], n = g.length;
     const segs = AN_BRACKETS.map(b => {
-      const pct = rows_.filter(p=>p.prospect_score>=b.lo && p.prospect_score<b.hi).length/n*100;
+      const pct = g.filter(p=>p.prospect_score>=b.lo && p.prospect_score<b.hi).length/n*100;
       return pct>0 ? `<div class="an-pipe-seg" style="width:${pct}%; background:${b.c}"></div>` : '';
     }).join('');
-    return `<div class="an-pipe-row" style="cursor:pointer" onclick="anFilterTo('fl','${l}')" title="Filter to ${l}">
+    const med = anMedian(g.map(p=>p.prospect_score));
+    return `<div class="an-pipe-row" style="cursor:pointer" onclick="anPickLevel('${l}')" title="Drill into ${l}">
       <div class="an-pipe-lbl">${l}</div>
-      <div class="an-pipe-track" style="width:${widthPct}%">${segs}</div>
-      <div class="an-pipe-n">${n}</div></div>`;
+      <div class="an-pipe-track" style="width:${Math.max(10, n/maxN*100)}%">${segs}</div>
+      <div class="an-pipe-n">${n} <i>· med ${med.toFixed(0)}</i></div></div>`;
   }).join('');
-  body.innerHTML = `
-    <div class="an-card">
-      <div class="an-card-head"><div><div class="an-card-t">Level Pipeline</div><div class="an-card-sub">count by level, split by score band — click a row to filter</div></div><div class="an-card-stat"><b>${d.length}</b> total</div></div>
-      ${rows}${anBracketLegend()}
-    </div>`;
+  return anCard('Level Pipeline', 'headcount by level, split by score band — click a row to drill in',
+    `<b>${d.length}</b> total`, rows + anBracketLegend());
 }
 
-function renderAnTeams(d, body) {
+// ── Teams ────────────────────────────────────────────────────────────
+function renderAnTeams(d) {
   const groups = {};
   d.forEach(p => { const t = p.team || '—'; (groups[t]=groups[t]||[]).push(p); });
   const teams = Object.keys(groups).sort((a,b) => {
-    const eliteA = groups[a].filter(p=>p.prospect_score>=90).length;
-    const eliteB = groups[b].filter(p=>p.prospect_score>=90).length;
-    return eliteB - eliteA || groups[b].length - groups[a].length;
-  }).slice(0,18);
+    const A = groups[a], B = groups[b];
+    const eA = A.filter(p=>p.prospect_score>=70).length, eB = B.filter(p=>p.prospect_score>=70).length;
+    return eB - eA || B.length - A.length;
+  });
   const rows = teams.map(t => {
-    const rows_ = groups[t];
-    const dots = rows_.map(p => `<span class="an-td-dot" style="background:${anBracket(p.prospect_score).c}"></span>`).join('');
-    const top = rows_.filter(p=>p.prospect_score>=90).length;
-    return `<div class="an-td-row" style="cursor:pointer" onclick="anFilterTo('ft','${t}')" title="Filter to ${t}">
-      <div class="an-td-name">${t}</div>
+    const g = [...groups[t]].sort((a,b)=>b.prospect_score-a.prospect_score);
+    const dots = g.slice(0,40).map(p =>
+      `<span class="an-td-dot" style="background:${anBracket(p.prospect_score).c}" ${anPlayerAttrs(p)}
+        title="${p.name} — ${p.prospect_score}"></span>`).join('');
+    return `<div class="an-td-row">
+      <div class="an-td-name" style="cursor:pointer" onclick="anPickTeam('${t}')" title="Drill into ${t}">${t}</div>
       <div class="an-td-dots">${dots}</div>
-      <div class="an-td-count">90+ <b>${top}</b></div></div>`;
+      <div class="an-td-count">70+ <b>${g.filter(p=>p.prospect_score>=70).length}</b></div></div>`;
   }).join('');
-  body.innerHTML = `
-    <div class="an-card">
-      <div class="an-card-head"><div><div class="an-card-t">Team Depth Chart</div><div class="an-card-sub">one dot per prospect, by score band — click a row to filter</div></div><div class="an-card-stat">sorted by <b>90+</b> count</div></div>
-      ${rows}${anBracketLegend()}
-    </div>`;
+  return anCard('Team Depth Chart', 'one dot per prospect — click a dot for the player, the code to drill into the org',
+    'sorted by <b>70+</b> count', rows + anBracketLegend());
 }
 
-function renderAnPositions(d, body) {
+// ── Positions ────────────────────────────────────────────────────────
+function renderAnPositions(d) {
   const groups = {};
   d.forEach(p => {
-    if (!p.pos || p.pos==='-') return;
+    if (!p.pos || p.pos === '-') return;
     const pos = p.pos.split('/')[0].trim();
     (groups[pos]=groups[pos]||[]).push(p);
   });
   const positions = Object.keys(groups).sort((a,b) =>
-    groups[b].filter(p=>p.prospect_score>=90).length - groups[a].filter(p=>p.prospect_score>=90).length);
-  if (!positions.length) { body.innerHTML = `<div class="an-empty">No position data in this filter.</div>`; return; }
+    groups[b].filter(p=>p.prospect_score>=70).length - groups[a].filter(p=>p.prospect_score>=70).length);
+  if (!positions.length) return `<div class="an-empty">No position data in this scope.</div>`;
   const rows = positions.map(pos => {
-    const rows_ = groups[pos], n = rows_.length;
+    const g = groups[pos], n = g.length;
     const segs = AN_BRACKETS.map(b => {
-      const pct = rows_.filter(p=>p.prospect_score>=b.lo && p.prospect_score<b.hi).length/n*100;
+      const pct = g.filter(p=>p.prospect_score>=b.lo && p.prospect_score<b.hi).length/n*100;
       return pct>0 ? `<div class="an-pos-seg" style="width:${pct}%; background:${b.c}"></div>` : '';
     }).join('');
-    return `<div class="an-pos-row" style="cursor:pointer" onclick="anFilterTo('fpos','${pos}')" title="Filter to ${pos}">
+    return `<div class="an-pos-row" style="cursor:pointer" onclick="anPickPos('${pos}')" title="Drill into ${pos}">
       <div class="an-pos-lbl">${pos}</div>
       <div class="an-pos-track">${segs}</div><div class="an-pos-n">${n}</div></div>`;
   }).join('');
-  body.innerHTML = `
-    <div class="an-card">
-      <div class="an-card-head"><div><div class="an-card-t">Position Scarcity</div><div class="an-card-sub">score-band counts by position — click a row to filter</div></div><div class="an-card-stat">sorted by <b>90+</b> count</div></div>
-      ${rows}${anBracketLegend()}
-    </div>`;
+  return anCard('Position Scarcity', 'score-band counts by position — click a row to drill in',
+    'sorted by <b>70+</b> count', rows + anBracketLegend());
 }
 
-function renderAnRadar(d, body) {
-  const withGrades = d.filter(p => p.hit!=null && p.dis!=null && p.pwr!=null && p.spd!=null && p.age_r!=null && p.wrc_r!=null);
-  if (withGrades.length < 6) { body.innerHTML = `<div class="an-empty">Not enough tool-grade data in this filter.</div>`; return; }
-  const p90cut = anPercentile(withGrades.map(p=>p.prospect_score), 90);
-  const top = withGrades.filter(p=>p.prospect_score>=p90cut);
-  const rest = withGrades.filter(p=>p.prospect_score<p90cut);
+// ── Radar ────────────────────────────────────────────────────────────
+function renderAnRadar(d) {
+  const G = ['hit','dis','pwr','spd','age_r','wrc_r'], L = ['HIT','DIS','PWR','SPD','AGE','WRC+'];
+  const rows = d.filter(p => G.every(k => p[k] != null));
+  if (rows.length < 6) return `<div class="an-empty">Not enough tool-grade data in this scope.</div>`;
+  const cut = anPercentile(rows.map(p=>p.prospect_score), 90);
+  const top = rows.filter(p=>p.prospect_score>=cut), rest = rows.filter(p=>p.prospect_score<cut);
   const avg = (arr,k) => arr.reduce((s,p)=>s+p[k],0)/arr.length*100;
-  const keys = ['hit','dis','pwr','spd','age_r','wrc_r'], labels = ['HIT','DIS','PWR','SPD','AGE','WRC+'];
-  const topVals = keys.map(k=>avg(top,k));
-  const restVals = rest.length ? keys.map(k=>avg(rest,k)) : keys.map(()=>0);
+  const topVals = G.map(k=>avg(top,k)), restVals = rest.length ? G.map(k=>avg(rest,k)) : G.map(()=>0);
 
-  const cx=230, cy=140, R=100;
-  const angle = i => -Math.PI/2 + i*(2*Math.PI/6);
-  const pt = (val,i) => [cx + Math.cos(angle(i))*R*(val/100), cy + Math.sin(angle(i))*R*(val/100)];
-  const poly = vals => vals.map((v,i)=>pt(v,i).map(n=>n.toFixed(1)).join(',')).join(' ');
-  const rings = [.25,.5,.75,1].map(f => {
-    const pts = keys.map((_,i)=>pt(100*f,i).map(n=>n.toFixed(1)).join(',')).join(' ');
-    return `<polygon points="${pts}" fill="none" stroke="var(--line-soft)"/>`;
-  }).join('');
-  const spokes = keys.map((_,i) => { const [ex,ey] = pt(100,i);
+  const cx=230, cy=145, R=100;
+  const ang = i => -Math.PI/2 + i*(2*Math.PI/6);
+  const pt = (v,i) => [cx + Math.cos(ang(i))*R*(v/100), cy + Math.sin(ang(i))*R*(v/100)];
+  const poly = vs => vs.map((v,i)=>pt(v,i).map(n=>n.toFixed(1)).join(',')).join(' ');
+  const rings = [.25,.5,.75,1].map(f =>
+    `<polygon points="${G.map((_,i)=>pt(100*f,i).map(n=>n.toFixed(1)).join(',')).join(' ')}" fill="none" stroke="var(--line-soft)"/>`).join('');
+  const spokes = G.map((_,i) => { const [ex,ey]=pt(100,i);
     return `<line x1="${cx}" y1="${cy}" x2="${ex.toFixed(1)}" y2="${ey.toFixed(1)}" class="an-grid-ln"/>`; }).join('');
-  const axLabels = keys.map((k,i) => {
-    const [lx,ly] = pt(122,i);
-    const anchor = Math.abs(Math.cos(angle(i)))<0.2 ? 'middle' : Math.cos(angle(i))>0 ? 'start' : 'end';
-    return `<text class="an-ax" x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="${anchor}">${labels[i]}</text>`;
+  const labels = G.map((k,i) => {
+    const [lx,ly]=pt(124,i);
+    const a = Math.abs(Math.cos(ang(i)))<0.2 ? 'middle' : Math.cos(ang(i))>0 ? 'start' : 'end';
+    return `<text class="an-ax" x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="${a}">${L[i]}</text>`;
+  }).join('');
+  const deltas = G.map((k,i) => {
+    const diff = topVals[i] - restVals[i];
+    return `<div class="an-delta-row"><span>${L[i]}</span>
+      <span class="an-delta-bar"><i style="width:${Math.min(100,Math.abs(diff))}%; background:${diff>=0?'var(--good)':'var(--bad)'}"></i></span>
+      <b style="color:${diff>=0?'var(--good)':'var(--bad)'}">${diff>=0?'+':''}${diff.toFixed(0)}</b></div>`;
   }).join('');
 
-  body.innerHTML = `
-    <div class="an-card">
-      <div class="an-card-head">
-        <div><div class="an-card-t">Aggregate Tool Grade Radar</div><div class="an-card-sub">average grade, top decile vs. rest</div></div>
-        <div class="an-card-stat">Top <b>n=${top.length}</b> · Rest <b>n=${rest.length}</b></div>
-      </div>
-      <svg class="an-svg" viewBox="0 0 460 280" style="max-width:360px; margin:0 auto">
+  return `<div class="an-row">
+    ${anCard('Aggregate Tool Grades', 'top decile vs. everyone else',
+      `Top <b>n=${top.length}</b> · Rest <b>n=${rest.length}</b>`,
+      `<svg class="an-svg" viewBox="0 0 460 290" style="max-width:380px; margin:0 auto">
         ${rings}${spokes}
-        ${rest.length ? `<polygon points="${poly(restVals)}" fill="none" stroke="var(--gold)" stroke-width="1.6" stroke-dasharray="4 3"/>` : ''}
+        ${rest.length?`<polygon points="${poly(restVals)}" fill="none" stroke="var(--gold)" stroke-width="1.6" stroke-dasharray="4 3"/>`:''}
         <polygon points="${poly(topVals)}" fill="var(--accent)" fill-opacity=".16" stroke="var(--accent)" stroke-width="2"/>
-        ${axLabels}
-      </svg>
+        ${labels}</svg>
       <div class="an-legend" style="justify-content:center">
-        <div class="an-lg-item" style="cursor:pointer" onclick="anFilterScoreMin(${Math.floor(p90cut)})" title="Filter to score ${p90cut.toFixed(0)}+">
-          <span class="an-lg-sw" style="background:var(--accent)"></span>Top decile (${p90cut.toFixed(0)}+)</div>
+        <div class="an-lg-item" style="cursor:pointer" onclick="anPickBand(${Math.floor(cut)},101)">
+          <span class="an-lg-sw" style="background:var(--accent)"></span>Top decile (${cut.toFixed(0)}+)</div>
         ${rest.length?`<div class="an-lg-item"><span class="an-lg-sw" style="background:var(--gold)"></span>Everyone else</div>`:''}
-      </div>
-    </div>`;
+      </div>`)}
+    ${anCard('Where the Gap Is', 'top decile minus the rest, in grade points', '', `<div class="an-deltas">${deltas}</div>`)}
+  </div>`;
 }
 
-function renderAnPrice(d, body) {
+// ── Price ────────────────────────────────────────────────────────────
+function renderAnPrice(d) {
   const priced = d.filter(p => p.price_raw != null && p.price_raw > 0);
-  if (priced.length < 6) { body.innerHTML = `<div class="an-empty">Not enough priced cards in this filter to chart a trend.</div>`; return; }
-  const pts = priced.map(p => [p.prospect_score, Math.log(p.price_raw)]);
-  const { slope, intercept } = linreg(pts);
-  const withResid = priced.map(p => ({ p, resid: Math.log(p.price_raw) - (intercept+slope*p.prospect_score) }));
-  const over = [...withResid].sort((a,b)=>b.resid-a.resid).slice(0,4);
-  const under = [...withResid].sort((a,b)=>a.resid-b.resid).slice(0,4);
+  if (priced.length < 6) return `<div class="an-empty">Not enough priced cards in this scope to fit a trend.</div>`;
+  const { slope, intercept } = linreg(priced.map(p => [p.prospect_score, Math.log(p.price_raw)]));
+  const resid = priced.map(p => ({ p, e: Math.log(p.price_raw) - (intercept + slope*p.prospect_score) }));
+  const over  = [...resid].sort((a,b)=>b.e-a.e).slice(0,6);
+  const under = [...resid].sort((a,b)=>a.e-b.e).slice(0,6);
 
-  const W=460, H=260, padL=44, padB=30, padT=10, padR=10;
-  const scores = priced.map(p=>p.prospect_score);
-  const minS = Math.min(...scores), maxS = Math.max(...scores);
+  const W=620, H=300, padL=52, padB=34, padT=12, padR=14;
+  const ss = priced.map(p=>p.prospect_score);
+  const minS = Math.min(...ss), maxS = Math.max(...ss);
   const maxP = Math.max(...priced.map(p=>p.price_raw));
-  const x = s => padL + (s-minS)/((maxS-minS)||1)*(W-padL-padR);
-  const yLog = pr => (H-padB) - (Math.log(pr+1)/Math.log(maxP+1))*(H-padB-padT);
+  const X = s => padL + (s-minS)/((maxS-minS)||1)*(W-padL-padR);
+  const Y = pr => (H-padB) - (Math.log(pr+1)/Math.log(maxP+1))*(H-padB-padT);
 
-  const anPriceDot = (p, cx, cy, r, fill, opacity) => `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${r}" fill="${fill}"
-    ${opacity?`opacity="${opacity}"`:''} stroke="var(--panel)" stroke-width="1.3" style="cursor:pointer"
-    onclick="anOpenPlayer(RAW[${RAW.indexOf(p)}])"><title>${p.name} — score ${p.prospect_score}, raw $${p.price_raw.toFixed(2)}</title></circle>`;
+  const flag = new Set([...over,...under].map(o=>o.p));
+  const dots = priced.map(p => {
+    const o = flag.has(p), fill = !o ? 'var(--dim)' : (Math.log(p.price_raw) > intercept+slope*p.prospect_score ? 'var(--bad)' : 'var(--good)');
+    return `<circle cx="${X(p.prospect_score).toFixed(1)}" cy="${Y(p.price_raw).toFixed(1)}" r="${o?4.8:2.8}"
+      fill="${fill}" ${o?'':'opacity=".45"'} stroke="var(--panel)" stroke-width="${o?1.4:0.8}"
+      ${anPlayerAttrs(p)}><title>${p.name} — score ${p.prospect_score}, raw $${p.price_raw.toFixed(2)}</title></circle>`;
+  }).join('');
+  const trend = Array.from({length:21}, (_,i) => {
+    const s = minS + (maxS-minS)*i/20;
+    return `${X(s).toFixed(1)},${Y(Math.exp(intercept+slope*s)).toFixed(1)}`;
+  }).join(' ');
+  const gridY = [0,0.25,0.5,0.75,1].map(f => {
+    const pr = Math.exp(f*Math.log(maxP+1))-1, y = Y(pr);
+    return `<line class="an-grid-ln" x1="${padL}" y1="${y.toFixed(1)}" x2="${W-padR}" y2="${y.toFixed(1)}"/>
+      <text class="an-ax" x="${padL-6}" y="${(y+3).toFixed(1)}" text-anchor="end">$${pr<10?pr.toFixed(1):Math.round(pr)}</text>`;
+  }).join('');
 
-  const outSet = new Set([...over,...under].map(o=>o.p));
-  const dots = priced.filter(p=>!outSet.has(p)).map(p =>
-    anPriceDot(p, x(p.prospect_score), yLog(p.price_raw), 2.6, 'var(--dim)', .5)).join('');
-  const outDots = [...over.map(o=>({...o,c:'var(--bad)'})), ...under.map(o=>({...o,c:'var(--good)'}))].map(o =>
-    anPriceDot(o.p, x(o.p.prospect_score), yLog(o.p.price_raw), 4.6, o.c)).join('');
-
-  const trendPts = [];
-  const stepN = 20;
-  for (let i=0; i<=stepN; i++) {
-    const s = minS + (maxS-minS)*i/stepN;
-    trendPts.push(`${x(s).toFixed(1)},${yLog(Math.exp(intercept+slope*s)).toFixed(1)}`);
-  }
-
-  const mmList = (arr,label,color,tag) => !arr.length ? '' : `
+  const mm = (arr,label,color,tag) => !arr.length ? '' : `
     <div class="an-mm-sub-head">${label}</div>
-    <div class="an-mm-list">${arr.map(o => `<div class="an-mm-row" style="cursor:pointer" onclick="anOpenPlayer(RAW[${RAW.indexOf(o.p)}])">
-      <div><div class="an-mm-name">${o.p.name}</div><div class="an-mm-meta">${o.p.team||'—'} · ${lvlShort(o.p.level||'—')} · score ${o.p.prospect_score}</div></div>
+    <div class="an-mm-list">${arr.map(o => `<div class="an-mm-row" ${anPlayerAttrs(o.p)}>
+      <div><div class="an-mm-name">${o.p.name}${tierTag(o.p)}</div>
+        <div class="an-mm-meta">${o.p.team||'—'} · ${lvlShort(o.p.level||'—')} · score ${o.p.prospect_score}</div></div>
       <div class="an-mm-price">raw <b>$${o.p.price_raw.toFixed(2)}</b></div>
       <div class="an-mm-gap" style="color:${color}">${tag}</div>
     </div>`).join('')}</div>`;
 
-  body.innerHTML = `
-    <div class="an-card">
-      <div class="an-card-head">
-        <div><div class="an-card-t">Price vs. Score Correlation</div><div class="an-card-sub">raw card price, current filter</div></div>
-        <div class="an-card-stat"><b>${priced.length}</b> priced cards</div>
-      </div>
-      <svg class="an-svg" viewBox="0 0 ${W} ${H}">
+  return anCard('Price vs. Score', 'log-scaled price against score — click a dot for the player',
+      `<b>${priced.length}</b> priced`,
+      `<svg class="an-svg" viewBox="0 0 ${W} ${H}">
         <line class="an-grid-ln" x1="${padL}" y1="${padT}" x2="${padL}" y2="${H-padB}"/>
         <line class="an-grid-ln" x1="${padL}" y1="${H-padB}" x2="${W-padR}" y2="${H-padB}"/>
-        <text class="an-ax" x="${padL-4}" y="${H-padB+4}" text-anchor="end">$0</text>
-        <text class="an-ax" x="${padL-4}" y="${padT+8}" text-anchor="end">$${Math.round(maxP)}</text>
-        <text class="an-ax" x="${padL}" y="${H-8}" text-anchor="middle">${minS.toFixed(0)}</text>
-        <text class="an-ax" x="${W-padR}" y="${H-8}" text-anchor="middle">${maxS.toFixed(0)}</text>
-        <text class="an-ax-t" x="${(padL+W-padR)/2}" y="${H-1}" text-anchor="middle">Score</text>
-        <polyline class="an-trend" points="${trendPts.join(' ')}" fill="none"/>
-        ${dots}${outDots}
+        ${gridY}
+        <text class="an-ax" x="${padL}" y="${H-padB+16}" text-anchor="middle">${minS.toFixed(0)}</text>
+        <text class="an-ax" x="${W-padR}" y="${H-padB+16}" text-anchor="middle">${maxS.toFixed(0)}</text>
+        <text class="an-ax-t" x="${(padL+W-padR)/2}" y="${H-4}" text-anchor="middle">Score</text>
+        <polyline class="an-trend" points="${trend}" fill="none"/>${dots}
       </svg>
       <div class="an-legend">
-        <div class="an-lg-item"><span class="an-lg-dot" style="background:var(--bad)"></span>Priced above trend</div>
-        <div class="an-lg-item"><span class="an-lg-dot" style="background:var(--good)"></span>Priced below trend</div>
-      </div>
-    </div>
-    <div class="an-card">
-      <div class="an-card-head"><div><div class="an-card-t">Mismatches</div><div class="an-card-sub">largest gap between price and score-predicted price</div></div></div>
-      ${mmList(under,'Priced below what score suggests','var(--good)','↓ undervalued')}
-      ${mmList(over,'Priced above what score suggests','var(--bad)','↑ overpriced')}
-    </div>`;
+        <div class="an-lg-item"><span class="an-lg-dot" style="background:var(--bad)"></span>above trend</div>
+        <div class="an-lg-item"><span class="an-lg-dot" style="background:var(--good)"></span>below trend</div>
+      </div>`)
+    + anCard('Mismatches', 'largest gap between actual price and what the score-price trend predicts', '',
+        mm(under,'Priced below what score suggests','var(--good)','↓ undervalued')
+      + mm(over,'Priced above what score suggests','var(--bad)','↑ overpriced'));
 }
-
 function sc(p) {
   const s = p.prospect_score;
   return s >= 90 ? 'sm' : s >= 70 ? 'sh' : s >= 55 ? 'sy' : s >= 40 ? 'sl' : 'sr';
