@@ -881,6 +881,22 @@
   /* the tier a player already holds, shown wherever they appear in the app */
   .tier-tag { display:inline-flex; align-items:center; justify-content:center; width:16px; height:16px;
     border-radius:50%; font-size:9px; line-height:1; vertical-align:middle; margin-left:5px; }
+  .tier-tag-click { cursor:pointer; transition:transform .12s, background .12s; }
+  .tier-tag-click:hover { background:var(--sunk2); transform:scale(1.15); }
+
+  /* ── tier re-tag popover — click a tag anywhere in Table/Cards to move
+     a player between tiers without opening Sort Mode ── */
+  #tier-pop { display:none; position:fixed; z-index:250; background:var(--panel);
+    border:1px solid var(--line-strong); border-radius:999px; box-shadow:var(--shadow-md);
+    padding:5px; gap:3px; align-items:center; }
+  #tier-pop.open { display:flex; }
+  .tier-pop-btn { width:30px; height:30px; border-radius:50%; border:1px solid var(--line);
+    background:var(--sunk); display:flex; align-items:center; justify-content:center; font-size:14px;
+    cursor:pointer; transition:transform .1s, border-color .1s; }
+  .tier-pop-btn:hover { transform:translateY(-1px); border-color:currentColor; }
+  .tier-pop-btn.cur { background:var(--sunk2); border-color:currentColor; box-shadow:inset 0 0 0 1px currentColor; }
+  .tier-pop-clear { color:var(--faint) !important; font-size:12px; }
+  .tier-pop-sep { width:1px; height:18px; background:var(--line); margin:0 2px; flex:none; }
 
   @media (max-width:640px) {
     .sort-inner { padding-left:12px; padding-right:12px; }
@@ -1380,6 +1396,8 @@
   <div id="an-tip"></div>
 </div>
 
+<div id="tier-pop"></div>
+
 <script>
 
 /* ══ Daylight runtime ══════════════════════════════════════════════════
@@ -1605,7 +1623,7 @@ function marketRow(p, gi, idx, starOn) {
   return `<tr onclick="showD(${idx})">
     <td class="star-td st st1"><button class="star-btn ${starOn?'on':inWatch(p)?'on':''}" onclick="toggleWatch(RAW[${idx}],event)">★</button></td>
     <td class="st st2" style="color:var(--text-dim)">${gi}</td>
-    <td class="pname st st3">${p.name}${tierTag(p)}</td>
+    <td class="pname st st3">${p.name}${tierTag(p,true)}</td>
     <td><span class="tbadge">${p.team}</span></td>
     <td>${p.age}</td>
     <td style="color:var(--text-dim)">${p.pos||'—'}</td>
@@ -1644,7 +1662,7 @@ function statsRow(p, gi, idx, starOn) {
   return `<tr onclick="showD(${idx})">
     <td class="star-td st st1"><button class="star-btn ${starOn?'on':inWatch(p)?'on':''}" onclick="toggleWatch(RAW[${idx}],event)">★</button></td>
     <td class="st st2" style="color:var(--text-dim)">${gi}</td>
-    <td class="pname st st3">${p.name}${tierTag(p)}</td>
+    <td class="pname st st3">${p.name}${tierTag(p,true)}</td>
     <td><span class="tbadge">${p.team}</span></td>
     <td>${p.age}</td>
     <td class="${cls}" style="font-weight:600">${p.prospect_score??'—'}</td>
@@ -2227,11 +2245,55 @@ let sortUndo   = [];
 
 function saveTiersLocal() { localStorage.setItem('tiers', JSON.stringify(tierMap)); }
 function tierOf(p) { return tierMap[pkey(p)] || null; }
-/* the tier badge shown next to a name anywhere in the app */
-function tierTag(p) {
+/* the tier badge shown next to a name anywhere in the app. `clickable`
+   opens the re-tag popover on click (Table/Cards rows); everywhere else
+   (Analytics, the sort card) it stays a plain read-only badge. */
+function tierTag(p, clickable) {
   const t = TIER_BY_ID[tierOf(p)];
-  return t ? `<span class="tier-tag" style="color:${t.color}" title="${t.label}">${t.icon}</span>` : '';
+  if (!t) return '';
+  if (!clickable) return `<span class="tier-tag" style="color:${t.color}" title="${t.label}">${t.icon}</span>`;
+  return `<span class="tier-tag tier-tag-click" style="color:${t.color}" title="${t.label} — click to change"
+    onclick="tierPopOpen(${RAW.indexOf(p)},event)">${t.icon}</span>`;
 }
+
+/* ── re-tag popover ── */
+function tierPopOpen(idx, e) {
+  e.stopPropagation();
+  const p = RAW[idx];
+  if (!p) return;
+  const pop = document.getElementById('tier-pop');
+  const cur = tierOf(p);
+  pop.innerHTML = TIERS.map(t => `<button class="tier-pop-btn${cur===t.id?' cur':''}" style="color:${t.color}"
+      onclick="tierSetFor(${idx},'${t.id}')" title="${t.label}">${t.icon}</button>`).join('')
+    + `<span class="tier-pop-sep"></span>
+       <button class="tier-pop-btn tier-pop-clear" onclick="tierSetFor(${idx},null)" title="Remove tag">✕</button>`;
+  pop.classList.add('open');
+  const r = e.target.getBoundingClientRect();
+  requestAnimationFrame(() => {
+    const pw = pop.offsetWidth, ph = pop.offsetHeight;
+    let x = r.left - pw/2 + r.width/2, y = r.bottom + 8;
+    if (x + pw > window.innerWidth - 8) x = window.innerWidth - pw - 8;
+    if (x < 8) x = 8;
+    if (y + ph > window.innerHeight - 8) y = r.top - ph - 8;
+    pop.style.left = x + 'px';
+    pop.style.top = y + 'px';
+  });
+}
+function tierPopClose() { document.getElementById('tier-pop').classList.remove('open'); }
+function tierSetFor(idx, tierId) {
+  const p = RAW[idx];
+  if (!p) return;
+  const key = pkey(p);
+  if (tierId) tierMap[key] = tierId; else delete tierMap[key];
+  saveTiersLocal();
+  syncTiersPush();
+  tierPopClose();
+  renderAll();
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('#tier-pop') && !e.target.closest('.tier-tag-click')) tierPopClose();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') tierPopClose(); });
 
 async function syncTiersPull(isStartup) {
   if (!SYNC_ENABLED) return;
@@ -4139,7 +4201,7 @@ function renderTable() {
     return `<tr onclick="showD(${idx})">
       <td class="star-td st st1"><button class="star-btn ${inWatch(p)?'on':''}" onclick="toggleWatch(RAW[${idx}],event)">★</button></td>
       <td class="st st2" style="color:var(--text-dim)">${gi}</td>
-      <td class="pname st st3">${p.name}${tierTag(p)}</td>
+      <td class="pname st st3">${p.name}${tierTag(p,true)}</td>
       <td><span class="tbadge">${p.team}</span></td>
       <td><span class="lvl ${lc(p.level)}">${lvlShort(p.level)}</span></td>
       <td>${p.age}</td>
@@ -4206,7 +4268,7 @@ function renderCards() {
       <button class="star-btn ${inWatch(p)?'on':''}" onclick="toggleWatch(RAW[${idx}],event)" style="position:absolute;top:16px;left:10px;font-size:17px">★</button>
       <div class="ch">
         <div style="padding-left:18px">
-          <div class="cn">${p.name}</div>
+          <div class="cn">${p.name}${tierTag(p,true)}</div>
           <div class="cm">${p.team} · ${lvlShort(p.level)} · Age ${p.age}</div>
         </div>
         <div class="sc ${cls}">${p.prospect_score ?? '—'}</div>
@@ -4279,7 +4341,7 @@ function renderWatch() {
     return `<tr onclick="showD(${idx})">
       <td class="star-td st st1"><button class="star-btn on" onclick="toggleWatch(RAW[${idx}],event)">★</button></td>
       <td class="st st2" style="color:var(--text-dim)">${gi}</td>
-      <td class="pname st st3">${p.name}${tierTag(p)}</td>
+      <td class="pname st st3">${p.name}${tierTag(p,true)}</td>
       <td><span class="tbadge">${p.team}</span></td>
       <td><span class="lvl ${lc(p.level)}">${lvlShort(p.level)}</span></td>
       <td>${p.age}</td>
