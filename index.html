@@ -983,6 +983,11 @@
   .an-swap { background:var(--sunk); border:1px solid var(--line); color:var(--dim); cursor:pointer;
     width:26px; height:26px; border-radius:50%; font-size:12px; line-height:1; }
   .an-swap:hover { color:var(--accent); border-color:var(--accent-line); }
+  .an-seg-toggle { font-family:var(--font-mono); font-size:10.5px; letter-spacing:.3px; cursor:pointer;
+    padding:6px 13px; border-radius:999px; background:var(--sunk); border:1px solid var(--line); color:var(--dim); }
+  .an-seg-toggle:hover { border-color:var(--line-strong); color:var(--ink); }
+  .an-seg-toggle.active { background:var(--accent); color:var(--accent-ink); border-color:var(--accent); font-weight:600; }
+  .an-radar-search { min-width:190px; flex:1 1 190px; cursor:text; }
 
   /* ── small-multiple distributions ── */
   .an-sm-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(190px,1fr)); gap:16px 18px; }
@@ -2327,11 +2332,15 @@ function gradeRing(pct, color) {
 
 /* Same percentile-within-level heat used everywhere else in the app
    (heatPct/heatFill/heatInk, built once from RAW) — a card stat gets the
-   identical color a table cell for the same stat would get. Falls back to
-   a plain cell for anything HEAT is off, has no anchors yet, or isn't a
-   heat-tracked stat at all (AB, GB/FB aren't in HEAT_STATS). */
+   identical color a table cell for the same stat would get. Always on
+   here regardless of the main table's Heat toggle: Sort Mode is a
+   focused single-player read where the percentile color IS the point,
+   not an optional table decoration, and the toggle lives in the main
+   rail which this full-screen view hides anyway. Falls back to a plain
+   cell for anything with no anchors yet or that isn't a heat-tracked
+   stat at all (AB, GB/FB aren't in HEAT_STATS). */
 function scCell(p, key, val, lbl, fallbackColor) {
-  if (HEAT && key && HEAT_STATS.includes(key)) {
+  if (key && HEAT_STATS.includes(key)) {
     const t = heatPct(p, key);
     if (t != null) {
       const ink = heatInk(t);
@@ -3230,6 +3239,15 @@ function renderAnPositions(d) {
 // ── Radar ────────────────────────────────────────────────────────────
 let anRadarCompare = '__top__'; // '__top__' or a pkey — who the accent shape represents
 function anSetRadarCompare(v) { anRadarCompare = v; renderAnalytics(); }
+// datalist gives a name, not a pkey — resolve it against the current
+// scope (case-insensitive, exact match only, so a partial in-progress
+// keystroke doesn't jump the radar mid-type)
+function anRadarSearchPick(name) {
+  const q = name.trim().toLowerCase();
+  if (!q) { anSetRadarCompare('__top__'); return; }
+  const p = anScope().find(x => x.name.toLowerCase() === q);
+  if (p) anSetRadarCompare(pkey(p));
+}
 
 function renderAnRadar(d) {
   const G = ['hit','dis','pwr','spd','age_r','wrc_r'], L = ['HIT','DIS','PWR','SPD','AGE','WRC+'];
@@ -3278,13 +3296,14 @@ function renderAnRadar(d) {
 
   const picker = `<div class="an-ctrls">
     <span class="an-ctrl-l">Compare</span>
-    <select class="an-sel" onchange="anSetRadarCompare(this.value)">
-      <option value="__top__"${mode==='top'?' selected':''}>Top decile vs. rest</option>
-      <optgroup label="Compare one player to the scope">
-        ${[...rows].sort((a,b)=>a.name.localeCompare(b.name)).map(p =>
-          `<option value="${pkey(p)}"${mode==='player'&&p===focusPlayer?' selected':''}>${p.name} (${p.team||'—'})</option>`).join('')}
-      </optgroup>
-    </select>
+    <button class="an-seg-toggle${mode==='top'?' active':''}" onclick="anSetRadarCompare('__top__')">Top decile</button>
+    <span class="an-ctrl-l">or type a player</span>
+    <input class="an-sel an-radar-search" type="text" list="an-radar-list" placeholder="Player name…"
+      value="${mode==='player' ? anEsc(focusPlayer.name) : ''}"
+      onchange="anRadarSearchPick(this.value)" autocomplete="off">
+    <datalist id="an-radar-list">
+      ${[...rows].sort((a,b)=>a.name.localeCompare(b.name)).map(p=>`<option value="${anEsc(p.name)}">`).join('')}
+    </datalist>
   </div>`;
 
   return picker + `<div class="an-row">
