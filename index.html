@@ -1130,6 +1130,12 @@
     .an-donut-wrap { gap:12px; }
     /* 5 KPIs in a 2-wide grid leaves the last one orphaned at half width */
     .an-kpis > :last-child:nth-child(odd) { grid-column:span 2; }
+    /* the title/stat header and mismatch-style rows (name + 2 value columns)
+       were built assuming desktop width — wrap instead of overflowing off
+       the right edge of a 375px screen */
+    .an-card-head { flex-wrap:wrap; row-gap:4px; }
+    .an-mm-row { grid-template-columns:1fr 1fr; row-gap:6px; column-gap:10px; }
+    .an-mm-row > :first-child { grid-column:1/-1; }
   }
 </style>
 </head>
@@ -2559,7 +2565,11 @@ const AN_TABS = [
   { id:'teams',     l:'Teams'     },
   { id:'positions', l:'Positions' },
   { id:'radar',     l:'Radar'     },
+  { id:'aging',     l:'Aging'     },
+  { id:'eta',       l:'ETA'       },
   { id:'price',     l:'Price'     },
+  { id:'grading',   l:'Grading'   },
+  { id:'divergence',l:'Divergence'},
 ];
 let anTab = 'overview';
 /* Each entry: { id, label, test(p), apply? } — `id` is the category, so
@@ -2737,6 +2747,19 @@ function anPickRange(k, lo, hi) {
   anAddFilter({ id:'stat:'+k, label:`${anLabel(k)} ${anFmt(k,lo)}–${anFmt(k,hi)}`,
     test: p => { const v = anVal(p,k); return v != null && v >= lo && v <= hi; } });
 }
+function anPickAge(age) {
+  anAddFilter({ id:'stat:age', label:`Age ${age}`, test: p => p.age === age });
+}
+// No dashboard field maps to a single ETA year (feta is the multi-select,
+// but its tokens are whatever string the sheet happened to store) — apply
+// it directly against the same string so "Apply to dashboard" still works.
+function anPickEta(eta) {
+  anAddFilter({ id:'eta', label:`ETA ${eta}`, apply:{field:'feta', value:eta}, test: p => p.eta === eta });
+}
+function anPickMultRange(lo, hi) {
+  anAddFilter({ id:'mult', label:`Grading premium ${lo}×–${hi}×`,
+    test: p => p.price_raw > 0 && p.price_psa10 != null && (p.price_psa10/p.price_raw) >= lo && (p.price_psa10/p.price_raw) < hi });
+}
 
 function anLevelColor(l) {
   const c = lc(l || '');
@@ -2859,7 +2882,8 @@ function renderAnalytics() {
   }
   const fn = { overview: renderAnOverview, explore: renderAnExplore, dist: renderAnDist,
      corr: renderAnCorr, movers: renderAnMovers, levels: renderAnLevels, teams: renderAnTeams,
-     positions: renderAnPositions, radar: renderAnRadar, price: renderAnPrice }[anTab] || renderAnOverview;
+     positions: renderAnPositions, radar: renderAnRadar, aging: renderAnAging, eta: renderAnEta,
+     price: renderAnPrice, grading: renderAnGrading, divergence: renderAnDivergence }[anTab] || renderAnOverview;
   body.innerHTML = chips + fn(d);
 }
 
@@ -3324,6 +3348,82 @@ function renderAnRadar(d) {
   </div>`;
 }
 
+// ── Aging Curve ──────────────────────────────────────────────────────
+function renderAnAging(d) {
+  const rows = d.filter(p => p.age != null && p.prospect_score != null);
+  if (rows.length < 20) return `<div class="an-empty">Not enough age/score data in this scope.</div>`;
+  const byAge = {};
+  rows.forEach(p => (byAge[p.age] = byAge[p.age]||[]).push(p));
+  const ages = Object.keys(byAge).map(Number).sort((a,b)=>a-b);
+  const avgs = ages.map(a => anMedian(byAge[a].map(p=>p.prospect_score)));
+  // wOBA/AVG etc average differently than median reads better for score —
+  // mean is fine here since score isn't heavily skewed within an age band
+  const means = ages.map(a => { const g=byAge[a]; return g.reduce((s,p)=>s+p.prospect_score,0)/g.length; });
+
+  const W=620, H=260, padL=44, padB=34, padT=14, padR=14;
+  const yMin = Math.min(...means)-3, yMax = Math.max(...means)+3;
+  const X = i => padL + i/((ages.length-1)||1)*(W-padL-padR);
+  const Y = v => (H-padB) - (v-yMin)/((yMax-yMin)||1)*(H-padB-padT);
+
+  const gridY = [0,0.33,0.66,1].map(f => {
+    const v = yMin+(yMax-yMin)*f, y = Y(v);
+    return `<line class="an-grid-ln" x1="${padL}" y1="${y.toFixed(1)}" x2="${W-padR}" y2="${y.toFixed(1)}"/>
+      <text class="an-ax" x="${padL-6}" y="${(y+3).toFixed(1)}" text-anchor="end">${v.toFixed(0)}</text>`;
+  }).join('');
+  const line = ages.map((a,i) => `${X(i).toFixed(1)},${Y(means[i]).toFixed(1)}`).join(' ');
+  const peakI = means.indexOf(Math.max(...means));
+  const pts = ages.map((a,i) => {
+    const n = byAge[a].length, small = n < 10;
+    const tip = `<b>Age ${a}</b>
+      <div class="an-tip-row"><span>Players</span><b>${n}</b></div>
+      <div class="an-tip-row"><span>Mean score</span><b>${means[i].toFixed(1)}</b></div>
+      <div class="an-tip-row"><span>Median score</span><b>${avgs[i].toFixed(1)}</b></div>
+      ${small?`<div class="an-tip-row"><span>small sample</span><b>under 10 players</b></div>`:''}`;
+    return `<circle cx="${X(i).toFixed(1)}" cy="${Y(means[i]).toFixed(1)}" r="${i===peakI?5:3.4}"
+      fill="${i===peakI?'var(--good)':'var(--accent)'}" ${small?'opacity=".55"':''} stroke="var(--panel)" stroke-width="1.2"
+      style="cursor:pointer" onclick="anPickAge(${a})" ${anHoverAttrs(tip)}></circle>`;
+  }).join('');
+  const xLabels = ages.map((a,i) => `<text class="an-ax" x="${X(i).toFixed(1)}" y="${H-padB+16}" text-anchor="middle">${a}</text>`).join('');
+
+  return anCard('Average Score by Age', 'mean prospect score at each age in the current scope — click a point to drill in',
+    `peak <b>${ages[peakI]}</b> · ${ages.length} ages`,
+    `<svg class="an-svg" viewBox="0 0 ${W} ${H}">
+      <line class="an-grid-ln" x1="${padL}" y1="${padT}" x2="${padL}" y2="${H-padB}"/>
+      <line class="an-grid-ln" x1="${padL}" y1="${H-padB}" x2="${W-padR}" y2="${H-padB}"/>
+      ${gridY}
+      <polyline points="${line}" fill="none" stroke="var(--accent)" stroke-width="1.6"/>
+      ${pts}${xLabels}
+      <text class="an-ax-t" x="${(padL+W-padR)/2}" y="${H-4}" text-anchor="middle">Age</text>
+    </svg>
+    <div class="an-legend"><div class="an-lg-item"><span class="an-lg-dot" style="background:var(--good)"></span>peak age</div>
+      <div class="an-lg-item">faded dots = fewer than 10 players at that age</div></div>`);
+}
+
+// ── ETA Timeline ─────────────────────────────────────────────────────
+function renderAnEta(d) {
+  const withEta = d.filter(p => p.eta);
+  const groups = {};
+  withEta.forEach(p => (groups[p.eta] = groups[p.eta]||[]).push(p));
+  const years = Object.keys(groups).sort();
+  if (!years.length) return `<div class="an-empty">No ETA data in this scope.</div>`;
+  const maxN = Math.max(...years.map(y=>groups[y].length), 1);
+  const rows = years.map(y => {
+    const g = groups[y], n = g.length;
+    const tip = `<b>ETA ${y}</b>
+      <div class="an-tip-row"><span>Players</span><b>${n}</b></div>
+      <div class="an-tip-row"><span>Share of ETA'd players</span><b>${(n/withEta.length*100).toFixed(0)}%</b></div>`;
+    return `<div class="an-pipe-row" style="cursor:pointer" onclick="anPickEta('${y}')" ${anHoverAttrs(tip)}>
+      <div class="an-pipe-lbl">${y}</div>
+      <div class="an-pipe-track" style="width:${Math.max(10,n/maxN*100)}%"><div class="an-pipe-seg" style="width:100%; background:var(--accent)"></div></div>
+      <div class="an-pipe-n">${n}</div></div>`;
+  }).join('');
+  const pct = (withEta.length/d.length*100).toFixed(0);
+  return anCard('Arriving by Year', 'players with a projected ETA — click a row to drill in',
+    `<b>${withEta.length}</b> of ${d.length} have an ETA`,
+    rows + (pct < 60 ? `<div class="an-card-sub" style="margin-top:12px">
+      ⚠ only <b style="color:var(--ink)">${pct}%</b> of the current scope has an ETA on file — this chart speaks for a minority of the board</div>` : ''));
+}
+
 // ── Price ────────────────────────────────────────────────────────────
 function renderAnPrice(d) {
   const priced = d.filter(p => p.price_raw != null && p.price_raw > 0);
@@ -3385,6 +3485,83 @@ function renderAnPrice(d) {
         mm(under,'Priced below what score suggests','var(--good)','↓ undervalued')
       + mm(over,'Priced above what score suggests','var(--bad)','↑ overpriced'));
 }
+
+// ── Grading Premium ──────────────────────────────────────────────────
+function renderAnGrading(d) {
+  const both = d.filter(p => p.price_raw > 0 && p.price_psa10 != null && p.price_psa10 > 0);
+  if (both.length < 10) return `<div class="an-empty">Not enough cards priced both raw and PSA 10 in this scope.</div>`;
+  const withMult = both.map(p => ({ p, mult: p.price_psa10/p.price_raw }));
+  const mults = withMult.map(w=>w.mult);
+  const med = anMedian(mults);
+
+  // log-scaled bins — multiples span two orders of magnitude, a linear
+  // histogram would bury everything under the handful of extreme outliers
+  const logs = mults.map(m => Math.log10(Math.max(m,1)));
+  const loL = Math.min(...logs), hiL = Math.max(...logs);
+  const nBins = 12, w = (hiL-loL)/nBins || 1;
+  const bins = Array.from({length:nBins}, (_,i) => ({ lo: 10**(loL+i*w), hi: 10**(loL+(i+1)*w), n:0 }));
+  logs.forEach(l => bins[Math.min(nBins-1, Math.floor((l-loL)/w))].n++);
+  const maxN = Math.max(...bins.map(b=>b.n), 1);
+
+  const W=400, H=150;
+  const bw = W/nBins;
+  const bars = bins.map((b,i) => {
+    const h = Math.round(b.n/maxN*H);
+    const tip = `<b>${b.lo.toFixed(1)}×–${b.hi.toFixed(1)}×</b>
+      <div class="an-tip-row"><span>Cards</span><b>${b.n}</b></div>`;
+    return `<g style="cursor:pointer" onclick="anPickMultRange(${b.lo.toFixed(2)},${b.hi.toFixed(2)})" ${anHoverAttrs(tip)}>
+      <rect x="${(i*bw).toFixed(1)}" y="0" width="${bw.toFixed(1)}" height="${H}" fill="transparent"/>
+      <rect x="${(i*bw+0.5).toFixed(1)}" y="${H-h}" width="${(bw-1).toFixed(1)}" height="${Math.max(h,1)}"
+        fill="var(--gold)" opacity="${0.35+0.55*(b.n/maxN)}" rx="1"/></g>`;
+  }).join('');
+
+  const top = [...withMult].sort((a,b)=>b.mult-a.mult).slice(0,8);
+  const rows = top.map(w => `<div class="an-mm-row" ${anPlayerAttrs(w.p, [['Raw', '$'+w.p.price_raw.toFixed(2)], ['PSA 10', '$'+w.p.price_psa10.toFixed(2)]])}>
+    <div><div class="an-mm-name">${w.p.name}${tierTag(w.p)}</div>
+      <div class="an-mm-meta">${w.p.team||'—'} · ${lvlShort(w.p.level||'—')} · raw $${w.p.price_raw.toFixed(2)}</div></div>
+    <div class="an-mm-price">psa10 <b>$${w.p.price_psa10.toFixed(2)}</b></div>
+    <div class="an-mm-gap" style="color:var(--gold)">${w.mult.toFixed(0)}×</div>
+  </div>`).join('');
+
+  return `<div class="an-row">
+    ${anCard('PSA 10 Multiple', 'psa10 price ÷ raw price, log-scaled — click a bar to drill in',
+      `<b>${both.length}</b> cards · median <b>${med.toFixed(1)}×</b>`,
+      `<svg class="an-svg" viewBox="0 0 ${W} ${H+20}">${bars}
+        <line x1="0" y1="${H}" x2="${W}" y2="${H}" class="an-grid-ln"/>
+        <text class="an-ax" x="2" y="${H+14}">${bins[0].lo.toFixed(1)}×</text>
+        <text class="an-ax" x="${W-30}" y="${H+14}">${bins[nBins-1].hi.toFixed(0)}×+</text>
+      </svg>`)}
+    ${anCard('Biggest Multiples', 'the market betting the grade, not the player, is scarce', '', rows)}
+  </div>`;
+}
+
+// ── Ranking Divergence ───────────────────────────────────────────────
+function renderAnDivergence(d) {
+  const both = d.filter(p => p.rank != null && p.ltw_rank != null);
+  if (both.length < 10) return `<div class="an-empty">Not enough players ranked both ways in this scope.</div>`;
+  const withGap = both.map(p => ({ p, gap: Math.abs(p.rank - p.ltw_rank), favors: p.rank < p.ltw_rank ? 'score' : 'ltw' }));
+  const gaps = withGap.map(w=>w.gap);
+  const med = anMedian(gaps);
+  const top = [...withGap].sort((a,b)=>b.gap-a.gap).slice(0,14);
+
+  const rows = top.map(w => {
+    const p = w.p, scoreWins = w.favors === 'score';
+    const tip = `<b>${p.name}</b>
+      <div class="an-tip-row"><span>Prospect Score rank</span><b>#${p.rank.toLocaleString()}</b></div>
+      <div class="an-tip-row"><span>LTW rank</span><b>#${p.ltw_rank.toLocaleString()}</b></div>
+      <div class="an-tip-row"><span>Gap</span><b>${w.gap.toLocaleString()}</b></div>`;
+    return `<div class="an-mm-row" style="cursor:pointer" onclick="anOpenPlayer(RAW[${RAW.indexOf(p)}])" ${anHoverAttrs(tip)}>
+      <div><div class="an-mm-name">${p.name}${tierTag(p)}</div>
+        <div class="an-mm-meta">${p.team||'—'} · ${lvlShort(p.level||'—')} · ${scoreWins?'Score':'LTW'} ranks them higher</div></div>
+      <div class="an-mm-price" style="color:${scoreWins?'var(--good)':'var(--bad)'}">Score #${p.rank.toLocaleString()}</div>
+      <div class="an-mm-price" style="color:${scoreWins?'var(--bad)':'var(--good)'}">LTW #${p.ltw_rank.toLocaleString()}</div>
+    </div>`;
+  }).join('');
+
+  return anCard('Two Systems, Disagreeing', 'biggest gap between Prospect Score rank and LTW rank — click a player for their card',
+    `<b>${both.length}</b> ranked both ways · median gap <b>${med.toFixed(0)}</b>`, rows);
+}
+
 function sc(p) {
   const s = p.prospect_score;
   return s >= 90 ? 'sm' : s >= 70 ? 'sh' : s >= 55 ? 'sy' : s >= 40 ? 'sl' : 'sr';
